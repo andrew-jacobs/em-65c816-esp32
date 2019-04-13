@@ -1,7 +1,7 @@
 #===============================================================================
 # Portable 6502/65C02/65816 Assembler Definitions
 #-------------------------------------------------------------------------------
-# Copyright (C)2010-2017 Andrew John Jacobs.
+# Copyright (C)2010-2019 Andrew John Jacobs.
 # All rights reserved.
 #
 # This work is made available under the terms of the Creative Commons
@@ -39,7 +39,9 @@ LK65		=	java -cp $(DEV65_JAR) $(LK65_CLASS)
 
 LB65		=	java -cp $(DEV65_JAR) $(LB65_CLASS)
 
-RM			=	erase
+RM		=	erase
+
+CP		=	copy
 
 #===============================================================================
 # Rules

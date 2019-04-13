@@ -1,5 +1,5 @@
 #===============================================================================
-# Boot ROM Build Definitions
+# ROM Build Definitions
 #-------------------------------------------------------------------------------
 # Copyright (C),2019 HandCoded Software Ltd.
 # All rights reserved.
@@ -26,22 +26,15 @@ include	../MakeDefns
 #-------------------------------------------------------------------------------
 
 TARGETS	= \
-	boot.h rom0.h
+	rom3.h
 
-LK1_FLAGS = \
-	-bss $$0000-$$7FFF -code $$00f000-$$00ffff
-
-LK2_FLAGS = \
-	-bss $$0000-$$7FFF -code $$040000-$$04ffff
+LK_FLAGS = \
+	-bss $$0000-$$7FFF -code $$070000-$$07ffff
 
 all:	$(TARGETS)
 
-boot.h: boot.obj
-	$(LK65) $(LK1_FLAGS) -c -output $@ boot.obj
-	$(CP) $@ ..\..
-
-rom0.h: boot.obj
-	$(LK65) $(LK2_FLAGS) -c -output $@ boot.obj
+rom3.h: rom3.obj
+	$(LK65) $(LK_FLAGS) -c -output $@ rom3.obj
 	$(CP) $@ ..\..
 
 clean:
@@ -54,6 +47,6 @@ clean:
 # Dependencies
 #-------------------------------------------------------------------------------
 
-boot.obj: \
-	boot.asm ..\w65c816.inc
+rom3.obj: \
+	rom3.asm ..\w65c816.inc
 
