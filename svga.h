@@ -12,11 +12,13 @@
 //==============================================================================
 
 union VideoRAM {
-    struct {
-        uint16_t            offset [VIDEO_HEIGHT];
-        uint8_t             pixels [VIDEO_HEIGHT][VIDEO_WIDTH / PIXELS_PER_BYTE];
-    }
-    uint8_t             data [64 * 1024];
+    union {
+        struct {
+            uint16_t            offset [VIDEO_HEIGHT];
+            uint8_t             pixels [VIDEO_HEIGHT][VIDEO_WIDTH / PIXELS_PER_BYTE];
+        };
+        uint8_t             data [64 * 1024];
+    };
 };
 
 //==============================================================================
@@ -24,6 +26,10 @@ union VideoRAM {
 class SVGA
 {
 private:
+    static uint16_t     hsync;
+    static uint16_t     vsync;
+    static uint16_t     signal;
+
     static uint16_t     line;
 
     SVGA (void);
@@ -31,6 +37,7 @@ private:
     static void         onHSync (void);
 
 public:
-    static void begin   (uint16_t hsync, uint16_t vsync, uint_t signal);
+    static void begin   (uint16_t hsync, uint16_t vsync, uint16_t signal);
+};
 
 #endif
