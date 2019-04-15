@@ -1,0 +1,6 @@
+/roms/boot/boot.obj
+/roms/boot/boot.lst
+/roms/boot/boot.map
+/roms/boot/boot.h
+/roms/boot/rom0.h
+/roms/boot/rom0.map

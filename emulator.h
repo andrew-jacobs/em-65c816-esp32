@@ -340,6 +340,7 @@ inline void Emulator::setnz_w (uint16_t v)
 
 //------------------------------------------------------------------------------
 
+// Absolute
 inline uint16_t Emulator::am_absl (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (2);
@@ -351,88 +352,111 @@ inline uint16_t Emulator::am_absl (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
     return ((*this.*pOp)(ea + 0, ea + 1) + 2);
 }
 
+// Absolute Indexed X
 inline uint16_t Emulator::am_absx (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (2);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
     register uint8_t    ah = mem.getByte (pbr.a | pc.w++);
-    register uint32_t   ea = dbr.a | join (al, ah);
+    register uint32_t   ea = dbr.a | join (al, ah) + x.w;
 
     return ((*this.*pOp)(ea + 0, ea + 1) + 2);
 }
 
+// Absolute Indexed Y
 inline uint16_t Emulator::am_absy (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (2);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
     register uint8_t    ah = mem.getByte (pbr.a | pc.w++);
-    register uint32_t   ea = dbr.a | join (al, ah);
+    register uint32_t   ea = dbr.a | join (al, ah) + y.w;
 
     return ((*this.*pOp)(ea + 0, ea + 1) + 2);
 }
 
-// FIX
+// Absolute Indirect (JMP (ind) only)
 inline uint16_t Emulator::am_absi (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
-    if (trace) bytes (1);
+    if (trace) bytes (2);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah = mem.getByte (pbr.a | pc.w++);
+    register uint16_t   ea = join (al, ah);
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    al = getByte (ea++);
+    ah = getByte (ea);      
+    ea = join (al, ah);     // Always Bank 0
+
+    register uint32_t   eal = pbr.a | ea++;
+    register uint32_t   eah = pbr.a | ea;   
+
+    return ((*this.*pOp)(eal, eah));
 }
 
-// FIX
+// Absolulte Indirect Indexed X (JMP/JSR (ind,X) only)
 inline uint16_t Emulator::am_abxi (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
-    if (trace) bytes (1);
+    if (trace) bytes (2);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah = mem.getByte (pbr.a | pc.w++);
+    register uint16_t   ea = join (al, ah) + x.w;
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    al = getByte (pbr.a | ea++);
+    ah = getByte (pbr.a | ea);
+    ea = join (al, ah);
+
+    register uint32_t   eal = pbr.a | ea++;
+    register uint32_t   eah = pbr.a | ea;   
+
+    return ((*this.*pOp)(eal, eah));
 }
 
-// FIX
+// Absolute Long
 inline uint16_t Emulator::am_alng (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
-    if (trace) bytes (1);
+    if (trace) bytes (3);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah = mem.getByte (pbr.a | pc.w++);
+    register uint8_t    au = mem.getByte (pbr.a | pc.w++);
+    register uint32_t   ea = (au << 16) | join (al, ah);
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    return ((*this.*pOp)(ea + 0, ea + 1) + 3);
 }
 
-// FIX
+// Absolute Long Indexed X
 inline uint16_t Emulator::am_alnx (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
-    if (trace) bytes (1);
+    if (trace) bytes (3);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah = mem.getByte (pbr.a | pc.w++);
+    register uint8_t    au = mem.getByte (pbr.a | pc.w++);
+    register uint32_t   ea = (au << 16) | join (al, ah) + x.w;
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    return ((*this.*pOp)(ea + 0, ea + 1));
 }
 
-// FIX
+// Absolute Indirect Long
 inline uint16_t Emulator::am_abil (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
-    if (trace) bytes (1);
+    if (trace) bytes (2);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah = mem.getByte (pbr.a | pc.w++);
+    register uint32_t   ea = join (al, ah);
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    al = getByte (ea++);
+    ah = getByte (ea++);
+    ea = (getByte (ea) << 16) | join (al, ah);
+
+    return ((*this.*pOp)(ea + 0, ea + 1));
 }
 
+// Direct Page
 inline uint16_t Emulator::am_dpag (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
@@ -444,90 +468,123 @@ inline uint16_t Emulator::am_dpag (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
     return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
 }
 
-// FIX
+// Direct Page Indexed X
 inline uint16_t Emulator::am_dpgx (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint16_t   eal = dp.w + ((al + x.w + 0) & (e ? 0x00ff : 0xffff));
+    register uint16_t   eah = dp.w + ((al + x.w + 1) & (e ? 0x00ff : 0xffff));
 
     return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
 }
 
-// FIX
+// Direct Page Indexed Y
 inline uint16_t Emulator::am_dpgy (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint16_t   eal = dp.w + ((al + y.w + 0) & (e ? 0x00ff : 0xffff));
+    register uint16_t   eah = dp.w + ((al + y.w + 1) & (e ? 0x00ff : 0xffff));
 
     return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
 }
 
-// FIX
+// Direct Page Indirect
 inline uint16_t Emulator::am_dpgi (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah;
+    register uint32_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    
+    al = getByte (eal);
+    ah = getByte (eah);
+    eal = dbr.a | getWord (al, ah);
+    eah = eal + 1;
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    return ((*this.*pOp)(eal, eah) +  dp.l ? 4 : 3);
 }
 
-// FIX
+// Direct Page Indexed X Indirect
 inline uint16_t Emulator::am_dpix (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah;
+    register uint32_t   eal = dp.w + ((al + x.w + 0) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eah = dp.w + ((al + x.w + 1) & (e ? 0x00ff : 0xffff));
+    
+    al = getByte (eal);
+    ah = getByte (eah);
+    eal = dbr.a | getWord (al, ah);
+    eah = eal + 1;
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    return ((*this.*pOp)(eal, eah) +  dp.l ? 4 : 3);
 }
 
-// FIX
+// Direct Page Indirect Indexed Y
 inline uint16_t Emulator::am_dpiy (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah;
+    register uint32_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    
+    al = getByte (eal);
+    ah = getByte (eah);
+    eal =(dbr.a | getWord (al, ah)) + y.w;
+    eah = eal + 1;
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    return ((*this.*pOp)(eal, eah) +  dp.l ? 4 : 3); 
 }
 
-// FIX
+// Direct Page Indirect Long
 inline uint16_t Emulator::am_dpil (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah;
+    register uint32_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eau = dp.w + ((al + 2) & (e ? 0x00ff : 0xffff));
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    al = getByte (eal);
+    ah = getByte (eah);
+    eal =(getByte (eau) << 16) | getWord (al, ah);
+    eah = eal + 1;
+
+    return ((*this.*pOp)(eal, eah) +  dp.l ? 5 : 4);
 }
 
-// FIX
+// Direct Page Indirect Long Indexed Y
 inline uint16_t Emulator::am_dily (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah;
+    register uint32_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eau = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    al = getByte (eal);
+    ah = getByte (eah);
+    eal = ((getByte (eau) << 16) | getWord (al, ah)) + y.w;
+    eah = eal + 1;
+
+    return ((*this.*pOp)(eal, eah) +  dp.l ? 5 : 4);
 }
 
+// Immediate Byte
 inline uint16_t Emulator::am_immb (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
@@ -537,9 +594,10 @@ inline uint16_t Emulator::am_immb (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
     return ((*this.*pOp)(eal, 0));
 }
 
+// Immediate Word
 inline uint16_t Emulator::am_immw (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
-    if (trace) bytes (1);
+    if (trace) bytes (2);
 
     register uint32_t   eal = pbr.a | pc.w++;
     register uint32_t   eah = pbr.a | pc.w++;
@@ -547,6 +605,7 @@ inline uint16_t Emulator::am_immw (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
     return ((*this.*pOp)(eal, eah));
 }
 
+// Immediate Byte/Word (determined by M)
 inline uint16_t Emulator::am_immm (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     register uint32_t   eal;
@@ -558,7 +617,7 @@ inline uint16_t Emulator::am_immm (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
         eal = pbr.a | pc.w++;
         eah = 0;
 
-        return ((*this.*pOp)(eal, eah) + 0);
+        return ((*this.*pOp)(eal, eah));
     }
     else {
         if (trace) bytes (2);
@@ -566,10 +625,11 @@ inline uint16_t Emulator::am_immm (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
         eal = pbr.a | pc.w++;
         eah = pbr.a | pc.w++;
 
-        return ((*this.*pOp)(eal, eah) + 1);
+        return ((*this.*pOp)(eal, eah));
     }
 }
 
+// Immediate Byte/Word (determined by X)
 inline uint16_t Emulator::am_immx (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     register uint32_t   eal;
@@ -581,7 +641,7 @@ inline uint16_t Emulator::am_immx (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
         eal = pbr.a | pc.w++;
         eah = 0;
 
-        return ((*this.*pOp)(eal, eah) + 0);
+        return ((*this.*pOp)(eal, eah));
     }
     else {
         if (trace) bytes (2);
@@ -589,10 +649,11 @@ inline uint16_t Emulator::am_immx (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
         eal = pbr.a | pc.w++;
         eah = pbr.a | pc.w++;
 
-        return ((*this.*pOp)(eal, eah) + 1);
+        return ((*this.*pOp)(eal, eah));
     }
 }
 
+// Implied
 inline uint16_t Emulator::am_impl (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (0);
@@ -600,28 +661,34 @@ inline uint16_t Emulator::am_impl (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
     return ((*this.*pOp)(0, 0));
 }
 
-// FIX
+// Stack Relative
 inline uint16_t Emulator::am_srel (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eal = sp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eah = sp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
 
-    return ((*this.*pOp)(eal, eah) +  dp.l ? 2 : 1);
+    return ((*this.*pOp)(eal, eah) + 1);
 }
 
-// FIX
+// Stack Relative Indirect Indexed Y
 inline uint16_t Emulator::am_sriy (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
 
     register uint8_t    al = mem.getByte (pbr.a | pc.w++);
-    register uint16_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
-    register uint16_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
+    register uint8_t    ah;
+    register uint32_t   eal = dp.w + ((al + 0) & (e ? 0x00ff : 0xffff));
+    register uint32_t   eah = dp.w + ((al + 1) & (e ? 0x00ff : 0xffff));
 
-    return ((*this.*pOp)(eal, eah) + dp.l ? 2 : 1);
+    al = getByte (eal);
+    ah = getByte (eah);
+    eal = (dbr.a | join (al, ah)) + y.w;
+    eah = eal + 1;
+
+    return ((*this.*pOp)(eal, eah) + 3);
 }
 
 // Relative
@@ -632,7 +699,7 @@ inline uint16_t Emulator::am_rela (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
     register uint8_t    ol = getByte (pbr.a | pc.w++);
     register uint16_t   ea = pc.w + (int8_t) ol;
 
-    return ((*this.*pOp)(pbr.a | ea, 0));
+    return ((*this.*pOp)(pbr.a | ea, 0) + 0);
 }
 
 // Long Relative
@@ -644,10 +711,10 @@ inline uint16_t Emulator::am_lrel (uint16_t (Emulator::*pOp)(uint32_t l, uint32_
     register uint8_t    oh = (int8_t) getByte (pbr.a | pc.w++);
     register uint16_t   ea = pc.w + (int16_t) join (ol, oh);
 
-    return ((*this.*pOp)(pbr.a | ea, 0));
+    return ((*this.*pOp)(pbr.a | ea, 0) + 1);
 }
 
-// A
+// Accumulator
 inline uint16_t Emulator::am_acc (uint16_t (Emulator::*pOp)(uint32_t l, uint32_t h))
 {
     if (trace) bytes (1);
@@ -974,7 +1041,7 @@ inline uint16_t Emulator::op_cmp (uint32_t l, uint32_t h)
 
     if (e || p.m) {
         register uint8_t    data = getByte (l);
-        register uint16_t   temp = data - c.l - 1;
+        register uint16_t   temp = c.l - data;
 
         setc (temp & 0x100);
         setnz_b (temp);
@@ -982,7 +1049,7 @@ inline uint16_t Emulator::op_cmp (uint32_t l, uint32_t h)
     }
     else {
         register uint16_t	data = getWord (l, h);
-        register uint32_t   temp = data - c.w - 1;
+        register uint32_t   temp = c.w - data;
 
         setc (temp & 0x10000);
         setnz_w (temp);
@@ -1025,7 +1092,7 @@ inline uint16_t Emulator::op_cpx (uint32_t l, uint32_t h)
 
     if (e || p.x) {
         register uint8_t    data = getByte (l);
-        register uint16_t   temp = data - x.l - 1;
+        register uint16_t   temp = x.l - data;
 
         setc (temp & 0x100);
         setnz_b (temp);
@@ -1033,7 +1100,7 @@ inline uint16_t Emulator::op_cpx (uint32_t l, uint32_t h)
     }
     else {
         register uint16_t	data = getWord (l, h);
-        register uint32_t	temp = data - x.w - 1;
+        register uint32_t	temp = x.w - data;
 
         setc (temp & 0x10000);
         setnz_w (temp);
@@ -1047,7 +1114,7 @@ inline uint16_t Emulator::op_cpy (uint32_t l, uint32_t h)
 
    if (e || p.x) {
         register uint8_t    data = getByte (l);
-        register uint16_t   temp = data - y.l - 1;
+        register uint16_t   temp = y.l - data;
 
         setc (temp & 0x100);
         setnz_b (temp);
@@ -1055,7 +1122,7 @@ inline uint16_t Emulator::op_cpy (uint32_t l, uint32_t h)
     }
     else {
         register uint16_t	data = getWord (l, h);
-        register uint32_t	temp = data - y.w - 1;
+        register uint32_t	temp = y.w - data;
 
         setc (temp & 0x10000);
         setnz_w (temp);
@@ -1087,21 +1154,36 @@ inline uint16_t Emulator::op_deca (uint32_t l, uint32_t h)
 {
     if (trace) dump ("DEC", l, h);
 
-    return (-1);
+    if (e || p.m)
+        setnz_b (--c.l);
+    else
+        setnz_w (--c.w);
+
+    return (2);
 }
 
 inline uint16_t Emulator::op_dex (uint32_t l, uint32_t h)
 {
     if (trace) dump ("DEX", l, h);
 
-    return (-1);
+    if (e || p.x)
+        setnz_b (--x.l);
+    else
+        setnz_w (--x.w);
+
+    return (2);
 }
 
 inline uint16_t Emulator::op_dey (uint32_t l, uint32_t h)
 {
     if (trace) dump ("DEY", l, h);
 
-    return (-1);
+    if (e || p.x)
+        setnz_b (--y.l);
+    else
+        setnz_w (--y.w);
+
+    return (2);
 }
 
 inline uint16_t Emulator::op_eor (uint32_t l, uint32_t h)
@@ -1122,56 +1204,95 @@ inline uint16_t Emulator::op_inc (uint32_t l, uint32_t h)
 {
     if (trace) dump ("INC", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        register uint8_t    data = getByte (l);
+
+        setByte (l, ++data);
+        setnz_b (data);
+        return (4);
+    }
+    else {
+        register uint16_t   data = getWord (l, h);
+
+        setWord (l, h, ++data);
+        setnz_w (data);
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_inca (uint32_t l, uint32_t h)
 {
     if (trace) dump ("INC", l, h);
 
-    return (-1);
+    if (e || p.m)
+        setnz_b (++c.l);
+    else
+        setnz_w (++c.w);
+
+    return (2);
 }
 
 inline uint16_t Emulator::op_inx (uint32_t l, uint32_t h)
 {
     if (trace) dump ("INX", l, h);
 
-    return (-1);
+    if (e || p.x)
+        setnz_b (++x.l);
+    else
+        setnz_w (++x.w);
+
+    return (2);
 }
 
 inline uint16_t Emulator::op_iny (uint32_t l, uint32_t h)
 {
     if (trace) dump ("INY", l, h);
 
-    return (-1);
+    if (e || p.x)
+        setnz_b (++y.l);
+    else
+        setnz_w (++y.w);
+
+    return (2);
 }
 
 inline uint16_t Emulator::op_jml (uint32_t l, uint32_t h)
 {
     if (trace) dump ("JML", l, h);
 
-    return (-1);
+    pbr.a = l & 0xff0000;
+    pc.w  = l;
+    return (1);
 }
 
 inline uint16_t Emulator::op_jmp (uint32_t l, uint32_t h)
 {
     if (trace) dump ("JMP", l, h);
 
-    return (-1);
+    pc.w  = l;
+    return (1);
 }
 
 inline uint16_t Emulator::op_jsl (uint32_t l, uint32_t h)
 {
     if (trace) dump ("JSL", l, h);
 
-    return (-1);
+    pushByte (pbr.b);
+    pushWord (pc.w - 1);
+
+    pbr.a = l & 0xff0000;
+    pc.w  = l;
+    return (5);
 }
 
 inline uint16_t Emulator::op_jsr (uint32_t l, uint32_t h)
 {
     if (trace) dump ("JSR", l, h);
 
-    return (-1);
+    pushWord (pc.w - 1);
+
+    pc.w  = l;
+    return (4);
 }
 
 inline uint16_t Emulator::op_lda (uint32_t l, uint32_t h)
@@ -1223,28 +1344,63 @@ inline uint16_t Emulator::op_lsr (uint32_t l, uint32_t h)
 {
     if (trace) dump ("LSR", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        setc (c.l & 0x01);
+        setnz_b (c.l >>= 1);
+    }
+    else {
+        setc (c.w & 0x0001);
+        setnz_w (c.w >>= 1);
+    }
+    return (2);
 }
 
 inline uint16_t Emulator::op_lsra (uint32_t l, uint32_t h)
 {
     if (trace) dump ("LSR", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        register uint8_t    data = getByte (l);
+
+        setc (data & 0x01);
+        setnz_b (data >>= 1);
+        setByte (l, data);
+        return (4);
+    }
+    else {
+        register uint16_t   data = getWord (l, h);
+
+        setc (data & 0x0001);
+        setnz_w (data >>= 1);
+        setWord (l, h, data);
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_mvn (uint32_t l, uint32_t h)
 {
     if (trace) dump ("MVN", l, h);
 
-    return (-1);
+    register uint32_t dst = getByte (l) << 16;
+    register uint32_t src = getByte (h) << 16;
+
+    setByte (dbr.a = dst | y.w++, getByte (src | x.w++));
+    if (c.w-- != 0x0000) pc.w -= 3;
+
+    return (7);
 }
 
 inline uint16_t Emulator::op_mvp (uint32_t l, uint32_t h)
 {
     if (trace) dump ("MVP", l, h);
 
-    return (-1);
+    register uint32_t dst = getByte (l) << 16;
+    register uint32_t src = getByte (h) << 16;
+
+    setByte (dbr.a = dst | y.w--, getByte (src | x.w--));
+    if (c.w-- != 0x0000) pc.w -= 3;
+
+    return (7);
 }
 
 inline uint16_t Emulator::op_nop (uint32_t l, uint32_t h)
@@ -1272,175 +1428,341 @@ inline uint16_t Emulator::op_pea (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PEA", l, h);
 
-    return (-1);
+    pushWord (getWord (l, h));
+    return (5);
 }
 
 inline uint16_t Emulator::op_pei (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PEI", l, h);
 
-    return (-1);
+    pushWord (getWord (l, h));
+    return (6);
 }
 
 inline uint16_t Emulator::op_per (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PER", l, h);
 
-    return (-1);
+    pushWord (l);
+    return (6);
 }
 
 inline uint16_t Emulator::op_pha (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PHA", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        pushByte (c.l);
+        return (3);
+    }
+    else {
+        pushWord (c.w);
+        return (4);
+    }
 }
 
 inline uint16_t Emulator::op_phb (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PHB", l, h);
 
-    return (-1);
+    pushByte (dbr.b);
+    return (3);
 }
 
 inline uint16_t Emulator::op_phd (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PHD", l, h);
 
-    return (-1);
+    pushWord (dp.w);
+    return (4);
 }
 
 inline uint16_t Emulator::op_phk (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PHK", l, h);
 
-    return (-1);
+    pushByte (pbr.b);
+    return (3);
 }
 
 inline uint16_t Emulator::op_php (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PHP", l, h);
 
-    return (-1);
+    pushByte (p.b | (e ? 0x30 : 0x00));
+    return (3);
 }
 
 inline uint16_t Emulator::op_phx (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PHX", l, h);
 
-    return (-1);
+    if (e || p.x) {
+        pushByte (x.l);
+        return (3);
+    }
+    else {
+        pushWord (x.w);
+        return (4);
+    }
 }
 
 inline uint16_t Emulator::op_phy (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PHY", l, h);
 
-    return (-1);
+    if (e || p.x) {
+        pushByte (y.l);
+        return (3);
+    }
+    else {
+        pushWord (y.w);
+        return (4);
+    }
 }
 
 inline uint16_t Emulator::op_pla (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PLA", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        setnz_b (c.l = pullByte ());
+        return (4);
+    }
+    else {
+        setnz_b (c.w = pullByte ());
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_plb (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PLB", l, h);
 
-    return (-1);
+    setnz_b (dbr.b = pullByte ());
+    return (4);
 }
 
 inline uint16_t Emulator::op_pld (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PLD", l, h);
 
-    return (-1);
+    setnz_w (dp.w = pullWord ());
+    return (5);
 }
 
 inline uint16_t Emulator::op_plp (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PLP", l, h);
 
-    return (-1);
+    p.b = pullByte ();
+    if (e)
+        p.b |= 0x30;
+    else {
+        if (p.x) {
+            x.w = x.l;
+            y.w = y.l;
+        }
+    }
+    return (4);
 }
 
 inline uint16_t Emulator::op_plx (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PLX", l, h);
 
-    return (-1);
+    if (e || p.x) {
+        setnz_b (x.l = pullByte ());
+        return (4);
+    }
+    else {
+        setnz_b (x.w = pullByte ());
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_ply (uint32_t l, uint32_t h)
 {
     if (trace) dump ("PLY", l, h);
 
-    return (-1);
+    if (e || p.x) {
+        setnz_b (y.l = pullByte ());
+        return (4);
+    }
+    else {
+        setnz_b (y.w = pullByte ());
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_rep (uint32_t l, uint32_t h)
 {
     if (trace) dump ("REP", l, h);
 
-    return (-1);
+    p.b &= ~getByte (l);
+    if (e) p.b |= 0x30;
+    return (3);
 }
 
 inline uint16_t Emulator::op_rol (uint32_t l, uint32_t h)
 {
     if (trace) dump ("ROL", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        register uint8_t    data = getByte (l);
+        register uint8_t    carry = p.c ? 0x01 : 0x00;
+
+        setc (data & 0x80);
+        setnz_b (data = (data << 1) | carry);
+        setByte (l, data);
+        return (4);
+    }
+    else {
+        register uint16_t   data = getWord(l, h);
+        register uint16_t   carry = p.c ? 0x0001 : 0x0000;
+
+        setc (data & 0x8000);
+        setnz_w (data = (data << 1) | carry);
+        setWord (l, h, data);
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_rola (uint32_t l, uint32_t h)
 {
     if (trace) dump ("ROL", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        register uint8_t    carry = p.c ? 0x01 : 0x00;
+
+        setc (c.l & 0x80);
+        setnz_b (c.l = (c.l << 1) | carry);
+        return (4);
+    }
+    else {
+        register uint16_t   carry = p.c ? 0x0001 : 0x0000;
+
+        setc (c.w & 0x8000);
+        setnz_w (c.w = (c.w << 1) | carry);
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_ror (uint32_t l, uint32_t h)
 {
     if (trace) dump ("ROR", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        register uint8_t    data = getByte (l);
+        register uint8_t    carry = p.c ? 0x80 : 0x00;
+
+        setc (data & 0x01);
+        setnz_b (data = (data >> 1) | carry);
+        setByte (l, data);
+        return (4);
+    }
+    else {
+        register uint16_t   data = getWord(l, h);
+        register uint16_t   carry = p.c ? 0x8000 : 0x0000;
+
+        setc (data & 0x0001);
+        setnz_w (data = (data >> 1) | carry);
+        setWord (l, h, data);
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_rora (uint32_t l, uint32_t h)
 {
     if (trace) dump ("ROR", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        register uint8_t    carry = p.c ? 0x80 : 0x00;
+
+        setc (c.l & 0x01);
+        setnz_b (c.l = (c.l >> 1) | carry);
+        return (4);
+    }
+    else {
+        register uint16_t   carry = p.c ? 0x8000 : 0x0000;
+
+        setc (c.w & 0x0001);
+        setnz_w (c.w = (c.w >> 1) | carry);
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_rti (uint32_t l, uint32_t h)
 {
     if (trace) dump ("RTI", l, h);
 
-    return (-1);
+    if (e) {
+        p.b = pullByte ();
+        pc.w = pullWord ();
+        p.i = 0;
+        return (6);
+    }
+    else {
+        p.b = pullByte ();
+        pc.w = pullWord ();
+        pbr.b = pullByte ();
+        p.i = 0;
+        return (7);
+    }
 }
 
 inline uint16_t Emulator::op_rtl (uint32_t l, uint32_t h)
 {
     if (trace) dump ("RTL", l, h);
 
-    return (-1);
+    pc.w = pullWord () + 1;
+    pbr.b = pullByte ();
+    return (7);
 }
 
 inline uint16_t Emulator::op_rts (uint32_t l, uint32_t h)
 {
     if (trace) dump ("RTS", l, h);
 
-    return (-1);
+    pc.w = pullWord () + 1;
+    return (6);
 }
 
 inline uint16_t Emulator::op_sbc(uint32_t l, uint32_t h)
 {
     if (trace) dump ("SBC", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        register uint8_t	data = ~getByte (l);
+        register uint16_t   temp = c.l + data + p.c;
+        
+        if (p.d) {
+            if ((temp & 0x0f) > 0x09) temp += 0x06;
+            if ((temp & 0xf0) > 0x90) temp += 0x60;
+        }
+
+        setc (temp & 0x100);
+        setv ((~(c.l ^ data)) & (c.l ^ temp) & 0x80);
+        setnz_b (c.l = temp);
+        return (2);
+    }
+    else {
+        register uint16_t   data = ~getWord (l, h);
+        register uint32_t   temp = c.w + data + p.c;
+
+        if (p.d) {
+            if ((temp & 0x000f) > 0x0009) temp += 0x0006;
+            if ((temp & 0x00f0) > 0x0090) temp += 0x0060;
+            if ((temp & 0x0f00) > 0x0900) temp += 0x0600;
+            if ((temp & 0xf000) > 0x9000) temp += 0x6000;
+        }
+
+        setc (temp & 0x10000);
+        setv ((~(c.w ^ data)) & (c.w ^ temp) & 0x8000);
+        setnz_w (c.w = temp);
+        return (3);
+    }
 }
 
 inline uint16_t Emulator::op_sec (uint32_t l, uint32_t h)
@@ -1471,7 +1793,14 @@ inline uint16_t Emulator::op_sep (uint32_t l, uint32_t h)
 {
     if (trace) dump ("SEP", l, h);
 
-    return (-1);
+    p.b |= getByte (l);
+    if (e) p.m = p.x = 1;
+
+    if (p.x) {
+        x.w = x.l;
+        y.w = y.l;
+    }
+    return (3);
 }
 
 inline uint16_t Emulator::op_sta (uint32_t l, uint32_t h)
@@ -1492,7 +1821,8 @@ inline uint16_t Emulator::op_stp (uint32_t l, uint32_t h)
 {
     if (trace) dump ("STP", l, h);
 
-    return (-1);
+    --pc.w; 
+    return (3);
 }
 
 inline uint16_t Emulator::op_stx (uint32_t l, uint32_t h)
@@ -1525,7 +1855,7 @@ inline uint16_t Emulator::op_sty (uint32_t l, uint32_t h)
 
 inline uint16_t Emulator::op_stz (uint32_t l, uint32_t h)
 {
-    if (trace) dump ("STZ ", l, h);
+    if (trace) dump ("STZ", l, h);
 
     if (e || p.x) {
         setByte (l, 0);
@@ -1565,42 +1895,80 @@ inline uint16_t Emulator::op_tcd (uint32_t l, uint32_t h)
 {
     if (trace) dump ("TCD", l, h);
 
-    return (-1);
+    dp.w = c.w;
+    return (2);
 }
 
 inline uint16_t Emulator::op_tcs (uint32_t l, uint32_t h)
 {
     if (trace) dump ("TCS", l, h);
 
-    return (-1);
+    sp.w = e ? (0x0100 | c.l) : c.w;
+    return (2);
 }
 
 inline uint16_t Emulator::op_tdc (uint32_t l, uint32_t h)
 {
     if (trace) dump ("TDC", l, h);
 
-    return (-1);
+    if (e || p.m)
+        setnz_b (c.w = dp.w);
+    else
+        setnz_w (c.w = dp.w);
+
+    return (2);
 }
 
 inline uint16_t Emulator::op_trb (uint32_t l, uint32_t h)
 {
     if (trace) dump ("TRB", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        register uint8_t    data = getByte (l);
+
+        setByte (l, data & ~c.l);
+        setz ((c.l & data) == 0);
+        return (4);
+    }
+    else {
+        register uint16_t   data = getWord (l, h);
+
+        setWord (l, h, data & ~c.w);
+        setz ((c.w & data) == 0);
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_tsc (uint32_t l, uint32_t h)
 {
     if (trace) dump ("TSC", l, h);
 
-    return (-1);
+    if (e || p.m)
+        setnz_b (c.w = sp.w);
+    else
+        setnz_w (c.w = sp.w);
+
+    return (2);
 }
 
 inline uint16_t Emulator::op_tsb (uint32_t l, uint32_t h)
 {
     if (trace) dump ("TSB", l, h);
 
-    return (-1);
+    if (e || p.m) {
+        register uint8_t    data = getByte (l);
+
+        setByte (l, data | c.l);
+        setz ((c.l & data) == 0);
+        return (4);
+    }
+    else {
+        register uint16_t   data = getWord (l, h);
+
+        setWord (l, h, data | c.w);
+        setz ((c.w & data) == 0);
+        return (5);
+    }
 }
 
 inline uint16_t Emulator::op_tsx (uint32_t l, uint32_t h)
@@ -1679,28 +2047,43 @@ inline uint16_t Emulator::op_wai (uint32_t l, uint32_t h)
 {
     if (trace) dump ("WAI", l, h);
 
-    return (-1);
+    --pc.w; 
+    return (3);
 }
 
 inline uint16_t Emulator::op_wdm (uint32_t l, uint32_t h)
 {
     if (trace) dump ("WDM", l, h);
 
-    return (-1);
+    // TODO: Add functions
+loop: goto loop;
+
+    return (3);
 }
 
 inline uint16_t Emulator::op_xba (uint32_t l, uint32_t h)
 {
     if (trace) dump ("XBA", l, h);
 
-    return (-1);
+    c.w = (c.w >> 8) | (c.w << 8);
+    setnz_b (c.l);
+    return (3);
 }
 
 inline uint16_t Emulator::op_xce (uint32_t l, uint32_t h)
 {
     if (trace) dump ("XCE", l, h);
 
-    return (-1);
+    register bool       oe = e;
+
+    e = p.c;
+    p.c = oe;
+
+    if (e) {
+        p.b |= 0x30;
+        sp.w = 0x0100 | sp.l;
+    }
+    return (2);
 }
 
 #endif

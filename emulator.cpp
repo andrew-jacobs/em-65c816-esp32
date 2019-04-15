@@ -316,7 +316,7 @@ void Emulator::bytes (uint16_t n)
 
 void Emulator::dump (const char *pMnem, uint32_t eal, uint32_t eah)
 {
-    Serial.printf ("%s {%.2x:%.4x,%.2x:%.4x} ", pMnem, (eal >> 16), eal, (eah >> 16), eah);
+    Serial.printf ("%s {%.2x:%.4x,%.2x:%.4x} ", pMnem, (eal >> 16), eal & 0xffff, (eah >> 16), eah & 0xffff);
 
     Serial.printf ("E=%c ", e ? '1' : '0');
     Serial.printf ("P=%c%c%c%c%c%c%c%c ",
