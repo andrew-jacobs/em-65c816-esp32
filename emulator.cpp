@@ -6,7 +6,7 @@
 //==============================================================================
 
 Emulator::Emulator (Memory &memory)
-    : mem(memory), trace (true)
+    : mem(memory), trace (false)
 { }
 
 void Emulator::reset ()
@@ -22,11 +22,56 @@ void Emulator::reset ()
     p.d = 0;
     e = true;
 
+    ier = 0;
+    ifr = 0;
+    ticks = millis ();
+
+    start = 0;
     cycles = 0;
 }
 
 uint16_t Emulator::step (void)
 {
+    uint32_t    time = millis ();
+    uint32_t    delta = time - ticks;
+
+    // Check for 10 Ms interrupt
+    if (delta >= 10) {
+        ticks += 10;
+        ifr |= 0x01;
+    }
+
+    // Check for UART data
+    if (Serial.available ())         ifr |= 0x02;
+    if (Serial.availableForWrite ()) ifr |= 0x04;
+
+    // IRQ?
+    if (!p.i || (ier & ifr)) {
+        if (e) {
+            pushWord (pc.w);
+            pushByte (p.b & ~0x10);
+
+            p.i = 1;
+            p.d = 0;
+            pbr.b = 0;
+
+            pc.w = getWord (0xfffe, 0xffff);
+            return (7);
+        }
+        else {
+            pushByte (pbr.b);
+            pushWord (pc.w);
+            pushByte (p.b);
+
+            p.i = 1;
+            p.d = 0;
+            pbr.b = 0;
+
+            pc.w = getWord (0xffee, 0xffef);
+            return (8);
+        }
+    }
+
     if (trace) Serial.printf ("%.2x:%.4x %.2x ", pbr.b, pc.w, mem.getByte (pbr.a | pc.w));
 
     switch (mem.getByte (pbr.a | pc.w++)) {

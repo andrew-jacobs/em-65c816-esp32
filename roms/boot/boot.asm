@@ -43,13 +43,21 @@
 		.org	$f000
 		
 		
-		
+Message:	.byte	13,10,"Hello World!",13,10,0
 		
 RESET:
 		sei				; Ensure no interrupts
 		cld
 		native
 		short_ai
+		
+		ldx	#0
+		repeat
+		 lda	Message,x
+		 break	eq
+		 jsl	Uart1Tx
+		 inx
+		forever
 		
 		long_ai
 		
@@ -81,6 +89,33 @@ RESET:
 COP:
 IRQ:
 
+;===============================================================================
+; Uart1 I/O
+;-------------------------------------------------------------------------------
+
+Uart1Tx:
+		php				; Save MX bits
+		long_a
+		pha				; Save user data
+		repeat
+		 wdm	#WDM_IFR_RD		; Ready to transmit?
+		 and 	#INT_U1TX
+		until ne
+		pla				; Yes, recover data
+		wdm	#WDM_U1TX		; .. and send
+		plp				; Restore MX
+		rtl				; Done
+		
+Uart1Rx:
+		php				; Save MX bits
+		long_a
+		repeat
+		 wdm	#WDM_IFR_RD		; Any data to read?
+		 and 	#INT_U1RX
+		until ne
+		wdm	#WDM_U1RX		; Yes, fetch a byte
+		plp				; Restore MX
+		rtl				; Done
 	
 ;===============================================================================
 ; Unused Vector Trap
@@ -149,5 +184,19 @@ VEND		.space	0
 		.org	$040000
 
 		.byte	"Main ROM Area",0
+
+
+
+
+;===============================================================================
+; Monitor
+;-------------------------------------------------------------------------------
+
+
+
+
+
+
+
 		
 		.end

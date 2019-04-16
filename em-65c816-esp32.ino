@@ -52,5 +52,7 @@ void setup (void)
 
 void loop (void)
 {
-    Serial.printf ("CYC=%d\n", emulator.step ());
+    //Serial.printf ("CYC=%d\n", emulator.step ());
+    emulator.cycles += emulator.step ();
+    //delay (100);
 }

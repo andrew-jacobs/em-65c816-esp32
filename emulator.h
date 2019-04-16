@@ -41,7 +41,7 @@ union Flags {
 
 class Emulator {
 private:
-    Memory         &mem;
+    Memory         &mem;                // Memory configuration
 
     Word            pc;
     Word            sp;
@@ -54,8 +54,12 @@ private:
     Address         dbr;
     bool            e;
 
+    uint16_t        ier;                // Interrupt Enable Flags
+    uint16_t        ifr;                // Interrupt Flags
+    uint32_t        ticks;              // Last timer value
+
     bool            trace;
-    uint32_t        cycles;
+    uint32_t        start;
 
     static uint16_t join (uint8_t l, uint8_t h);
 
@@ -216,6 +220,8 @@ private:
     void dump (const char *pMnem, uint32_t eal, uint32_t eah);
 
 public:
+    uint32_t        cycles;
+
     Emulator (Memory &memory);
 
     void reset (void);
@@ -1531,7 +1537,7 @@ inline uint16_t Emulator::op_pla (uint32_t l, uint32_t h)
         return (4);
     }
     else {
-        setnz_b (c.w = pullByte ());
+        setnz_b (c.w = pullWord ());
         return (5);
     }
 }
@@ -1577,7 +1583,7 @@ inline uint16_t Emulator::op_plx (uint32_t l, uint32_t h)
         return (4);
     }
     else {
-        setnz_b (x.w = pullByte ());
+        setnz_b (x.w = pullWord ());
         return (5);
     }
 }
@@ -1591,7 +1597,7 @@ inline uint16_t Emulator::op_ply (uint32_t l, uint32_t h)
         return (4);
     }
     else {
-        setnz_b (y.w = pullByte ());
+        setnz_b (y.w = pullWord ());
         return (5);
     }
 }
@@ -2055,8 +2061,29 @@ inline uint16_t Emulator::op_wdm (uint32_t l, uint32_t h)
 {
     if (trace) dump ("WDM", l, h);
 
-    // TODO: Add functions
-loop: goto loop;
+    // Decode the signature byte
+    switch (getByte (l)) {
+    case 0x00:  c.w  = ier;     break;
+    case 0x01:  ier  =  c.w;    break;
+    case 0x02:  ier |=  c.w;    break;
+    case 0x03:  ier &= ~c.w;    break;
+
+    case 0x04:  c.w  = ifr;     break;
+    case 0x05:  ifr  =  c.w;    break;
+    case 0x06:  ifr |=  c.w;    break;
+    case 0x07:  ifr &= ~c.w;    break;
+
+    case 0x08:  c.w = Serial.read (); break;
+    case 0x09:  Serial.write (c.w); break;
+
+    case 0xff:  {
+            uint32_t            delta = micros () - start;
+
+            Serial.println ("\n>> Halting:");
+            Serial.printf (">> %d cycles in %d uS => %.2f MHz\n", cycles, delta, ((double) delta) / cycles);
+            for (;;) ;
+        }
+    }
 
     return (3);
 }
