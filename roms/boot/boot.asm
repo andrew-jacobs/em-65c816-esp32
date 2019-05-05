@@ -67,7 +67,7 @@ RESET:
 		tay
 		iny
 		dec	a
-	lda	#$0010		
+;	lda	#$0010		
 		mvn	bank(VLINES),bank(VLINES)
 		
 		ldx	#0
