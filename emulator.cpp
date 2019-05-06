@@ -19,6 +19,9 @@
 //
 // http://creativecommons.org/licenses/by-nc-sa/4.0/
 //------------------------------------------------------------------------------
+// Notes:
+//
+//==============================================================================
 
 #include <Arduino.h>
 
@@ -30,25 +33,25 @@
 // Registers & State
 //------------------------------------------------------------------------------
 
-volatile Word		Registers::pc;
-volatile Word		Registers::sp;
-volatile Word		Registers::dp;
-volatile Word		Registers::c;
-volatile Word		Registers::x;
-volatile Word		Registers::y;
-volatile Address	Registers::pbr;
-volatile Address	Registers::dbr;
-volatile Flags		Registers::p;
+Word		Registers::pc;
+Word		Registers::sp;
+Word		Registers::dp;
+Word		Registers::c;
+Word		Registers::x;
+Word		Registers::y;
+Address		Registers::pbr;
+Address		Registers::dbr;
+Flags		Registers::p;
 
-volatile bool		Registers::e;
+bool		Registers::e;
 
-volatile Interrupts	Registers::ier;
-volatile Interrupts	Registers::ifr;
+Interrupts	Registers::ier;
+Interrupts	Registers::ifr;
 
-volatile bool		Registers::stopped = true;
-volatile bool		Registers::interrupted;
+bool		Registers::stopped = true;
+bool		Registers::interrupted;
 
-volatile const OpcodeSet *Registers::pOpcodeSet;
+const OpcodeSet *Registers::pOpcodeSet;
 
 //------------------------------------------------------------------------------
 
@@ -81,4 +84,3 @@ void Emulator::reset(void)
 
 	setMode();
 }
-

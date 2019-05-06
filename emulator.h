@@ -1,3 +1,28 @@
+//==============================================================================
+//  _____ __  __        __  ____   ____ ___  _  __   
+// | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_  
+// |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \ 
+// | |___| |  | |_____| (_) |__) | |__| (_) | | (_) |
+// |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/ 
+// | ____/ ___||  _ \___ /___ \                      
+// |  _| \___ \| |_) ||_ \ __) |                     
+// | |___ ___) |  __/___) / __/                      
+// |_____|____/|_|  |____/_____|                     
+//
+//------------------------------------------------------------------------------                                                   
+// Copyright (C),2019 Andrew John Jacobs
+// All rights reserved.
+//
+// This work is made available under the terms of the Creative Commons
+// Attribution-NonCommercial-ShareAlike 4.0 International license. Open the
+// following URL to see the details.
+//
+// http://creativecommons.org/licenses/by-nc-sa/4.0/
+//------------------------------------------------------------------------------
+// Notes:
+//
+//==============================================================================
+
 #ifndef EMULATOR_H
 #define EMULATOR_H
 
@@ -94,24 +119,24 @@ struct OpcodeSet {
 class Registers
 {
 protected:
-	static volatile Word		pc;
-	static volatile Word		sp;
-	static volatile Word		dp;
-	static volatile Word		c;
-	static volatile Word		x;
-	static volatile Word		y;
-	static volatile Address		pbr;
-	static volatile Address		dbr;
-	static volatile Flags		p;
-	static volatile bool		e;
+	static Word		pc;
+	static Word		sp;
+	static Word		dp;
+	static Word		c;
+	static Word		x;
+	static Word		y;
+	static Address	pbr;
+	static Address	dbr;
+	static Flags	p;
+	static bool		e;
 
-	static volatile const OpcodeSet *pOpcodeSet;
+	static const OpcodeSet *pOpcodeSet;
 
-	static volatile Interrupts	ier;
-	static volatile Interrupts	ifr;
+	static Interrupts	ier;
+	static Interrupts	ifr;
 
-	static volatile bool 		stopped;
-	static volatile bool		interrupted;
+	static bool 	stopped;
+	static bool		interrupted;
 
 	Registers(void) { }
 

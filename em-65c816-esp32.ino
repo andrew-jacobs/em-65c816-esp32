@@ -1,15 +1,28 @@
 //==============================================================================
-//  _____ __  __        __  ____   ____ ___  _  __   
-// | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_  
-// |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \ 
+//  _____ __  __        __  ____   ____ ___  _  __
+// | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_
+// |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \
 // | |___| |  | |_____| (_) |__) | |__| (_) | | (_) |
-// |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/ 
-// | ____/ ___||  _ \___ /___ \                      
-// |  _| \___ \| |_) ||_ \ __) |                     
-// | |___ ___) |  __/___) / __/                      
-// |_____|____/|_|  |____/_____|                     
+// |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/
+// | ____/ ___||  _ \___ /___ \
+// |  _| \___ \| |_) ||_ \ __) |
+// | |___ ___) |  __/___) / __/
+// |_____|____/|_|  |____/_____|
 //
-//------------------------------------------------------------------------------                                                   
+//-----------------------------------------------------------------------------
+// Copyright (C)2018-2019 Andrew John Jacobs
+// All rights reserved.
+//
+// This work is made available under the terms of the Creative Commons
+// Attribution-NonCommercial-ShareAlike 4.0 International license. Open the
+// following URL to see the details.
+//
+// http://creativecommons.org/licenses/by-nc-sa/4.0/
+//==============================================================================
+//
+// Notes:
+//
+//------------------------------------------------------------------------------
 
 #include <Arduino.h>
 
@@ -21,11 +34,13 @@
 
 //==============================================================================
 
+// 4K Boot ROM image
 const uint8_t   boot [4 * 1024] =
 {
 #include "boot.h"
 };
 
+// 256K OS/Application ROM images
 const uint8_t   code [256 * 1024] =
 {
 #include "rom0.h"
@@ -36,41 +51,42 @@ const uint8_t   code [256 * 1024] =
 
 //==============================================================================
 
-VideoRAM    video;
+VideoRAM        video;
 
-volatile uint32_t   cycles;
-volatile uint32_t   start;
-volatile uint32_t   delta;
-
-TaskHandle_t        task;
+TaskHandle_t    task;
 
 void emulatorTask (void *pArg)
 {
-//    static uint32_t     count;
+    uint32_t   cycles;
+    uint32_t   start;
+    uint32_t   delta;
+//    uint32_t   count;
 
     for (;;) {
-        while (Emulator::isStopped ()) {
-            delay (100);
-            Serial.print (".");
-        }
+        Emulator::reset ();
 
         cycles = 0;
-//        count = 10000000;
         start = micros ();
 
-        while (!Emulator::isStopped ()) {
+        while (!Emulator::isStopped ())
             cycles += Emulator::step ();
-//
-//            if (--count == 0) {
-//                delay (1);
-//                count = 10000000;
-//            }
-        }
-        
+
         delta = micros () - start;
+
+        Serial.printf ("Cycles = %d uSec = %d freq = ", cycles, delta);
+
+        double speed = cycles / (delta * 1e-6);
+
+        if (speed < 1000)
+            Serial.printf ("%f Hz\n", speed);
+        else if ((speed /= 1000) < 1000)
+            Serial.printf ("%f kHz\n", speed);
+        else
+            Serial.printf ("%f MHz\n", speed / 1000);
+
+        //delay (100);
     }
 }
-
 
 void setup (void)
 {
@@ -94,26 +110,10 @@ void setup (void)
     Serial.println (">> Booting");
 
     disableCore0WDT();
-    xTaskCreatePinnedToCore (emulatorTask, "Emulator", 1024, NULL, 0, &task, 0);
-
-    Emulator::reset ();
+    xTaskCreatePinnedToCore (emulatorTask, "Emulator", 4096, NULL, 1, &task, 0);
 }
 
 void loop (void)
 {
-    if (Emulator::isStopped ()) {
-        Serial.printf ("\nCycles = %d uSec = %d freq = ", cycles, delta);
-
-        double speed = cycles / (delta * 1e-6);
-
-        if (speed < 1000)
-            Serial.printf ("%f Hz\n", speed);
-        else if ((speed /= 1000) < 1000)
-            Serial.printf ("%f kHz\n", speed);
-        else
-            Serial.printf ("%f MHz\n", speed / 1000);
-    
-        delay (500);
-        Emulator::reset ();
-    }
+    ;
 }
