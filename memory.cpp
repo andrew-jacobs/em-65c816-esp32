@@ -1,24 +1,48 @@
-
+//==============================================================================
+//  _____ __  __        __  ____   ____ ___  _  __   
+// | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_  
+// |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \ 
+// | |___| |  | |_____| (_) |__) | |__| (_) | | (_) |
+// |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/ 
+// | ____/ ___||  _ \___ /___ \                      
+// |  _| \___ \| |_) ||_ \ __) |                     
+// | |___ ___) |  __/___) / __/                      
+// |_____|____/|_|  |____/_____|                     
+//
+//------------------------------------------------------------------------------                                                   
+// Copyright (C),2019 Andrew John Jacobs
+// All rights reserved.
+//
+// This work is made available under the terms of the Creative Commons
+// Attribution-NonCommercial-ShareAlike 4.0 International license. Open the
+// following URL to see the details.
+//
+// http://creativecommons.org/licenses/by-nc-sa/4.0/
+//------------------------------------------------------------------------------
+// Notes:
+//
 // The ESP32's heap appears to be highly fragmented at startup and only a few
 // large blocks can be allocated before malloc fails. Using a smaller block
 // size allows more RAM to be utilised.
-
+//==============================================================================
 
 #include <Arduino.h>
 
+#pragma GCC optimize ("-O4")
+
 #include "memory.h"
+
+const uint8_t  *Memory::pRd [RAM_BLOCKS + ROM_BLOCKS];
+uint8_t        *Memory::pWr [RAM_BLOCKS + ROM_BLOCKS];
 
 //==============================================================================
 
 // Construct and initialise a Memory instance
 Memory::Memory ()
-{
-    for (uint32_t index = 0; index < (RAM_BLOCKS + ROM_BLOCKS); ++index)
-        pRd [index] = pWr [index] = NULL;
-}
+{ }
 
 // Build a RAM region from dynamically allocated blocks
-Memory &Memory::add (uint32_t address, int32_t size)
+void Memory::add (uint32_t address, int32_t size)
 {
     Serial.printf ("%.6x-%.6x: RAM (Allocated)\n", address, address + size - 1);
 
@@ -31,12 +55,10 @@ Memory &Memory::add (uint32_t address, int32_t size)
         else
             Serial.printf ("!! Attempt to add NULL RAM block at %.6x", address);
     }
-
-    return (*this);
 }
 
 // Build a RAM region from an existing contiguous blocks
-Memory &Memory::add (uint32_t address, uint8_t *pRAM, int32_t size)
+void Memory::add (uint32_t address, uint8_t *pRAM, int32_t size)
 {
     Serial.printf ("%.6x-%.6x: RAM (Contiguous)\n", address, address + size - 1);
     
@@ -49,12 +71,10 @@ Memory &Memory::add (uint32_t address, uint8_t *pRAM, int32_t size)
     }
     else
         Serial.printf ("!! Attempt to add NULL RAM block at %.6x", address);
-
-    return (*this);
 }
 
 // Build a ROM region from an existing contiguous blocks
-Memory &Memory::add (uint32_t address, const uint8_t *pROM, int32_t size)
+void Memory::add (uint32_t address, const uint8_t *pROM, int32_t size)
 {
     Serial.printf ("%.6x-%.6x: ROM (Contiguous)\n", address, address + size - 1);
 
@@ -68,6 +88,4 @@ Memory &Memory::add (uint32_t address, const uint8_t *pROM, int32_t size)
     }
     else
         Serial.printf ("!! Attempt to add NULL ROM block at %.6x", address);
-
-    return (*this);
 }

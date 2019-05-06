@@ -1,3 +1,15 @@
+//==============================================================================
+//  _____ __  __        __  ____   ____ ___  _  __   
+// | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_  
+// |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \ 
+// | |___| |  | |_____| (_) |__) | |__| (_) | | (_) |
+// |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/ 
+// | ____/ ___||  _ \___ /___ \                      
+// |  _| \___ \| |_) ||_ \ __) |                     
+// | |___ ___) |  __/___) / __/                      
+// |_____|____/|_|  |____/_____|                     
+//
+//------------------------------------------------------------------------------                                                   
 
 #include <Arduino.h>
 
@@ -26,6 +38,40 @@ const uint8_t   code [256 * 1024] =
 
 VideoRAM    video;
 
+volatile uint32_t   cycles;
+volatile uint32_t   start;
+volatile uint32_t   delta;
+
+TaskHandle_t        task;
+
+void emulatorTask (void *pArg)
+{
+//    static uint32_t     count;
+
+    for (;;) {
+        while (Emulator::isStopped ()) {
+            delay (100);
+            Serial.print (".");
+        }
+
+        cycles = 0;
+//        count = 10000000;
+        start = micros ();
+
+        while (!Emulator::isStopped ()) {
+            cycles += Emulator::step ();
+//
+//            if (--count == 0) {
+//                delay (1);
+//                count = 10000000;
+//            }
+        }
+        
+        delta = micros () - start;
+    }
+}
+
+
 void setup (void)
 {
     Serial.begin (115200);
@@ -46,13 +92,28 @@ void setup (void)
 
     Serial.printf (">> Remaining Heap: %d\n", ESP.getFreeHeap ());
     Serial.println (">> Booting");
-    
+
+    disableCore0WDT();
+    xTaskCreatePinnedToCore (emulatorTask, "Emulator", 1024, NULL, 0, &task, 0);
+
     Emulator::reset ();
 }
 
 void loop (void)
 {
-    //Serial.printf ("CYC=%d\n", emulator.step ());
-    for (;;) Emulator::cycles += Emulator::step ();
-    //delay (100);
+    if (Emulator::isStopped ()) {
+        Serial.printf ("\nCycles = %d uSec = %d freq = ", cycles, delta);
+
+        double speed = cycles / (delta * 1e-6);
+
+        if (speed < 1000)
+            Serial.printf ("%f Hz\n", speed);
+        else if ((speed /= 1000) < 1000)
+            Serial.printf ("%f kHz\n", speed);
+        else
+            Serial.printf ("%f MHz\n", speed / 1000);
+    
+        delay (500);
+        Emulator::reset ();
+    }
 }

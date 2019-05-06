@@ -1,5 +1,32 @@
+//==============================================================================
+//  _____ __  __        __  ____   ____ ___  _  __   
+// | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_  
+// |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \ 
+// | |___| |  | |_____| (_) |__) | |__| (_) | | (_) |
+// |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/ 
+// | ____/ ___||  _ \___ /___ \                      
+// |  _| \___ \| |_) ||_ \ __) |                     
+// | |___ ___) |  __/___) / __/                      
+// |_____|____/|_|  |____/_____|                     
+//
+//------------------------------------------------------------------------------                                                   
+// Copyright (C),2019 Andrew John Jacobs
+// All rights reserved.
+//
+// This work is made available under the terms of the Creative Commons
+// Attribution-NonCommercial-ShareAlike 4.0 International license. Open the
+// following URL to see the details.
+//
+// http://creativecommons.org/licenses/by-nc-sa/4.0/
+//------------------------------------------------------------------------------
+
+#include <Arduino.h>
+
+#pragma GCC optimize ("-O4")
 
 #include "Emulator.h"
+
+//==============================================================================
 
 bool Trace::enabled = false;
 
@@ -86,7 +113,9 @@ void Trace::trace(const char *pOpcode, uint32_t eal, uint32_t eah)
 			cout << toHex(sp.h, 2) << '[';
 			cout << toHex(sp.l, 2) << "] {";
 
-			Word xp = sp;
+			Word	xp;
+			
+			xp.w = sp.w;
 
 			++xp.l; cout << toHex(Memory::getByte(xp.w), 2) << ' ';
 			++xp.l; cout << toHex(Memory::getByte(xp.w), 2) << ' ';

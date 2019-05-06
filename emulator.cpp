@@ -1,28 +1,54 @@
+//==============================================================================
+//  _____ __  __        __  ____   ____ ___  _  __   
+// | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_  
+// |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \ 
+// | |___| |  | |_____| (_) |__) | |__| (_) | | (_) |
+// |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/ 
+// | ____/ ___||  _ \___ /___ \                      
+// |  _| \___ \| |_) ||_ \ __) |                     
+// | |___ ___) |  __/___) / __/                      
+// |_____|____/|_|  |____/_____|                     
+//
+//------------------------------------------------------------------------------                                                   
+// Copyright (C),2019 Andrew John Jacobs
+// All rights reserved.
+//
+// This work is made available under the terms of the Creative Commons
+// Attribution-NonCommercial-ShareAlike 4.0 International license. Open the
+// following URL to see the details.
+//
+// http://creativecommons.org/licenses/by-nc-sa/4.0/
+//------------------------------------------------------------------------------
+
+#include <Arduino.h>
+
+#pragma GCC optimize ("-O4")
+
 #include "Emulator.h"
 
 //==============================================================================
 // Registers & State
 //------------------------------------------------------------------------------
 
-Word			Registers::pc;
-Word			Registers::sp;
-Word			Registers::dp;
-Word			Registers::c;
-Word			Registers::x;
-Word			Registers::y;
-Address			Registers::pbr;
-Address			Registers::dbr;
-Flags			Registers::p;
+volatile Word		Registers::pc;
+volatile Word		Registers::sp;
+volatile Word		Registers::dp;
+volatile Word		Registers::c;
+volatile Word		Registers::x;
+volatile Word		Registers::y;
+volatile Address	Registers::pbr;
+volatile Address	Registers::dbr;
+volatile Flags		Registers::p;
 
-bool			Registers::e;
+volatile bool		Registers::e;
 
-Interrupts		Registers::ier;
-Interrupts		Registers::ifr;
+volatile Interrupts	Registers::ier;
+volatile Interrupts	Registers::ifr;
 
-bool			Registers::stopped;
-bool			Registers::interrupted;
+volatile bool		Registers::stopped = true;
+volatile bool		Registers::interrupted;
 
-const OpcodeSet *Registers::pOpcodeSet;
+volatile const OpcodeSet *Registers::pOpcodeSet;
 
 //------------------------------------------------------------------------------
 

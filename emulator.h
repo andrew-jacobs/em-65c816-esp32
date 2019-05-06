@@ -12,7 +12,7 @@ using namespace std;
 // Macros
 //------------------------------------------------------------------------------
 
-#if 1
+#if 0
 #define SHOW_PC()		Trace::start()
 #define SHOW_CY(CY)		Trace::cycles(CY)
 #define BYTES(NM)		Trace::bytes(NM)
@@ -94,24 +94,24 @@ struct OpcodeSet {
 class Registers
 {
 protected:
-	static Word			pc;
-	static Word			sp;
-	static Word			dp;
-	static Word			c;
-	static Word			x;
-	static Word			y;
-	static Address		pbr;
-	static Address		dbr;
-	static Flags		p;
-	static bool			e;
+	static volatile Word		pc;
+	static volatile Word		sp;
+	static volatile Word		dp;
+	static volatile Word		c;
+	static volatile Word		x;
+	static volatile Word		y;
+	static volatile Address		pbr;
+	static volatile Address		dbr;
+	static volatile Flags		p;
+	static volatile bool		e;
 
-	static const OpcodeSet *pOpcodeSet;
+	static volatile const OpcodeSet *pOpcodeSet;
 
-	static Interrupts	ier;
-	static Interrupts	ifr;
+	static volatile Interrupts	ier;
+	static volatile Interrupts	ifr;
 
-	static bool			stopped;
-	static bool			interrupted;
+	static volatile bool 		stopped;
+	static volatile bool		interrupted;
 
 	Registers(void) { }
 
@@ -532,7 +532,7 @@ protected:
 
 		switch (cmnd) {
 	//	case 0x01:	cout << c.l;		break;
-		case 0x02:	cin >> c.l;			break;
+	//	case 0x02:	cin >> c.l;			break;
 		case 0xff:	stop();				break;
 		}
 		return (3);
@@ -812,8 +812,9 @@ protected:
 	{
 		BYTES(1);
 
-		register Word		ad = sp;
+		register Word		ad;
 
+		ad.w = sp.w;
 		ad.l += getByte(pbr.a | pc.w++);
 		eal = ad.w;
 		eah = 0;
@@ -824,8 +825,9 @@ protected:
 	{
 		BYTES(1);
 
-		register Word		ad = sp;
+		register Word		ad;
 
+		ad.w = sp.w;
 		ad.l += getByte(pbr.a | pc.w++);
 
 		register uint8_t	al = getByte(ad.w++);
@@ -1883,8 +1885,9 @@ protected:
 	{
 		BYTES(1);
 
-		register Word		ad = sp;
+		register Word		ad;
 
+		ad.w = sp.w;
 		ad.w += getByte(pbr.a | pc.w++);
 		eal = ad.w;
 		eah = eal + 1;
@@ -1895,9 +1898,10 @@ protected:
 	{
 		BYTES(1);
 
-		register Word		ad = sp;
+		register Word		ad;
 
-		ad.l += getByte(pbr.a | pc.w++);
+		ad.w = sp.w;
+		ad.w += getByte(pbr.a | pc.w++);
 
 		register uint8_t	al = getByte(ad.w++);
 		register uint8_t	ah = getByte(ad.w++);

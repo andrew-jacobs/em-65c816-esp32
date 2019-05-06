@@ -24,47 +24,43 @@
 class Memory
 {
 private:
-    const uint8_t      *pRd [RAM_BLOCKS + ROM_BLOCKS];
-    uint8_t            *pWr [RAM_BLOCKS + ROM_BLOCKS];
+    static const uint8_t  *pRd [RAM_BLOCKS + ROM_BLOCKS];
+    static uint8_t        *pWr [RAM_BLOCKS + ROM_BLOCKS];
 
-    static uint32_t blockOf (uint32_t address);
-    static uint32_t offsetOf (uint32_t address);
-
-public:
     Memory ();
 
-    Memory &add (uint32_t address, int32_t size);
-    Memory &add (uint32_t address, uint8_t *pRAM, int32_t size);
-    Memory &add (uint32_t address, const uint8_t *pROM, int32_t size);
+    static uint32_t blockOf (uint32_t address)
+    {
+        return ((address >> BLOCK_BITS) & (RAM_BLOCKS + ROM_BLOCKS - 1));
+    }
 
-    uint8_t getByte (uint32_t address);
-    void setByte (uint32_t address, uint8_t value);
+    static uint32_t offsetOf (uint32_t address)
+    {
+        return (address & (BLOCK_SIZE - 1));
+    }
+
+public:
+    static void add (uint32_t address, int32_t size);
+    static void add (uint32_t address, uint8_t *pRAM, int32_t size);
+    static void add (uint32_t address, const uint8_t *pROM, int32_t size);
+
+    static uint8_t getByte (uint32_t eal)
+    {
+        register const uint8_t *pBlock = pRd [blockOf (eal)];
+
+        return (pBlock [offsetOf (eal)]);
+    }
+
+    static uint16_t getWord (uint32_t eal, uint32_t eah)
+    {
+        return (getByte (eal) | getByte (eah) << 8);
+    }
+
+    static void setByte (uint32_t eal, uint8_t value)
+    {
+        register uint8_t *pBlock = pWr [blockOf (eal)];
+
+        if (pBlock) pBlock [offsetOf (eal)] = value;
+    }
 };
-
-//------------------------------------------------------------------------------
-
-inline uint32_t Memory::blockOf (uint32_t address)
-{
-    return ((address >> BLOCK_BITS) & (RAM_BLOCKS + ROM_BLOCKS - 1));
-}
-
-inline uint32_t Memory::offsetOf (uint32_t address)
-{
-    return (address & (BLOCK_SIZE - 1));
-}
-
-inline uint8_t Memory::getByte (uint32_t address)
-{
-    register const uint8_t *pBlock = pRd [blockOf (address)];
-
-    return (pBlock [offsetOf (address)]);
-}
-
-inline void Memory::setByte (uint32_t address, uint8_t value)
-{
-    register uint8_t *pBlock = pWr [blockOf (address)];
-
-    if (pBlock) pBlock [offsetOf (address)] = value;
-}
-
 #endif
