@@ -106,30 +106,3 @@ short_ai        .macro
                 .longa  off
                 .longi  off
                 .endm
-		
-;===============================================================================
-; WDM Signature Bytes
-;-------------------------------------------------------------------------------
-
-WDM_IER_RD	.equ	$00
-WDM_IER_WR	.equ	$01
-WDM_IER_SET	.equ	$02
-WDM_IER_CLR	.equ	$03
-
-WDM_IFR_RD	.equ	$04
-WDM_IFR_WR	.equ	$05
-WDM_IFR_SET	.equ	$06
-WDM_IFR_CLR	.equ	$07
-
-WDM_U1RX	.equ	$08
-WDM_U1TX	.equ	$09
-
-WDM_HALT	.equ	$ff
-
-;===============================================================================
-; IER/IFR Bits
-;-------------------------------------------------------------------------------
-
-INT_CLK		.equ	$0001
-INT_U1RX	.equ	$0002
-INT_U1TX	.equ	$0004

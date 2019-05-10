@@ -37,7 +37,7 @@ using namespace std;
 // Macros
 //------------------------------------------------------------------------------
 
-#if 0
+#if 1
 #define SHOW_PC()		Trace::start()
 #define SHOW_CY(CY)		Trace::cycles(CY)
 #define BYTES(NM)		Trace::bytes(NM)
@@ -133,7 +133,6 @@ protected:
 	static const OpcodeSet *pOpcodeSet;
 
 	static Interrupts	ier;
-	static Interrupts	ifr;
 
 	static bool 	stopped;
 	static bool		interrupted;
@@ -222,6 +221,8 @@ protected:
 	}
 
 public:
+	static volatile Interrupts	ifr;
+
 	// Return the state of the stopped flag
 	static bool isStopped(void)
 	{
@@ -273,6 +274,8 @@ public:
 
 	static uint8_t step(void)
 	{
+		if (ier.f & ifr.f) return ((*(pOpcodeSet -> pIrq))());
+
 		SHOW_PC();
 		register uint8_t opcode = Memory::getByte(pbr.a | pc.w++);
 		register uint8_t cycles = ((*(pOpcodeSet->pOpcode[opcode]))());
@@ -549,19 +552,7 @@ protected:
 		return (2);
 	}
 
-	static uint8_t op_wdm(uint32_t eal, uint32_t eah)
-	{
-		TRACE(wdm);
-
-		register uint8_t	cmnd = getByte(eal);
-
-		switch (cmnd) {
-	//	case 0x01:	cout << c.l;		break;
-	//	case 0x02:	cin >> c.l;			break;
-		case 0xff:	stop();				break;
-		}
-		return (3);
-	}
+	static uint8_t op_wdm(uint32_t eal, uint32_t eah);
 
 	static uint8_t op_xba(uint32_t eal, uint32_t eah)
 	{
@@ -652,7 +643,7 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint8_t	ah = getByte(pbr.a | pc.w++);
+		register uint16_t	ah = getByte(pbr.a | pc.w++);
 
 		eal = dbr.a | ((ah << 8) | al);
 		eah = eal + 1;
@@ -666,9 +657,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint8_t	ah = getByte(pbr.a | pc.w++);
+		register uint16_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = pbr.a | ((ah << 8) | al);
+		eal = pbr.a | (ah << 8) | al;
 		eah = eal + 1;
 
 		return (2);
@@ -680,9 +671,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint8_t	ah = getByte(pbr.a | pc.w++);
+		register uint16_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = (dbr.a | ((ah << 8) | al)) + x.w;
+		eal = (dbr.a | (ah << 8) | al) + x.w;
 		eah = eal + 1;
 
 		return (2);
@@ -694,9 +685,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint8_t	ah = getByte(pbr.a | pc.w++);
+		register uint16_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = (dbr.a | ((ah << 8) | al)) + y.w;
+		eal = (dbr.a | (ah << 8) | al) + y.w;
 		eah = eal + 1;
 
 		return (2);
@@ -1761,9 +1752,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint8_t	ah = getByte(pbr.a | pc.w++);
+		register uint16_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = pbr.a | ((ah << 8) | al);
+		eal = pbr.a | (ah << 8) | al;
 		eah = eal + 1;
 
 		return (2);
@@ -1775,9 +1766,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint8_t	ah = getByte(pbr.a | pc.w++);
+		register uint16_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = (dbr.a | ((ah << 8) | al)) + x.w;
+		eal = (dbr.a | (ah << 8) | al) + x.w;
 		eah = eal + 1;
 
 		return (2);
@@ -1789,9 +1780,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint8_t	ah = getByte(pbr.a | pc.w++);
+		register uint16_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = (dbr.a | ((ah << 8) | al)) + y.w;
+		eal = (dbr.a | (ah << 8) | al) + y.w;
 		eah = eal + 1;
 
 		return (2);
@@ -2276,8 +2267,8 @@ protected:
 	{
 		BYTES(2);
 
-		eal = pbr.b | pc.w++;
-		eah = pbr.b | pc.w++;
+		eal = pbr.a | pc.w++;
+		eah = pbr.a | pc.w++;
 		return (0);
 	}
 
@@ -2599,7 +2590,7 @@ protected:
 	{
 		BYTES(1);
 
-		eal = pbr.b | pc.w++;
+		eal = pbr.a | pc.w++;
 		eah = 0;
 		return (0);
 	}
@@ -2919,8 +2910,8 @@ protected:
 	{
 		BYTES(2);
 
-		eal = pbr.b | pc.w++;
-		eah = pbr.b | pc.w++;
+		eal = pbr.a | pc.w++;
+		eah = pbr.a | pc.w++;
 		return (0);
 	}
 
@@ -3105,7 +3096,7 @@ protected:
 	{
 		BYTES(1);
 
-		eal = pbr.b | pc.w++;
+		eal = pbr.a | pc.w++;
 		eah = 0;
 		return (0);
 	}

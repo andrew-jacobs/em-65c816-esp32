@@ -46,7 +46,7 @@ Flags		Registers::p;
 bool		Registers::e;
 
 Interrupts	Registers::ier;
-Interrupts	Registers::ifr;
+volatile Interrupts	Registers::ifr;
 
 bool		Registers::stopped = true;
 bool		Registers::interrupted;

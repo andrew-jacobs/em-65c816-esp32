@@ -29,6 +29,7 @@
 		.65816
 		
 		.include "../w65c816.inc"
+		.include "../em-esp32.inc"
 
 		.page0
 		
@@ -53,12 +54,15 @@ RESET:
 		
 		ldx	#0
 		repeat
+	lda Message
 		 lda	Message,x
 		 break	eq
 		 jsl	Uart1Tx
 		 inx
 		forever
 		
+		stp
+	.if 0
 		long_ai
 		
 		lda	#0			; Clear video RAM area
@@ -80,8 +84,17 @@ RESET:
 		 inx
 		 cpx	#SVGA_HEIGHT * 2	; Repeat for entire screen
 		until eq
+	.endif
+	
+		short_ai
+		repeat
+		 jsl 	Uart1Rx
+		 jsl	Uart1Tx
+		 jsr	Uart1Tx
+		 cmp	#'X'
+		until eq
 		
-		wdm	#$ff
+		stp
 		bra	$
 
 
@@ -125,7 +138,7 @@ Uart1Rx:
 ; infinite loop.
 
 UnusedVector
-		wdm	#$ff
+		stp
 		bra	$
 
 ;===============================================================================

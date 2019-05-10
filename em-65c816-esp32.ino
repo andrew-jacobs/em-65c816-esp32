@@ -53,38 +53,47 @@ const uint8_t   code [256 * 1024] =
 
 VideoRAM        video;
 
-TaskHandle_t    task;
+TaskHandle_t    timerTask;
+TaskHandle_t    u1rxTask;
+TaskHandle_t    u1txTask;
 
-void emulatorTask (void *pArg)
+uint32_t        cycles;
+uint32_t        start;
+uint32_t        delta;
+
+volatile uint8_t u1rxd;
+volatile uint8_t u1txd;
+
+// Signal timer interrupt every millisecond
+void doTimerTask (void *pArg)
 {
-    uint32_t   cycles;
-    uint32_t   start;
-    uint32_t   delta;
-//    uint32_t   count;
-
     for (;;) {
-        Emulator::reset ();
+        delay (1);
 
-        cycles = 0;
-        start = micros ();
+        Emulator::ifr.tmr = 1;
+    }
+}
 
-        while (!Emulator::isStopped ())
-            cycles += Emulator::step ();
+// Generate a RXD interrupt if serial data is available
+void doU1rxTask (void *pArg)
+{
+    for (;;) {
+        while (!Serial.available ())
+            delay (1);
+        u1rxd = Serial.read ();
+        Emulator::ifr.u1rx = 1;
+        vTaskSuspend (NULL); 
+    }
+}
 
-        delta = micros () - start;
-
-        Serial.printf ("Cycles = %d uSec = %d freq = ", cycles, delta);
-
-        double speed = cycles / (delta * 1e-6);
-
-        if (speed < 1000)
-            Serial.printf ("%f Hz\n", speed);
-        else if ((speed /= 1000) < 1000)
-            Serial.printf ("%f kHz\n", speed);
-        else
-            Serial.printf ("%f MHz\n", speed / 1000);
-
-        //delay (100);
+// Generate a TXD interrupt if serial transmission is possible
+void doU1txTask (void *pArg)
+{
+    for (;;) {
+        Emulator::ifr.u1tx = 1;
+        vTaskSuspend (NULL);
+        Serial.printf ("%.2x ", u1txd);
+        Serial.write (u1txd);
     }
 }
 
@@ -109,11 +118,72 @@ void setup (void)
     Serial.printf (">> Remaining Heap: %d\n", ESP.getFreeHeap ());
     Serial.println (">> Booting");
 
-    disableCore0WDT();
-    xTaskCreatePinnedToCore (emulatorTask, "Emulator", 4096, NULL, 1, &task, 0);
+    xTaskCreatePinnedToCore (doTimerTask, "Timer", 1024, NULL, 1, &timerTask, 1);
+    xTaskCreatePinnedToCore (doU1rxTask, "U1RX", 2024, NULL, 1, &u1rxTask, 1);
+    xTaskCreatePinnedToCore (doU1txTask, "U1TX", 2024, NULL, 1, &u1txTask, 1);
+
+    Emulator::reset ();
+
+    cycles = 0;
+    start = micros ();
 }
 
 void loop (void)
 {
-    ;
+    register int        count = 1000;
+
+    do {
+       if (Emulator::isStopped ()) {
+            delta = micros () - start;
+
+            Serial.printf ("Cycles = %d uSec = %d freq = ", cycles, delta);
+
+            double speed = cycles / (delta * 1e-6);
+
+            if (speed < 1000)
+                Serial.printf ("%f Hz\n", speed);
+            else if ((speed /= 1000) < 1000)
+                Serial.printf ("%f kHz\n", speed);
+            else
+                Serial.printf ("%f MHz\n", speed / 1000);
+
+            for (;;) delay (1000);
+       }
+       else
+            cycles += Emulator::step ();
+
+    } while (--count);
+}
+
+uint8_t Common::op_wdm(uint32_t eal, uint32_t eah)
+{
+    TRACE(wdm);
+
+    register uint8_t	cmnd = getByte(eal);
+
+    switch (cmnd) {
+    case 0x00:  c.w = ier.f;        break;
+    case 0x01:  ier.f = c.w;        break;
+    case 0x02:  ier.f |=  c.w;      break;
+    case 0x03:  ier.f &= ~c.w;      break;
+
+    case 0x04:  c.w = ifr.f;        break;
+    case 0x05:  ifr.f = c.w;        break;
+    case 0x06:  ifr.f |=  c.w;      break;
+    case 0x07:  ifr.f &= ~c.w;      break;
+
+    case 0x08:	{
+            ifr.u1tx = 0;
+            u1txd = c.l;
+            vTaskResume (u1txTask);
+            break;
+        }
+    case 0x09:	{
+            ifr.u1rx = 0;
+            c.l = u1rxd;
+            vTaskResume (u1rxTask);
+            break;
+        }
+    }
+    return (3);
 }

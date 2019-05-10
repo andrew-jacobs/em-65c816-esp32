@@ -32,6 +32,8 @@
 
 #include "memory.h"
 
+//==============================================================================
+
 const uint8_t  *Memory::pRd [RAM_BLOCKS + ROM_BLOCKS];
 uint8_t        *Memory::pWr [RAM_BLOCKS + ROM_BLOCKS];
 
