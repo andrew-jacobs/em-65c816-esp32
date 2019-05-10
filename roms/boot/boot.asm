@@ -29,7 +29,7 @@
 		.65816
 		
 		.include "../w65c816.inc"
-		.include "../em-esp32.inc"
+		.include "../signature.inc"
 
 		.page0
 		
@@ -61,7 +61,6 @@ RESET:
 		 inx
 		forever
 		
-		stp
 	.if 0
 		long_ai
 		
@@ -90,7 +89,7 @@ RESET:
 		repeat
 		 jsl 	Uart1Rx
 		 jsl	Uart1Tx
-		 jsr	Uart1Tx
+		 jsl	Uart1Tx
 		 cmp	#'X'
 		until eq
 		

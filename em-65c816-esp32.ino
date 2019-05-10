@@ -64,11 +64,11 @@ uint32_t        delta;
 volatile uint8_t u1rxd;
 volatile uint8_t u1txd;
 
-// Signal timer interrupt every millisecond
+// Signal timer interrupt every 10 milliseconds
 void doTimerTask (void *pArg)
 {
     for (;;) {
-        delay (1);
+        delay (10);
 
         Emulator::ifr.tmr = 1;
     }
@@ -92,7 +92,6 @@ void doU1txTask (void *pArg)
     for (;;) {
         Emulator::ifr.u1tx = 1;
         vTaskSuspend (NULL);
-        Serial.printf ("%.2x ", u1txd);
         Serial.write (u1txd);
     }
 }
@@ -118,9 +117,9 @@ void setup (void)
     Serial.printf (">> Remaining Heap: %d\n", ESP.getFreeHeap ());
     Serial.println (">> Booting");
 
-    xTaskCreatePinnedToCore (doTimerTask, "Timer", 1024, NULL, 1, &timerTask, 1);
-    xTaskCreatePinnedToCore (doU1rxTask, "U1RX", 2024, NULL, 1, &u1rxTask, 1);
-    xTaskCreatePinnedToCore (doU1txTask, "U1TX", 2024, NULL, 1, &u1txTask, 1);
+    xTaskCreate (doTimerTask, "Timer", 1024, NULL, 1, &timerTask);
+    xTaskCreate (doU1rxTask, "U1RX", 1024, NULL, 1, &u1rxTask);
+    xTaskCreate (doU1txTask, "U1TX", 1024, NULL, 1, &u1txTask);
 
     Emulator::reset ();
 
@@ -130,7 +129,7 @@ void setup (void)
 
 void loop (void)
 {
-    register int        count = 1000;
+    register int        count = 1500;
 
     do {
        if (Emulator::isStopped ()) {

@@ -37,7 +37,7 @@ using namespace std;
 // Macros
 //------------------------------------------------------------------------------
 
-#if 1
+#if 0
 #define SHOW_PC()		Trace::start()
 #define SHOW_CY(CY)		Trace::cycles(CY)
 #define BYTES(NM)		Trace::bytes(NM)
@@ -119,23 +119,23 @@ struct OpcodeSet {
 class Registers
 {
 protected:
-	static Word		pc;
-	static Word		sp;
-	static Word		dp;
-	static Word		c;
-	static Word		x;
-	static Word		y;
-	static Address	pbr;
-	static Address	dbr;
-	static Flags	p;
-	static bool		e;
+	static Word			pc;
+	static Word			sp;
+	static Word			dp;
+	static Word			c;
+	static Word			x;
+	static Word			y;
+	static Address		pbr;
+	static Address		dbr;
+	static Flags		p;
+	static bool			e;
 
 	static const OpcodeSet *pOpcodeSet;
 
 	static Interrupts	ier;
 
-	static bool 	stopped;
-	static bool		interrupted;
+	static bool			stopped;
+	static bool			interrupted;
 
 	Registers(void) { }
 
@@ -274,8 +274,6 @@ public:
 
 	static uint8_t step(void)
 	{
-		if (ier.f & ifr.f) return ((*(pOpcodeSet -> pIrq))());
-
 		SHOW_PC();
 		register uint8_t opcode = Memory::getByte(pbr.a | pc.w++);
 		register uint8_t cycles = ((*(pOpcodeSet->pOpcode[opcode]))());
@@ -643,7 +641,7 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint16_t	ah = getByte(pbr.a | pc.w++);
+		register uint8_t	ah = getByte(pbr.a | pc.w++);
 
 		eal = dbr.a | ((ah << 8) | al);
 		eah = eal + 1;
@@ -657,9 +655,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint16_t	ah = getByte(pbr.a | pc.w++);
+		register uint8_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = pbr.a | (ah << 8) | al;
+		eal = pbr.a | ((ah << 8) | al);
 		eah = eal + 1;
 
 		return (2);
@@ -671,9 +669,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint16_t	ah = getByte(pbr.a | pc.w++);
+		register uint8_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = (dbr.a | (ah << 8) | al) + x.w;
+		eal = (dbr.a | ((ah << 8) | al)) + x.w;
 		eah = eal + 1;
 
 		return (2);
@@ -685,9 +683,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint16_t	ah = getByte(pbr.a | pc.w++);
+		register uint8_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = (dbr.a | (ah << 8) | al) + y.w;
+		eal = (dbr.a | ((ah << 8) | al)) + y.w;
 		eah = eal + 1;
 
 		return (2);
@@ -828,9 +826,8 @@ protected:
 	{
 		BYTES(1);
 
-		register Word		ad;
+		register Word		ad = sp;
 
-		ad.w = sp.w;
 		ad.l += getByte(pbr.a | pc.w++);
 		eal = ad.w;
 		eah = 0;
@@ -841,9 +838,8 @@ protected:
 	{
 		BYTES(1);
 
-		register Word		ad;
+		register Word		ad = sp;
 
-		ad.w = sp.w;
 		ad.l += getByte(pbr.a | pc.w++);
 
 		register uint8_t	al = getByte(ad.w++);
@@ -1752,9 +1748,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint16_t	ah = getByte(pbr.a | pc.w++);
+		register uint8_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = pbr.a | (ah << 8) | al;
+		eal = pbr.a | ((ah << 8) | al);
 		eah = eal + 1;
 
 		return (2);
@@ -1766,9 +1762,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint16_t	ah = getByte(pbr.a | pc.w++);
+		register uint8_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = (dbr.a | (ah << 8) | al) + x.w;
+		eal = (dbr.a | ((ah << 8) | al)) + x.w;
 		eah = eal + 1;
 
 		return (2);
@@ -1780,9 +1776,9 @@ protected:
 		BYTES(2);
 
 		register uint8_t	al = getByte(pbr.a | pc.w++);
-		register uint16_t	ah = getByte(pbr.a | pc.w++);
+		register uint8_t	ah = getByte(pbr.a | pc.w++);
 
-		eal = (dbr.a | (ah << 8) | al) + y.w;
+		eal = (dbr.a | ((ah << 8) | al)) + y.w;
 		eah = eal + 1;
 
 		return (2);
@@ -1901,9 +1897,8 @@ protected:
 	{
 		BYTES(1);
 
-		register Word		ad;
+		register Word		ad = sp;
 
-		ad.w = sp.w;
 		ad.w += getByte(pbr.a | pc.w++);
 		eal = ad.w;
 		eah = eal + 1;
@@ -1914,10 +1909,9 @@ protected:
 	{
 		BYTES(1);
 
-		register Word		ad;
+		register Word		ad = sp;
 
-		ad.w = sp.w;
-		ad.w += getByte(pbr.a | pc.w++);
+		ad.l += getByte(pbr.a | pc.w++);
 
 		register uint8_t	al = getByte(ad.w++);
 		register uint8_t	ah = getByte(ad.w++);
@@ -2919,192 +2913,6 @@ protected:
 	{
 		TRACE(cpx);
 
-		register uint8_t  data = ModeN::getByte(eal);
-		register uint16_t diff = x.l - data;
-
-		setnz_b((uint8_t) diff);
-		setc(diff & 0x0100);
-		return (2);
-	}
-
-	static uint8_t op_cpy(uint32_t eal, uint32_t eah)
-	{
-		TRACE(cpy);
-
-		register uint8_t  data = ModeN::getByte(eal);
-		register uint16_t diff = y.l - data;
-
-		setnz_b((uint8_t) diff);
-		setc(diff & 0x0100);
-		return (2);
-	}
-
-	static uint8_t op_dex(uint32_t eal, uint32_t eah)
-	{
-		TRACE(dex);
-
-		setnz_b(--x.l);
-		return (2);
-	}
-
-	static uint8_t op_dey(uint32_t eal, uint32_t eah)
-	{
-		TRACE(dey);
-
-		setnz_b(--y.l);
-		return (2);
-	}
-
-	static uint8_t op_inx(uint32_t eal, uint32_t eah)
-	{
-		TRACE(inx);
-
-		setnz_b(++x.l);
-		return (2);
-	}
-
-	static uint8_t op_iny(uint32_t eal, uint32_t eah)
-	{
-		TRACE(iny);
-
-		setnz_b(++y.l);
-		return (2);
-	}
-
-	static uint8_t op_ldx(uint32_t eal, uint32_t eah)
-	{
-		TRACE(ldx);
-
-		setnz_b(x.l = ModeN::getByte(eal));
-		return (3);
-	}
-
-	static uint8_t op_ldy(uint32_t eal, uint32_t eah)
-	{
-		TRACE(ldy);
-
-		setnz_b(y.l = ModeN::getByte(eal));
-		return (4);
-	}
-
-	static uint8_t op_phx(uint32_t eal, uint32_t eah)
-	{
-		TRACE(phx);
-
-		ModeN::pushByte(x.l);
-		return (4);
-	}
-
-	static uint8_t op_phy(uint32_t eal, uint32_t eah)
-	{
-		TRACE(phy);
-
-		ModeN::pushByte(y.l);
-		return (4);
-	}
-
-	static uint8_t op_plx(uint32_t eal, uint32_t eah)
-	{
-		TRACE(plx);
-
-		x.l = ModeN::pullByte();
-		setnz_b(x.l);
-		return (4);
-	}
-
-	static uint8_t op_ply(uint32_t eal, uint32_t eah)
-	{
-		TRACE(ply);
-
-		y.l = ModeN::pullByte();
-		setnz_b(y.l);
-		return (4);
-	}
-
-	static uint8_t op_stx(uint32_t eal, uint32_t eah)
-	{
-		TRACE(stx);
-
-		ModeN::setByte(eal, x.l);
-		return (2);
-	}
-
-	static uint8_t op_sty(uint32_t eal, uint32_t eah)
-	{
-		TRACE(sty);
-
-		ModeN::setByte(eal, y.l);
-		return (2);
-	}
-
-	static uint8_t op_tax(uint32_t eal, uint32_t eah)
-	{
-		TRACE(tax);
-
-		setnz_b(x.l = c.l);
-		return (2);
-	}
-
-	static uint8_t op_tay(uint32_t eal, uint32_t eah)
-	{
-		TRACE(tay);
-
-		setnz_b(y.l = c.l);
-		return (2);
-	}
-
-	static uint8_t op_tsx(uint32_t eal, uint32_t eah)
-	{
-		TRACE(tsx);
-
-		setnz_b(x.l = sp.l);
-		return (2);
-	}
-
-	static uint8_t op_txs(uint32_t eal, uint32_t eah)
-	{
-		TRACE(txs);
-
-		sp.w = x.l;
-		return (2);
-	}
-
-	static uint8_t op_txy(uint32_t eal, uint32_t eah)
-	{
-		TRACE(txy);
-
-		setnz_b(y.l = x.l);
-		return (2);
-	}
-
-	static uint8_t op_tyx(uint32_t eal, uint32_t eah)
-	{
-		TRACE(tyx);
-
-		setnz_b(x.l = y.l);
-		return (2);
-	}
-};
-
-class ModeX1 : public Registers
-{
-private:
-	ModeX1() { }
-
-protected:
-	static uint8_t am_immx(uint32_t &eal, uint32_t &eah)
-	{
-		BYTES(1);
-
-		eal = pbr.a | pc.w++;
-		eah = 0;
-		return (0);
-	}
-
-	static uint8_t op_cpx(uint32_t eal, uint32_t eah)
-	{
-		TRACE(cpx);
-
 		register uint16_t data = ModeN::getWord(eal, eah);
 		register uint32_t diff = x.w - data;
 
@@ -3272,6 +3080,192 @@ protected:
 		TRACE(tyx);
 
 		setnz_w(x.w = y.w);
+		return (2);
+	}
+};
+
+class ModeX1 : public Registers
+{
+private:
+	ModeX1() { }
+
+protected:
+	static uint8_t am_immx(uint32_t &eal, uint32_t &eah)
+	{
+		BYTES(1);
+
+		eal = pbr.a | pc.w++;
+		eah = 0;
+		return (0);
+	}
+
+	static uint8_t op_cpx(uint32_t eal, uint32_t eah)
+	{
+		TRACE(cpx);
+
+		register uint8_t  data = ModeN::getByte(eal);
+		register uint16_t diff = x.l - data;
+
+		setnz_b((uint8_t) diff);
+		setc(diff & 0x0100);
+		return (2);
+	}
+
+	static uint8_t op_cpy(uint32_t eal, uint32_t eah)
+	{
+		TRACE(cpy);
+
+		register uint8_t  data = ModeN::getByte(eal);
+		register uint16_t diff = y.l - data;
+
+		setnz_b((uint8_t) diff);
+		setc(diff & 0x0100);
+		return (2);
+	}
+
+	static uint8_t op_dex(uint32_t eal, uint32_t eah)
+	{
+		TRACE(dex);
+
+		setnz_b(--x.l);
+		return (2);
+	}
+
+	static uint8_t op_dey(uint32_t eal, uint32_t eah)
+	{
+		TRACE(dey);
+
+		setnz_b(--y.l);
+		return (2);
+	}
+
+	static uint8_t op_inx(uint32_t eal, uint32_t eah)
+	{
+		TRACE(inx);
+
+		setnz_b(++x.l);
+		return (2);
+	}
+
+	static uint8_t op_iny(uint32_t eal, uint32_t eah)
+	{
+		TRACE(iny);
+
+		setnz_b(++y.l);
+		return (2);
+	}
+
+	static uint8_t op_ldx(uint32_t eal, uint32_t eah)
+	{
+		TRACE(ldx);
+
+		setnz_b(x.l = ModeN::getByte(eal));
+		return (3);
+	}
+
+	static uint8_t op_ldy(uint32_t eal, uint32_t eah)
+	{
+		TRACE(ldy);
+
+		setnz_b(y.l = ModeN::getByte(eal));
+		return (4);
+	}
+
+	static uint8_t op_phx(uint32_t eal, uint32_t eah)
+	{
+		TRACE(phx);
+
+		ModeN::pushByte(x.l);
+		return (4);
+	}
+
+	static uint8_t op_phy(uint32_t eal, uint32_t eah)
+	{
+		TRACE(phy);
+
+		ModeN::pushByte(y.l);
+		return (4);
+	}
+
+	static uint8_t op_plx(uint32_t eal, uint32_t eah)
+	{
+		TRACE(plx);
+
+		x.l = ModeN::pullByte();
+		setnz_b(x.l);
+		return (4);
+	}
+
+	static uint8_t op_ply(uint32_t eal, uint32_t eah)
+	{
+		TRACE(ply);
+
+		y.l = ModeN::pullByte();
+		setnz_b(y.l);
+		return (4);
+	}
+
+	static uint8_t op_stx(uint32_t eal, uint32_t eah)
+	{
+		TRACE(stx);
+
+		ModeN::setByte(eal, x.l);
+		return (2);
+	}
+
+	static uint8_t op_sty(uint32_t eal, uint32_t eah)
+	{
+		TRACE(sty);
+
+		ModeN::setByte(eal, y.l);
+		return (2);
+	}
+
+	static uint8_t op_tax(uint32_t eal, uint32_t eah)
+	{
+		TRACE(tax);
+
+		setnz_b(x.l = c.l);
+		return (2);
+	}
+
+	static uint8_t op_tay(uint32_t eal, uint32_t eah)
+	{
+		TRACE(tay);
+
+		setnz_b(y.l = c.l);
+		return (2);
+	}
+
+	static uint8_t op_tsx(uint32_t eal, uint32_t eah)
+	{
+		TRACE(tsx);
+
+		setnz_b(x.l = sp.l);
+		return (2);
+	}
+
+	static uint8_t op_txs(uint32_t eal, uint32_t eah)
+	{
+		TRACE(txs);
+
+		sp.w = x.l;
+		return (2);
+	}
+
+	static uint8_t op_txy(uint32_t eal, uint32_t eah)
+	{
+		TRACE(txy);
+
+		setnz_b(y.l = x.l);
+		return (2);
+	}
+
+	static uint8_t op_tyx(uint32_t eal, uint32_t eah)
+	{
+		TRACE(tyx);
+
+		setnz_b(x.l = y.l);
 		return (2);
 	}
 };
