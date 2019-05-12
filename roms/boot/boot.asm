@@ -1,14 +1,14 @@
 ;===============================================================================
-;  _____ __  __        __  ____   ____ ___  _  __   
-; | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_  
-; |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \ 
+;  _____ __  __	       __  ____	  ____ ___  _  __
+; | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_
+; |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \
 ; | |___| |  | |_____| (_) |__) | |__| (_) | | (_) |
-; |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/ 
-; | ____/ ___||  _ \___ /___ \                      
-; |  _| \___ \| |_) ||_ \ __) |                     
-; | |___ ___) |  __/___) / __/                      
-; |_____|____/|_|  |____/_____|                     
-;                                                   
+; |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/
+; | ____/ ___||	 _ \___ /___ \
+; |  _| \___ \| |_) ||_ \ __) |
+; | |___ ___) |	 __/___) / __/
+; |_____|____/|_|  |____/_____|
+;
 ; Boot ROM & Operating System
 ;-------------------------------------------------------------------------------
 ; Copyright (C),2019 Andrew John Jacobs
@@ -27,14 +27,21 @@
 ;-------------------------------------------------------------------------------
 
 		.65816
-		
+
 		.include "../w65c816.inc"
 		.include "../signature.inc"
 
+;===============================================================================
+;-------------------------------------------------------------------------------
+
+LF		.equ	$0a
+CR		.equ	$0d
+
 		.page0
-		
+
 
 		.bss
+
 
 
 ;===============================================================================
@@ -42,40 +49,35 @@
 
 		.code
 		.org	$f000
-		
-		
-Message:	.byte	13,10,"Hello World!",13,10,0
-		
+
+
+		.longa	off
+		.longi	off
 RESET:
 		sei				; Ensure no interrupts
 		cld
-		native
-		short_ai
-		
-		ldx	#0
-		repeat
-	lda Message
-		 lda	Message,x
-		 break	eq
-		 jsl	Uart1Tx
-		 inx
-		forever
-		
+
+	lda	#$11
+	ldx	#$22
+	ldy	#$33
+
+		brk	#0
+		stp
 	.if 0
 		long_ai
-		
+
 		lda	#0			; Clear video RAM area
 		sta	>VLINES
 		tax
 		tay
 		iny
 		dec	a
-;	lda	#$0010		
+;	lda	#$0010
 		mvn	bank(VLINES),bank(VLINES)
-		
+
 		ldx	#0
 		lda	#VDATA
-		repeat				
+		repeat
 		 sta	!VLINES,x		; Setup video line offset
 		 clc
 		 adc	#BYTES_PER_LINE
@@ -84,22 +86,9 @@ RESET:
 		 cpx	#SVGA_HEIGHT * 2	; Repeat for entire screen
 		until eq
 	.endif
-	
-		short_ai
-		repeat
-		 jsl 	Uart1Rx
-		 jsl	Uart1Tx
-		 jsl	Uart1Tx
-		 cmp	#'X'
-		until eq
-		
-		stp
-		bra	$
 
 
-
-COP:
-IRQ:
+COPN:
 
 ;===============================================================================
 ; Uart1 I/O
@@ -111,24 +100,46 @@ Uart1Tx:
 		pha				; Save user data
 		repeat
 		 wdm	#WDM_IFR_RD		; Ready to transmit?
-		 and 	#INT_U1TX
+		 and	#INT_U1TX
 		until ne
 		pla				; Yes, recover data
 		wdm	#WDM_U1TX		; .. and send
 		plp				; Restore MX
 		rtl				; Done
-		
+
 Uart1Rx:
 		php				; Save MX bits
 		long_a
 		repeat
 		 wdm	#WDM_IFR_RD		; Any data to read?
-		 and 	#INT_U1RX
+		 and	#INT_U1RX
 		until ne
 		wdm	#WDM_U1RX		; Yes, fetch a byte
 		plp				; Restore MX
 		rtl				; Done
-	
+
+;===============================================================================
+; Interrupt Handlers
+;-------------------------------------------------------------------------------
+
+		.longa	off
+		.longi	off
+IRQBRK:
+		pha				; Save users A
+		lda	2,s			; Recover P
+		and	#$10
+		if ne
+		 pla				; Restores users A
+BRKN:		 sep	#M_FLAG			; Ensure 8-bit A
+		 jml	Monitor			; Enter the monitor
+		endif
+
+		pla
+		rti
+
+IRQN:
+		rti
+
 ;===============================================================================
 ; Unused Vector Trap
 ;-------------------------------------------------------------------------------
@@ -148,25 +159,25 @@ UnusedVector
 
 		.org	$ffe0
 
-                .space  4                       ; Reserved
-                .word   COP                     ; $FFE4 - COP(816)
-                .word   UnusedVector            ; $FFE6 - BRK(816)
-                .word	UnusedVector            ; $FFE8 - ABORT(816)
-                .word	UnusedVector            ; $FFEA - NMI(816)
-                .space  2                       ; Reserved
-                .word	IRQ                     ; $FFEE - IRQ(816)
+		.space	4			; Reserved
+		.word	COPN			; $FFE4 - COP(816)
+		.word	BRKN			; $FFE6 - BRK(816)
+		.word	UnusedVector		; $FFE8 - ABORT(816)
+		.word	UnusedVector		; $FFEA - NMI(816)
+		.space	2			; Reserved
+		.word	IRQN			; $FFEE - IRQ(816)
 
 ; Emulation Mode Vectors
 
 		.org	$fff0
-                .space  4
-                .word   UnusedVector            ; $FFF4 - COP(C02)
-                .space  2                       ; $Reserved
-                .word   UnusedVector            ; $FFF8 - ABORT(C02)
-                .word   UnusedVector            ; $FFFA - NMI(C02)
-                .word   RESET                   ; $FFFC - RESET(C02)
-                .word   UnusedVector            ; $FFFE - IRQBRK(C02)
-		
+		.space	4
+		.word	UnusedVector		; $FFF4 - COP(C02)
+		.space	2			; $Reserved
+		.word	UnusedVector		; $FFF8 - ABORT(C02)
+		.word	UnusedVector		; $FFFA - NMI(C02)
+		.word	RESET			; $FFFC - RESET(C02)
+		.word	IRQBRK			; $FFFE - IRQBRK(C02)
+
 ;===============================================================================
 ; Video RAM
 ;-------------------------------------------------------------------------------
@@ -178,10 +189,10 @@ BYTES_PER_LINE	.equ	SVGA_WIDTH / PIXELS_PER_BYTE
 
 		.bss
 		.org	$010000
-		
-VLINES		.space	SVGA_HEIGHT * 2		; Scan line pointers	
 
-VDATA		.space 	SVGA_HEIGHT * BYTES_PER_LINE
+VLINES		.space	SVGA_HEIGHT * 2		; Scan line pointers
+
+VDATA		.space	SVGA_HEIGHT * BYTES_PER_LINE
 VEND		.space	0
 
 ;-------------------------------------------------------------------------------
@@ -199,16 +210,321 @@ VEND		.space	0
 
 
 
-
+		.page
 ;===============================================================================
 ; Monitor
 ;-------------------------------------------------------------------------------
 
+		.bss
+		.org	$00ef00
+
+; User Registers
+
+REG_E		.space	1			; In bit 7
+REG_P		.space	1
+REG_C		.space	2
+REG_X		.space	2
+REG_Y		.space	2
+REG_SP		.space	2
+REG_DP		.space	2
+REG_PC		.space	2
+REG_PBR		.space	1
+REG_DBR		.space	1
+
+CMD_LEN		.space	1			; Command buffer length
+
+		.align	128			; Used for stack
+CMD_BUF		.space	128			; Command buffer
+
+;-------------------------------------------------------------------------------
+
+		.code
+		.longa	off
+		.longi	off
+		.dpage	REG_E
+Monitor:
+		phd				; Push users DP
+		pea	#REG_E			; Move to monitor's page
+		pld
+		sta	REG_C+0			; Save C
+		xba
+		sta	REG_C+1
+		pla				; Save DP
+		sta	REG_DP+0
+		pla
+		sta	REG_DP+1
+		pla				; Save P
+		sta	REG_P
+		pla
+		sta	REG_PC+0		; Save PC
+		pla
+		sta	REG_PC+1
+		clc				; Switch to native mode
+		xce
+		stz	REG_PBR
+		if cc
+		 pla
+		 sta	REG_PBR			; Save PBR
+		endif
+		ror	REG_E			; Save E
+		phb				; Save DBR
+		pla
+		sta	REG_DBR
+		long_i
+		stx	REG_X			; Save X
+		sty	REG_Y			; Save Y
+		tsx
+		stx	REG_SP			; Save SP
+		ldx	#CMD_BUF-1		; .. then load ours
+		txs
+
+		phk
+		plb
+
+;-------------------------------------------------------------------------------
+
+		jsr	.NewLine
+
+		lda	REG_PBR			; Show PBR and PC
+		jsr	.Hex2
+		lda	#':'
+		jsr	.UartTx
+		lda	REG_PC+1
+		xba
+		lda	REG_PC+0
+		jsr	.Hex4
+
+		ldx	#.StrE			; Show E bit
+		jsr	.Print
+		lda	#'0'
+		bit	REG_E
+		if mi
+		 inc	a
+		endif
+		jsr	.UartTx
+
+		ldx	#.StrP			; Show P
+		jsr	.Print
+		ldx	#7
+		repeat
+		 lda	.Mask,x
+		 and	REG_P
+		 php
+		 lda	.Flag,x
+		 plp
+		 if eq
+		  lda	#'.'
+		 endif
+		 jsr	.UartTx
+		 dex
+		until mi
 
 
+		ldx	#.StrC			; Show C
+		jsr	.Print
+		bit	REG_E
+		bmi	.ShortA
+		lda	#M_FLAG
+		bit	REG_P
+		if eq
+		 jsr	.OpenBracket
+		 jsr	.HexCHi
+		else
+.ShortA:	 jsr	.HexCHi
+		 jsr	.OpenBracket
+		endif
+		lda	REG_C+0
+		jsr	.Hex2
+		jsr	.CloseBracket
+
+		ldx	#.StrX			; Show X
+		jsr	.Print
+		bit	REG_E
+		bmi	.ShortX
+		lda	#X_FLAG
+		bit	REG_P
+		if eq
+		 jsr	.OpenBracket
+		 jsr	.HexXHi
+		else
+.ShortX:	 jsr	.HexXHi
+		 jsr	.OpenBracket
+		endif
+		lda	REG_X+0
+		jsr	.Hex2
+		jsr	.CloseBracket
+
+		ldx	#.StrY			; Show Y
+		jsr	.Print
+		bit	REG_E
+		bmi	.ShortY
+		lda	#X_FLAG
+		bit	REG_P
+		if eq
+		 jsr	.OpenBracket
+		 jsr	.HexYHi
+		else
+.ShortY:	 jsr	.HexYHi
+		 jsr	.OpenBracket
+		endif
+		lda	REG_Y+0
+		jsr	.Hex2
+		jsr	.CloseBracket
+
+		ldx	#.StrDP			; Show DP
+		jsr	.Print
+		lda	REG_DP+1
+		xba
+		lda	REG_DP+0
+		jsr	.Hex4
+
+		ldx	#.StrSP			; Show SP
+		jsr	.Print
+		bit	REG_E
+		if mi
+		 jsr	.HexSPHi
+		 jsr	.OpenBracket
+		else
+		 jsr	.OpenBracket
+		 jsr	.HexSPHi
+		endif
+		lda	REG_SP+0
+		jsr	.Hex2
+		jsr	.CloseBracket
+
+		ldx	#.StrDBR		; Show DBR
+		jsr	.Print
+		lda	REG_DBR
+		jsr	.Hex2
+
+;-------------------------------------------------------------------------------
+
+.Command:
+
+		jsr	.NewLine
+		lda	#'.'
+		jsr	.UartTx
+		repeat
+		 jsr	.UartRx
+		 stp
+		forever
+
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+
+.Print:
+		repeat
+		 lda	!0,x
+		 if eq
+		  rts
+		 endif
+		 jsr	.UartTx
+		 inx
+		forever
+
+.NewLine:
+		lda	#CR
+		jsr	.UartTx
+		lda	#LF
+		bra	.UartTx
+
+;-------------------------------------------------------------------------------
+
+		.longa	off
+.HexCHi:
+		lda	REG_C+1
+		bra	.Hex2
+
+		.longa	off
+.HexXHi:
+		lda	REG_X+1
+		bra	.Hex2
+
+		.longa	off
+.HexYHi:
+		lda	REG_Y+1
+		bra	.Hex2
+
+		.longa	off
+.HexSPHi:
+		lda	REG_SP+1
+		bra	.Hex2
+
+		.longa	off
+.Hex4:
+		xba
+		jsr	.Hex2
+		xba
+
+.Hex2:
+		pha
+		lsr	a
+		lsr	a
+		lsr	a
+		lsr	a
+		jsr	.Hex
+		pla
+
+.Hex
+		and	#$0f
+		sed
+		clc
+		adc	#$90
+		adc	#$40
+		cld
+
+;-------------------------------------------------------------------------------
+
+		.longa	?
+.UartTx:
+		php				; Save MX bits
+		long_a
+		pha				; Save user data
+		repeat
+		 wdm	#WDM_IFR_RD		; Ready to transmit?
+		 and	#INT_U1TX
+		until ne
+		pla				; Yes, recover data
+		wdm	#WDM_U1TX		; .. and send
+		plp				; Restore MX
+		rts				; Done
 
 
+		.longa	off
+.OpenBracket:
+		lda	#'['
+		bra	.UartTx
 
+		.longa	off
+.CloseBracket:
+		lda	#']'
+		bra	.UartTx
 
-		
+		.longa	?
+.UartRx:
+		php				; Save MX bits
+		long_a
+		repeat
+		 wdm	#WDM_IFR_RD		; Any data to read?
+		 and	#INT_U1RX
+		until ne
+		wdm	#WDM_U1RX		; Yes, fetch a byte
+		plp				; Restore MX
+		rts				; Done
+
+;-------------------------------------------------------------------------------
+
+.Flag:		.byte	'C','Z','I','D','X','M','V','N'
+.Mask:		.byte	$01,$02,$04,$08,$10,$20,$40,$80
+
+.StrP:		.byte	" P=",0
+.StrE:		.byte	" E=",0
+.StrC:		.byte	" C=",0
+.StrX:		.byte	" X=",0
+.StrY:		.byte	" Y=",0
+.StrDP:		.byte	" DP=",0
+.StrSP:		.byte	" SP=",0
+.StrDBR:	.byte	" DBR=",0
+
 		.end

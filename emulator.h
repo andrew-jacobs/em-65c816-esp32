@@ -600,7 +600,7 @@ protected:
 	{
 		pushByte(pc.h);
 		pushByte(pc.l);
-		pushByte(p.f | 0x30);
+		pushByte((p.f | 0x20) & 0xef);
 		p.i = 1;
 		p.d = 0;
 
@@ -1021,7 +1021,7 @@ protected:
 
 		pushByte(pc.h);
 		pushByte(pc.l);
-		pushByte(p.f & 0xef);
+		pushByte(p.f | 0x30);
 		p.i = 1;
 		p.d = 0;
 
@@ -3375,7 +3375,7 @@ protected:
 	OPCODE(59, am_absy, op_eor, 0) \
 	OPCODE(5a, am_impl, op_phy, 0) \
 	OPCODE(5b, am_impl, op_tcd, 0) \
-	OPCODE(5c, am_alng, op_jmp, 0) \
+	OPCODE(5c, am_alng, op_jml, 0) \
 	OPCODE(5d, am_absx, op_eor, 0) \
 	OPCODE(5e, am_absx, op_lsr, 0) \
 	OPCODE(5f, am_alnx, op_eor, 0) \
