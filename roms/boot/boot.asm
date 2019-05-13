@@ -24,6 +24,11 @@
 ; Notes:
 ;
 ;
+; | 00:0000 |
+; | 00:ee00 | Monitor Workspace
+; | 00:ef00 | I/O Workspace
+;
+;
 ;-------------------------------------------------------------------------------
 
 		.65816
@@ -32,10 +37,16 @@
 		.include "../signature.inc"
 
 ;===============================================================================
+; Constants
 ;-------------------------------------------------------------------------------
 
+; ASCII Control characters
+
+BEL		.equ	$07
+BS		.equ	$08
 LF		.equ	$0a
 CR		.equ	$0d
+DEL		.equ	$7f
 
 		.page0
 
@@ -214,9 +225,13 @@ VEND		.space	0
 ;===============================================================================
 ; Monitor
 ;-------------------------------------------------------------------------------
+;
+; The monitor runs with interrupts disabled and performs polled I/O. If it is
+; not entered then its workspace page is never accessed and could be used by
+; another application.
 
 		.bss
-		.org	$00ef00
+		.org	$00ee00
 
 ; User Registers
 
@@ -238,13 +253,16 @@ CMD_BUF		.space	128			; Command buffer
 
 ;-------------------------------------------------------------------------------
 
+; The entry point is called from the boot ROM when a BRK instruction is executed
+; in either emulation or native mode.
+
 		.code
 		.longa	off
 		.longi	off
 		.dpage	REG_E
 Monitor:
 		phd				; Push users DP
-		pea	#REG_E			; Move to monitor's page
+		pea	#REG_E			; Move to monitor's direct page
 		pld
 		sta	REG_C+0			; Save C
 		xba
@@ -255,9 +273,12 @@ Monitor:
 		sta	REG_DP+1
 		pla				; Save P
 		sta	REG_P
+		sec				; Save PC (adjusting for BRK)
 		pla
-		sta	REG_PC+0		; Save PC
+		sbc	#2
+		sta	REG_PC+0
 		pla
+		sbc	#0
 		sta	REG_PC+1
 		clc				; Switch to native mode
 		xce
@@ -278,13 +299,18 @@ Monitor:
 		ldx	#CMD_BUF-1		; .. then load ours
 		txs
 
-		phk
-		plb
+		phk				; Set DBR to this bank (to
+		plb				; .. access data and strings)
 
 ;-------------------------------------------------------------------------------
 
+; Show the state of the users registers when the BRK was executed.
+
+.ShowRegisters:
 		jsr	.NewLine
 
+		ldx	#.StrPC
+		jsr	.Print
 		lda	REG_PBR			; Show PBR and PC
 		jsr	.Hex2
 		lda	#':'
@@ -307,7 +333,7 @@ Monitor:
 		jsr	.Print
 		ldx	#7
 		repeat
-		 lda	.Mask,x
+		 lda	.Mask,x			; .. as individual flags
 		 and	REG_P
 		 php
 		 lda	.Flag,x
@@ -318,7 +344,6 @@ Monitor:
 		 jsr	.UartTx
 		 dex
 		until mi
-
 
 		ldx	#.StrC			; Show C
 		jsr	.Print
@@ -399,19 +424,69 @@ Monitor:
 
 ;-------------------------------------------------------------------------------
 
-.Command:
+; Read a command from the user into the buffer area. Pressing either BS or DEL
+; erases the last character.
 
-		jsr	.NewLine
+.NewCommand:
+		stz	CMD_LEN			; Clear command buffer
+		jsr	.NewLine		; Print the entry prompt
 		lda	#'.'
 		jsr	.UartTx
+		
+		ldx	#0
 		repeat
-		 jsr	.UartRx
-		 stp
+		 txa
+		 cmp	CMD_LEN			; Any forced characters?
+		 break	eq
+		 lda	CMD_BUF,x		; Yes, print one
+		 jsr	.UartTx
+		 inx
 		forever
+		
+		repeat
+		 jsr	.UartRx			; Read a real character
+		 sta	CMD_BUF,x		; .. and save it
+		 
+		 cmp	#BS			; Map BS to DEL
+		 beq	.BackSpace
+		 cmp	#CR			; End of input?
+		 break 	eq
+		 
+		 cmp 	#' '			; Printable?
+		 if cs
+		  cmp	#DEL			; Delete?	
+		  if cs
+.BackSpace:	   txa				; Is buffer empty?
+		   beq	.Beep			; Yes, make a noise 
 
+		   lda	#BS			; Erase the last character
+		   jsr	.UartTx
+		   lda	#' '
+		   jsr	.UartTx
+		   lda	#BS
+		   dex
+		  else
+		   inx				; Keep the last character
+		  endif
+		 else
+.Beep:		  lda	#BEL
+		 endif
+		 jsr	.UartTx			; And echo char, BEL or BS
+		forever
+		
+		txa				; Save the buffer length
+		sta	CMD_LEN
+
+		bra	.NewCommand+2
+		
+		stp
+		
 ;-------------------------------------------------------------------------------
 
 ;-------------------------------------------------------------------------------
+
+; Print the null terminated string pointed to the address in the X register to
+; the UART.
 
 .Print:
 		repeat
@@ -423,6 +498,8 @@ Monitor:
 		 inx
 		forever
 
+; Output a CR+LF character sequence to move the cursor to the next line.
+
 .NewLine:
 		lda	#CR
 		jsr	.UartTx
@@ -431,50 +508,67 @@ Monitor:
 
 ;-------------------------------------------------------------------------------
 
+; Output the high byte of the C register in hex.
+
 		.longa	off
 .HexCHi:
 		lda	REG_C+1
 		bra	.Hex2
+
+; Output the high byte of the X register in hex.
 
 		.longa	off
 .HexXHi:
 		lda	REG_X+1
 		bra	.Hex2
 
+; Output the high byte of the Y register in hex.
+
 		.longa	off
 .HexYHi:
 		lda	REG_Y+1
 		bra	.Hex2
+
+; Output the high byte of the SP register in hex.
 
 		.longa	off
 .HexSPHi:
 		lda	REG_SP+1
 		bra	.Hex2
 
+; Print the value in the C register in hex.
+
 		.longa	off
 .Hex4:
-		xba
-		jsr	.Hex2
-		xba
+		xba				; Swap the high and low bytes
+		jsr	.Hex2			; Print the high byte
+		xba				; Swap back then ..
+
+; Print the value in the A registers in hex.
 
 .Hex2:
-		pha
+		pha				; Save the byte
+		lsr	a			; Shift down the high nybble
 		lsr	a
 		lsr	a
 		lsr	a
-		lsr	a
-		jsr	.Hex
-		pla
+		jsr	.Hex			; Print it
+		pla				; Recover the byte then ..
 
-.Hex
-		and	#$0f
-		sed
+; Print the value in the low nybble of A in hex.
+
+.Hex:
+		and	#$0f			; Strip out the low nybble
+		sed				; And make printable
 		clc
 		adc	#$90
 		adc	#$40
-		cld
+		cld				; Then drop into ..
 
 ;-------------------------------------------------------------------------------
+
+; Transmit the character in A using the UART. Poll the UART to see if its
+; busy before outputing the character.
 
 		.longa	?
 .UartTx:
@@ -490,16 +584,21 @@ Monitor:
 		plp				; Restore MX
 		rts				; Done
 
+; Output an openning bracket character.
 
 		.longa	off
 .OpenBracket:
 		lda	#'['
 		bra	.UartTx
 
+; Output a closing bracket character.
+
 		.longa	off
 .CloseBracket:
 		lda	#']'
 		bra	.UartTx
+
+; Receive a character from UART performing a polled wait for data to arrive.
 
 		.longa	?
 .UartRx:
@@ -515,16 +614,25 @@ Monitor:
 
 ;-------------------------------------------------------------------------------
 
+; 65xx Flags Bits
+
 .Flag:		.byte	'C','Z','I','D','X','M','V','N'
 .Mask:		.byte	$01,$02,$04,$08,$10,$20,$40,$80
 
-.StrP:		.byte	" P=",0
+; Various Strings
+
+.StrPC:		.byte	"PC=",0
 .StrE:		.byte	" E=",0
+.StrP:		.byte	" P=",0
 .StrC:		.byte	" C=",0
 .StrX:		.byte	" X=",0
 .StrY:		.byte	" Y=",0
 .StrDP:		.byte	" DP=",0
 .StrSP:		.byte	" SP=",0
 .StrDBR:	.byte	" DBR=",0
+
+.StrHelp:	
+		.byte	"? - Display this help",CR,LF
+		.byte	0
 
 		.end
