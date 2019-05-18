@@ -476,13 +476,82 @@ Monitor:
 		
 		txa				; Save the buffer length
 		sta	CMD_LEN
-
-		bra	.NewCommand+2
 		
-		stp
+		lda	#0			; Start processing at the	
+		tax				; .. start of the line
+		jsr	.SkipSpaces
+		jsr	.ToUpper
+		
+		cmp	#CR
+		beq	.NewCommand
+		
+;-------------------------------------------------------------------------------
+		
+		cmp 	#'?'
+		if eq
+		 ldx	#.StrHelp
+		 jsr	.Print
+		 bra	.NewCommand
+		endif
+		
+;-------------------------------------------------------------------------------
+		
+		cmp 	#'D'
+		if eq
+		
+		 jmp	.NewCommand
+		endif
+
+;-------------------------------------------------------------------------------
+		
+		cmp 	#'M'
+		if eq
+		
+		 jmp	.NewCommand
+		endif
 		
 ;-------------------------------------------------------------------------------
 
+		cmp	#'Q'
+		if eq
+		 jsr	.NewLine
+		 stp
+		endif
+		
+;-------------------------------------------------------------------------------
+		
+		cmp 	#'R'
+		if eq
+		
+		 jmp	.ShowRegisters
+		endif
+
+;-------------------------------------------------------------------------------
+		
+		ldx	#.StrError
+		jsr	.Print		
+		jmp	.NewCommand
+		
+;-------------------------------------------------------------------------------
+
+.SkipSpaces:
+		repeat
+		 lda	CMD_BUF,x		; Fetch characters
+		 inx
+		 cmp #' '			; .. until a non-space
+		until ne
+		rts				; Done
+		
+.ToUpper:
+		cmp	#'a'			; If A is 'a'..'z'
+		if cs
+		 cmp	#'z'+1
+		 if cc
+		  sbc	#31			; .. then capitalise
+		 endif
+		endif
+		rts
+		
 ;-------------------------------------------------------------------------------
 
 ; Print the null terminated string pointed to the address in the X register to
@@ -631,8 +700,10 @@ Monitor:
 .StrSP:		.byte	" SP=",0
 .StrDBR:	.byte	" DBR=",0
 
+.StrError:	.byte	CR,LF,"Error",0
+
 .StrHelp:	
-		.byte	"? - Display this help",CR,LF
+		.byte	CR,LF,"? - Display this help"
 		.byte	0
 
 		.end

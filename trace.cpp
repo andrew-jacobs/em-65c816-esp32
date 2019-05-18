@@ -25,7 +25,7 @@
 
 #include <Arduino.h>
 
-#pragma GCC optimize ("-O4")
+#pragma GCC optimize ("-O3")
 
 #include "Emulator.h"
 
