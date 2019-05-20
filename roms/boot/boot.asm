@@ -23,10 +23,29 @@
 ;===============================================================================
 ; Notes:
 ;
-;
-; | 00:0000 |
-; | 00:ee00 | Monitor Workspace
-; | 00:ef00 | I/O Workspace
+; +---------+----+-------------------------------
+; | 00:0000 | WR | OS Variables & Stack
+; +---------+----+-------------------------------
+; | 00:1000 | WR | Task Zero Pages & Stack
+; +---------+----+------------------------------
+; | 00:ee00 | WR | Monitor Workspace - Can be overwritten
+; +---------+----+------------------------------
+; | 00:ef00 | WR | I/O Workspace (Timer & UART Buffers)
+; +---------+----+------------------------------
+; | 00:f000 | RO | OS Boot ROM & Interrupt Handlers
+; | 00:ffe0 |    | Native Mode Vectors
+; | 00:fff0 |    | Emulation Mode Vectors
+; +---------+----+------------------------------
+; | 01:0000 | WR | Video
+; +---------+----+------------------------------
+; | 02:0000 |    | 
+; | 03:0000 |    |
+; +---------+----+------------------------------
+; | 04:0000 | RO | OS Code + Monitor
+; | 05:0000 |    |
+; | 06:0000 |    |
+; | 07:0000 |    |
+; +---------+----+-------------------------------
 ;
 ;
 ;-------------------------------------------------------------------------------
@@ -35,6 +54,15 @@
 
 		.include "../w65c816.inc"
 		.include "../signature.inc"
+		
+;===============================================================================
+;-------------------------------------------------------------------------------
+
+MON_PAGE	.equ	$ee00
+IO_PAGE		.equ	$ef00
+
+
+UART_BUFSIZ	.equ	64
 
 ;===============================================================================
 ; Constants
@@ -51,12 +79,27 @@ DEL		.equ	$7f
 		.page0
 
 
-		.bss
-
 
 
 ;===============================================================================
 ;-------------------------------------------------------------------------------
+
+		.bss
+		.org	IO_PAGE
+		
+TX_HEAD:	.space	1
+TX_TAIL:	.space	1
+RX_HEAD:	.space	1
+RX_TAIL:	.space	1
+
+MSEC:		.space	4
+
+TX_DATA:	.space	UART_BUFSIZ
+RX_DATA:	.space	UART_BUFSIZ
+
+		.if	$ > $efff
+		.error	"Exceeded I/O Page size"
+		.endif
 
 		.code
 		.org	$f000
@@ -68,12 +111,30 @@ RESET:
 		sei				; Ensure no interrupts
 		cld
 
-	lda	#$11
-	ldx	#$22
-	ldy	#$33
+		ldx	#8			; Clear FIFO indexes and timer
+		repeat
+		 dex
+		 stz	IO_PAGE,x
+		until eq
+		
+		clc				; Switch to native mode
+		xce
+
+		long_ai
+		ldx	#$0fff
+		txs
+		lda	#INT_CLK|INT_U1RX	; Enable clock and receive
+		wdm	#WDM_IER_WR
+		cli				; Allow interrupts
+		
+		repeat
+		 jsl	Uart1Rx
+		 jsl	Uart1Tx
+		forever
 
 		brk	#0
 		stp
+		
 	.if 0
 		long_ai
 
@@ -100,38 +161,79 @@ RESET:
 
 
 COPN:
+		jmp	($f000,x)
 
 ;===============================================================================
 ; Uart1 I/O
 ;-------------------------------------------------------------------------------
-
+		
+		.longa	?
+		.longi	?
 Uart1Tx:
 		php				; Save MX bits
-		long_a
-		pha				; Save user data
+		phx
+		short_a
+		pha
+		xba
+		pha
+		lda	#0
+		xba
+		pha				; Insert data at end of queue
+		lda	TX_TAIL	
+		tax
+		pla
+		sta	TX_DATA,x
+		inx				; Bump tail index
+		txa
+		and	#UART_BUFSIZ-1		; .. and wrap
 		repeat
-		 wdm	#WDM_IFR_RD		; Ready to transmit?
-		 and	#INT_U1TX
-		until ne
-		pla				; Yes, recover data
-		wdm	#WDM_U1TX		; .. and send
-		plp				; Restore MX
+		 cmp	TX_HEAD			; If buffer is completely full
+		 break ne
+		 wai				; .. wait for it to drain
+		forever
+		sei				; Update the tail
+		sta	TX_TAIL
+		lda	#INT_U1TX		; Ensure TX interrupt enabled
+		wdm	#WDM_IER_SET
+		cli
+		pla				; Restore registers and flags
+		xba
+		pla
+		xba
+		plx
+		plp
 		rtl				; Done
-
+		
+		.longa	?
+		.longi	?
 Uart1Rx:
 		php				; Save MX bits
-		long_a
+		phx
+		short_a
 		repeat
-		 wdm	#WDM_IFR_RD		; Any data to read?
-		 and	#INT_U1RX
-		until ne
-		wdm	#WDM_U1RX		; Yes, fetch a byte
-		plp				; Restore MX
-		rtl				; Done
+		 lda	RX_HEAD			; Wait while buffer is empty
+		 cmp	RX_TAIL
+		 break ne
+		 wai
+		forever
+		tax
+		lda	RX_DATA,x
+		pha
+		inx				; Bump head index
+		txa
+		and	#UART_BUFSIZ-1		; .. and wrap
+		sta	RX_HEAD			; Then update head
+		pla
+		plx				; Restore X and flags
+		plp
+		rtl
 
 ;===============================================================================
 ; Interrupt Handlers
 ;-------------------------------------------------------------------------------
+
+; In emulation mode the interrupt handler must differentiate between IRQ and
+; BRK.
 
 		.longa	off
 		.longi	off
@@ -145,10 +247,135 @@ BRKN:		 sep	#M_FLAG			; Ensure 8-bit A
 		 jml	Monitor			; Enter the monitor
 		endif
 
+		xba				; Save users B				
+		pha
+		
+		wdm	#WDM_IFR_RD		; Fetch interrupt flags
+		pha				; .. and save some copies
+		pha
+		
+		and	#INT_CLK		; Is this a timer interrupt?
+		if ne
+		 wdm	#WDM_IFR_CLR		; Yes, clear it
+		 
+		 inc	MSEC+0			; Bump the timer
+		 if eq
+		  inc	MSEC+1
+		  if eq
+		   inc	MSEC+2
+		   if eq
+		    inc	MSEC+3
+		   endif
+		  endif
+		 endif
+		endif
+		
+		pla				; Check for received data
+		and	#INT_U1RX
+		if ne
+		 lda	RX_TAIL			; Save at tail of RX buffer
+		 tax
+		 wdm	#WDM_U1RX
+		 sta	RX_DATA,x
+		 inx				; Bump the index
+		 txa
+		 and	#UART_BUFSIZ-1		; .. and wrap
+		 cmp	RX_HEAD			; Is RX buffer complete full?
+		 if ne
+		  sta	RX_TAIL			; No, save new tail
+		 endif		
+		endif
+		
+		pla				; Ready to transmit?
+		and	#INT_U1TX		
+		if ne
+		 lda	TX_HEAD			; Fetch next character to send
+		 tax
+		 lda	TX_DATA,x
+		 wdm	#WDM_U1TX		; .. and transmit it
+		 inx				; Bump the index
+		 tax
+		 and	#UART_BUFSIZ-1		; .. and wrap
+		 sta	TX_HEAD			; Save updated head
+		 cmp	TX_TAIL			; Is the buffer now empty?
+		 if eq
+		  lda	#INT_U1TX
+		  wdm	#WDM_IER_CLR		; Yes disable TX interrupt
+		 endif
+		endif		 
+		
+		pla				; Restore users B & A
+		xba
 		pla
-		rti
+		rti				; .. and continue
+	
+;-------------------------------------------------------------------------------
 
+		.longa	?
+		.longi	?
 IRQN:
+		long_ai				; Then go full 16-bit
+		pha				; .. and save C & X
+		phx
+		short_a				; Than make A 8-bits
+		
+		wdm	#WDM_IFR_RD		; Fetch interrupt flags
+		pha				; .. and save some copies
+		pha
+		
+		and	#INT_CLK		; Is this a timer interrupt?
+		if ne
+		 wdm	#WDM_IFR_CLR		; Yes, clear it
+		 
+		 inc	MSEC+0			; Bump the timer
+		 if eq
+		  inc	MSEC+1
+		  if eq
+		   inc	MSEC+2
+		   if eq
+		    inc	MSEC+3
+		   endif
+		  endif
+		 endif
+		endif
+		
+		pla				; Check for received data
+		and	#INT_U1RX
+		if ne
+		 lda	RX_TAIL			; Save at tail of RX buffer
+		 tax
+		 wdm	#WDM_U1RX
+		 sta	RX_DATA,x
+		 inx				; Bump the index
+		 txa
+		 and	#UART_BUFSIZ-1		; .. and wrap
+		 cmp	RX_HEAD			; Is RX buffer complete full?
+		 if ne
+		  sta	RX_TAIL			; No, save new tail
+		 endif		
+		endif
+		
+		pla				; Ready to transmit?
+		and	#INT_U1TX		
+		if ne
+		 lda	TX_HEAD			; Fetch next character to send
+		 tax
+		 lda	TX_DATA,x
+		 wdm	#WDM_U1TX		; .. and transmit it
+		 inx				; Bump the index
+		 tax
+		 and	#UART_BUFSIZ-1		; .. and wrap
+		 sta	TX_HEAD			; Save updated head
+		 cmp	TX_TAIL			; Is the buffer now empty?
+		 if eq
+		  lda	#INT_U1TX
+		  wdm	#WDM_IER_CLR		; Yes disable TX interrupt
+		 endif
+		endif		 
+		
+		long_a
+		plx
+		pla
 		rti
 
 ;===============================================================================
