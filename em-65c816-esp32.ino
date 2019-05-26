@@ -68,7 +68,7 @@ volatile uint8_t u1txd;
 void doTimerTask (void *pArg)
 {
     for (;;) {
-        delay (10);
+        delay (100);
 
         Emulator::ifr.tmr = 1;
     }

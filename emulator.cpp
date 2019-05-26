@@ -50,6 +50,7 @@ volatile Interrupts	Registers::ifr;
 
 bool		Registers::stopped = true;
 bool		Registers::interrupted;
+bool		Registers::waiting;
 
 const OpcodeSet *Registers::pOpcodeSet;
 
@@ -81,6 +82,7 @@ void Emulator::reset(void)
 
 	stopped = false;
 	interrupted = false;
+	waiting = false;
 
 	setMode();
 }

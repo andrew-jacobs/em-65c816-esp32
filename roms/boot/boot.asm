@@ -128,8 +128,37 @@ RESET:
 		cli				; Allow interrupts
 		
 		repeat
-		 jsl	Uart1Rx
+;		 jsl	Uart1Rx
+
+	.if 0
+		 lda	#'0'
 		 jsl	Uart1Tx
+		 lda	#'1'
+		 jsl	Uart1Tx
+		 lda	#'2'
+		 jsl	Uart1Tx
+		 lda	#'3'
+		 jsl	Uart1Tx
+		 lda	#'4'
+		 jsl	Uart1Tx
+		 lda	#'5'
+		 jsl	Uart1Tx
+		 lda	#'6'
+		 jsl	Uart1Tx
+		 lda	#'7'
+		 jsl	Uart1Tx
+		 lda	#'8'
+		 jsl	Uart1Tx
+		 lda	#'9'
+		 jsl	Uart1Tx
+	.endif
+	
+		 lda	#'.'
+		 jsl	Uart1Tx
+		 lda	MSEC+0
+		 repeat
+		  cmp	MSEC+0
+		 until ne
 		forever
 
 		brk	#0
@@ -189,7 +218,7 @@ Uart1Tx:
 		repeat
 		 cmp	TX_HEAD			; If buffer is completely full
 		 break ne
-		 wai				; .. wait for it to drain
+		 nop;wai				; .. wait for it to drain
 		forever
 		sei				; Update the tail
 		sta	TX_TAIL
@@ -287,23 +316,27 @@ BRKN:		 sep	#M_FLAG			; Ensure 8-bit A
 		endif
 		
 		pla				; Ready to transmit?
-		and	#INT_U1TX		
+		and	#INT_U1TX
 		if ne
-		 lda	TX_HEAD			; Fetch next character to send
-		 tax
-		 lda	TX_DATA,x
-		 wdm	#WDM_U1TX		; .. and transmit it
-		 inx				; Bump the index
-		 tax
-		 and	#UART_BUFSIZ-1		; .. and wrap
-		 sta	TX_HEAD			; Save updated head
-		 cmp	TX_TAIL			; Is the buffer now empty?
-		 if eq
-		  lda	#INT_U1TX
-		  wdm	#WDM_IER_CLR		; Yes disable TX interrupt
-		 endif
-		endif		 
-		
+		 wdm	#WDM_IER_RD		; And enabled?
+		 and	#INT_U1TX
+		 if ne
+		  lda	TX_HEAD			; Fetch next character to send
+		  tax
+		  lda	TX_DATA,x
+		  wdm	#WDM_U1TX		; .. and transmit it
+		  inx				; Bump the index
+		  txa
+		  and	#UART_BUFSIZ-1		; .. and wrap
+		  sta	TX_HEAD			; Save updated head
+		  cmp	TX_TAIL			; Is the buffer now empty?
+		  if eq
+		   lda	#INT_U1TX
+		   wdm	#WDM_IER_CLR		; Yes disable TX interrupt
+		  endif
+		 endif		 
+		endif
+
 		pla				; Restore users B & A
 		xba
 		pla
@@ -358,20 +391,24 @@ IRQN:
 		pla				; Ready to transmit?
 		and	#INT_U1TX		
 		if ne
-		 lda	TX_HEAD			; Fetch next character to send
-		 tax
-		 lda	TX_DATA,x
-		 wdm	#WDM_U1TX		; .. and transmit it
-		 inx				; Bump the index
-		 tax
-		 and	#UART_BUFSIZ-1		; .. and wrap
-		 sta	TX_HEAD			; Save updated head
-		 cmp	TX_TAIL			; Is the buffer now empty?
-		 if eq
-		  lda	#INT_U1TX
-		  wdm	#WDM_IER_CLR		; Yes disable TX interrupt
-		 endif
-		endif		 
+		 wdm	#WDM_IER_RD		; And enabled?
+		 and	#INT_U1TX
+		 if ne
+		  lda	TX_HEAD			; Fetch next character to send
+		  tax
+		  lda	TX_DATA,x
+		  wdm	#WDM_U1TX		; .. and transmit it
+		  inx				; Bump the index
+		  txa
+		  and	#UART_BUFSIZ-1		; .. and wrap
+		  sta	TX_HEAD			; Save updated head
+		  cmp	TX_TAIL			; Is the buffer now empty?
+		  if eq
+		   lda	#INT_U1TX
+		   wdm	#WDM_IER_CLR		; Yes disable TX interrupt
+		  endif
+		 endif	
+		endif
 		
 		long_a
 		plx

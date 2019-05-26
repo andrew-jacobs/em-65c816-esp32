@@ -136,6 +136,7 @@ protected:
 
 	static bool			stopped;
 	static bool			interrupted;
+	static bool			waiting;
 
 	Registers(void) { }
 
@@ -274,6 +275,11 @@ public:
 
 	static uint8_t step(void)
 	{
+		if (ier.f & ifr.f) {
+			interrupted = true;
+			if (p.i == 0) (*(pOpcodeSet -> pIrq))();
+		}
+
 		SHOW_PC();
 		register uint8_t opcode = Memory::getByte(pbr.a | pc.w++);
 		register uint8_t cycles = ((*(pOpcodeSet->pOpcode[opcode]))());
@@ -546,7 +552,18 @@ protected:
 	{
 		TRACE(wai);
 
-		// TODO:
+		if (waiting) {
+			if (interrupted)
+				waiting = false;
+			else
+				--pc.w;
+		}
+		else {
+			interrupted = false;
+			waiting = true;
+			--pc.w;
+		}
+
 		return (2);
 	}
 
@@ -1489,6 +1506,7 @@ protected:
 		TRACE(rti);
 
 		p.f = pullByte() | 0x30;
+		p.i = 0;
 		pc.l = pullByte();
 		pc.h = pullByte();
 		return (6);
@@ -2219,6 +2237,7 @@ protected:
 		TRACE(rti);
 
 		p.f = pullByte();
+		p.i = 0;
 		pc.l = pullByte();
 		pc.h = pullByte();
 		pbr.b = pullByte();
