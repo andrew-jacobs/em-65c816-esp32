@@ -29,7 +29,7 @@ TARGETS	= \
 	rom3.h
 
 LK_FLAGS = \
-	-bss $$0000-$$7FFF -code $$070000-$$07ffff
+	-bss $$020000-$$02ffff -code $$070000-$$07ffff
 
 all:	$(TARGETS)
 

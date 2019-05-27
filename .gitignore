@@ -4,3 +4,8 @@
 /roms/boot/boot.h
 /roms/boot/rom0.h
 /roms/boot/rom0.map
+/.vscode
+/roms/rom3/rom3.obj
+/roms/rom3/rom3.h
+/roms/rom3/rom3.lst
+/roms/rom3/rom3.map
