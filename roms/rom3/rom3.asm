@@ -7,209 +7,295 @@
 ;
 ; VTL-2 for the WDC 65C816
 ;-------------------------------------------------------------------------------
+; Notes:
 ;
 ; Based on the original VTL-2 programs by Frank McCoy and Gary Shannon (1977)
 ; and the adaption to the 6502 by Michael T. Barry (2012)
-
+;
+; During execution the processor is keep with A being 8-bits and X/Y 16-bits.
+;
+; The implementation of the text line reader is rather different from the
+; original and allows lower case characters.
+ 
 		.65816
 
 		.include "../w65c816.inc"
 		.include "../signature.inc"
 		
+;===============================================================================
+; Constants
+;-------------------------------------------------------------------------------
+		
+; ASCII Control Characters
+
+BEL		.equ	$07
 BS		.equ	$08
 LF		.equ	$0a
 CR		.equ	$0d
 DEL		.equ	$7f
 
 ;===============================================================================
-
-		.page0
-		.org	$80
-AT:		.space	2			; {@} Interpreter text pointer
-		.space	2 * 30			; User variables
-UNDER:		.space	2			; {_} Interpreter temp storage
-		.space	2
-BANG:		.space	2			; {!} Return line number
-QUOTE:		.space	2			; {"} User ML subroutine vector
-POUND:		.space	2
-DOLLAR:		.space	2
-REMAINDER:	.space	2
-AMPERSAND:	.space	2
-TICK:		.space	2
-LPAREN:		.space	2
-RPAREN:		.space	2
-STAR:		.space	2
-		.space	2 * 5
-ARG:		.space	2 * 11
-		.space 	2 * 3
-GTHAN:		.space	2
-QUES:		.space	2
-
-		.org	$0100
-		.space	255
-NULLSTACK:	.space	1
-
-
-		.bss
-		.org	$020000
-PRGM:		.space	63 * 1024
-HIMEM:
-
-LINEBUFFER:	.space	256
-
-;===============================================================================
 ;-------------------------------------------------------------------------------
 
-		.code
+		.page0
+		.org	0
+		
+DELIMITER:	.space	1
+NUMBER:		.space 	2			; Number conversion workspace
+		
+		.org	2 * ' '
+		
+		.space	2			; ' '
+		.space	2			; '!'
+		.space	2			; '"'
+HASH:		.space	2			; '#' - Number of executing line
+		.space	2			; '$'
+		.space	2			; '%'
+AMPERSAND:	.space	2			; '&' - Free program space
+		.space	2			; '''
+		.space	2			; '('
+		.space	2			; ')'
+ASTERISK:	.space	2			; '*' - End of program space
+		.space	2			; '+'
+		.space	2			; ','
+		.space	2			; '-'
+		.space	2			; '.'
+		.space	2			; '/'
+		.space	2 * 10			; Digits 0-9
+		.space	2			; ':'
+		.space	2			; ';'
+		.space	2			; '<'
+		.space	2			; '='
+		.space	2			; '>'
+		.space	2			; '?'
+
+		.space	2			; '@'
+		.space	2 * 26			; Letters A-Z
+		.space	2			; '['
+		.space	2			; '\'
+		.space	2			; ']'
+		.space	2			; '^'
+		.space	2			; '_'
+
+		.space	2			; '`'
+		.space	2 * 26			; Letters a-z
+		.space	2			; '{'
+		.space	2			; '|'
+		.space	2			; '}'
+		.space	2			; '~'
+	
+STACK_TOP	.equ	$01ff
+		
+		.bss
+		.org	$020000
+		
+PROGRAM:	.space	$ff00
+BUFFER:		.space	$0100
+		
+;===============================================================================
+;-------------------------------------------------------------------------------
+		
+		.code	
 		.org	$070000
 		
 		.longa	?
 		.longi	?
-VTL2:
-		sei			;
-		native
-		short_a
-		long_i
-
-		ldx	#PRGM			; {&} -> empty program
-		stx	AMPERSAND
-		ldx	#HIMEM			; {*} -> tio of user RAM
-		stx	STAR
-
-.StartOk:	sec
-
-.Start:		ldx	#NULLSTACK		; Reset system stack pointer
-		txs
-		if cs
-		 lda	#'O'			; Print prompt
-		 jsr	.UartTx
-		 lda	#'K'
-		 jsr	.UartTx
-		endif
-		jsr	.NewLn
-		ldx	#POUND
-
-.ELoop:
-
-
-.Stmnt:
-
-.Listing:
-
-.FindLn:
-
-
-.PrMsg:
-
-
-.OutCR:
-		php
-		short_a
-		lda	#CR
-		jsr	.UartTx
-		plp
-		rts
-
-
-		.longa	on
-		.longi	on
-.Oper:
-		cmp	#'+'			; Addition operator?
-		if eq
-.Add:		 clc
-		 lda	<0,x			; Var[x] += Var[x+2]
-		 adc	<2,x
-		 sta	<0,x
-		 rts
-		endif
-		cmp	#'-'			; Subtraction operator?
-		if eq
-.Sub:		 sec
-		 lda	<0,x			; Var[x] -= Var[x+2]
-		 sbc	<2,x
-		 sta	<0,x
-		 rts
-		endif
-
-		cmp	#'*'
-		if eq
-.Mul:		 lda	<0,x			; {_} = Var[x]
-		 sta	UNDER
-		 stz	<0,x			; Var[x] = 0
-		 repeat
-		  lsr	UNDER			; {_} /= 2
-		  if cs
-		   jsr	.Add
-		  endif
-		  asl	<2,x			; Var[x+2] <<= 1
-		 until eq			; Until zero
-		 rts
-		endif
-
-		cmp	#'/'
-		if eq
-.Div:		 stz	REMAINDER		; {%} = 0
-		 lda	#16
-		 sta	UNDER
-		 repeat
-		  asl	<0,x
-		  rol	REMAINDER
-		  lda	REMAINDER
-		  cmp	<2,x
-		  if cs
-		   sbc	<2,x
-		   sta	REMAINDER
-		   inc	<0,x
-		  endif
-		  dec	UNDER
-		 until eq
-		 rts
-		endif
-
+VTL816:
+		sei
+		native				; Ensure we are in native mode
+		short_a				; .. with 8-bit A
+		long_i				; .. and 16-bit X/Y
+		
+		lda	#BANK PROGRAM		; Set data bank
 		pha
-		jsr	.Sub
-		pla
-		sec
-		sbc	#'='
-		if eq
-		 lda	<0,x
-		 if ne
-		  clc
-		 endif
-		else
-		 eor	<0,x
-		 eor	#$8000
-		 asl	a
+		plb
+		
+		ldx	#PROGRAM		; Initialise memory areas
+		stx	<AMPERSAND
+		ldx	#BUFFER
+		stx	<ASTERISK
+
+;-------------------------------------------------------------------------------
+	
+.Interpret:
+		ldx	#STACK_TOP		; Reset the stack
+		txs
+		
+		jsr	.NewLine
+		lda	#'O'
+		jsr	.UartTx
+		lda	#'K'
+		jsr	.UartTx
+		
+		stz	HASH+0			; Clear line number
+		stz	HASH+1
+		jsr	.ConvertLine		; Read a command
+		if cs				; Does it have a number number?
+		 jsr	.Execute		; No, execute it
+		 bra	.Interpret
 		endif
-		lda	#0
-		rol	a
-		sta	<0,x
-		rts
+		
+		ldx	NUMBER			; Load the number
+		if eq				; Is it zero?
+		 ldy	#PROGRAM
+		 repeat
+		  cpy	AMPERSAND
+		  break eq
+		  ldx	!0,y
+		  stx	NUMBER
+		  jsr	.PrintNumber
+		  iny
+		  iny
+		  jsr	.PrintMessage
+		  jsr	.NewLine
+		 forever
+		 jmp	.Interpret
+		endif
+		
+;==============================================================================
+		
+.Execute
+		
 		
 
-		.longa	?
-		.longi	on
-.NewLn:
-		jsr	.OutCR
-		ldy	#LINEBUFFER
-		sty	AT
-		short_ai
-		ldy	#0
+
+;===============================================================================
+
+
+.PrintMessage:
+		lda	#0
+		
+.PrintString:
+		sta	DELIMITER
 		repeat
-		 jsr	.UartRx
-		 cmp	#DEL
+		 lda	!0,y
+		 iny
+		 cmp 	DELIMITER
+		 break eq
+		 jsr	.UartTx
+		forever
+		
+	; TODO: Break test
+		
+		rts
+		
+.PrintNumber:
+
+		rts
+
+
+; If the character pointed to by X is digit then return with C = 0.
+
+.IsDigit:
+		lda	!0,y
+		cmp	#'0'
+		if cs
+		 cmp 	#'9'+1
+		 if cc
+		  sec
+		  rts
+		 endif
+		endif
+		clc
+		rts
+
+; Read a line of text into the buffer area and then try parse a line number
+; from it.
+
+.ConvertLine:
+		jsr	.ReadLine		; Read a line of text
+
+; Try to parse a number from the buffer. Return with C = 1 if there current
+; buffer location does not start a number. Return with C = 0 and 
+		
+.ConvertNumber:
+		jsr	.IsDigit		; Found a digit?
+		if cc
+		 stz	NUMBER+0		; Yes
+		 stz	NUMBER+1
+		 repeat
+		  and	#$0f			; Extract the digit
+		  pha				; .. and save it
+		  long_a
+		  lda	NUMBER			; Copy current number
+		  asl	NUMBER			; .. x2
+		  asl	NUMBER			; .. x4
+		  clc				; .. x5
+		  adc	NUMBER
+		  sta	NUMBER
+		  asl	NUMBER			; .. x10
+		  short_a
+		  pla
+		  clc
+		  adc	NUMBER+0
+		  sta	NUMBER+0
+		  if cs
+		   inc	NUMBER+1
+		  endif
+		  
+		  iny				; Try the next character
+		  jsr	.IsDigit
+		 until cs
+		 clc
+		endif
+		rts
+
+; Read a line for text into the buffer area leaving two bytes at the start for a
+; binary line number.
+
+.ReadLine:
+		ldy	#BUFFER+2		; Load buffer pointer
+		phy
+		repeat
+		 jsr	.UartRx			; Read a character
+		 sta	!0,y			; .. and save it
+		 
+		 cmp	#CR			; CR finished input
+		 break eq
+		 
+		 cmp	#DEL			; Treat DEL like BS
 		 if eq
 		  lda	#BS
 		 endif
-		 cmp 	#BS
+		 
+		 cmp 	#BS			; Delete last if possible
 		 if eq
-		  cpy	#1
+		  cpy	#BUFFER+3
+		  if cs
+		   dey
+		   pha
+		   jsr	.UartTx
+		   lda	#' '
+		   jsr	.UartTx
+		   pla
+		   jsr	.UartTx
+		   continue
+		  endif
 		 endif
 		 
+		 cmp 	#' '			; Printable?
+		 if cs
+		  iny				; Yes, bump index
+		 else
+		  lda	#BEL			; No, ring the bell
+		 endif
+		 jsr	.UartTx
 		forever
+		
+		lda	#0
+		sta	!0,y			; Replace CR with NUL
+		jsr	.NewLine
+		ply
+		rts
+		
+; Output a CR/LF sequence to move the terminal to the next line
 
-
-
+.NewLine:	
+		lda	#CR
+		jsr	.UartTx
+		lda	#LF
+		jmp	.UartTx
+		
 ;===============================================================================
 ; I/O Routines for EM-65C816-ESP32
 ;-------------------------------------------------------------------------------
