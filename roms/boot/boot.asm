@@ -34,26 +34,26 @@
 ; | 00:1000 | RW | Task Zero Pages & Stack
 ; |---------+----+-------------------------------
 ; | 00:2000 | RW | Other tasks areas
-; |         |    |
-; |         |    |
+; |	    |	 |
+; |	    |	 |
 ; +---------+----+-------------------------------
 ; | 00:ee00 | RW | Monitor Workspace - Can be overwritten
 ; +---------+----+-------------------------------
 ; | 00:ef00 | RW | I/O Workspace (Timer & UART Buffers)
 ; +---------+----+-------------------------------
 ; | 00:f000 | RO | OS Boot ROM & Interrupt Handlers
-; | 00:ffe0 |    | Native Mode Vectors
-; | 00:fff0 |    | Emulation Mode Vectors
+; | 00:ffe0 |	 | Native Mode Vectors
+; | 00:fff0 |	 | Emulation Mode Vectors
 ; +---------+----+-------------------------------
 ; | 01:0000 | RW | Video
 ; +---------+----+-------------------------------
 ; | 02:0000 | RW | SRAM
-; | 03:0000 |    |
+; | 03:0000 |	 |
 ; +---------+----+-------------------------------
 ; | 04:0000 | RO | OS Code + Monitor
-; | 05:0000 |    | ROM1 (Spare)
-; | 06:0000 |    | ROM2 (Spare)
-; | 07:0000 |    | ROM3 (Spare)
+; | 05:0000 |	 | ROM1 (Spare)
+; | 06:0000 |	 | ROM2 (Spare)
+; | 07:0000 |	 | ROM3 (Spare)
 ; +---------+----+-------------------------------
 ;
 ;
@@ -63,7 +63,14 @@
 
 		.include "../w65c816.inc"
 		.include "../signature.inc"
-		
+
+;===============================================================================
+; Macros
+;-------------------------------------------------------------------------------
+
+MNEM		.macro
+		.word	((\0-'@')<<10)|((\1-'@')<<5)|((\2-'@')<<0)
+		.endm
 
 ;===============================================================================
 ; Constants
@@ -84,6 +91,129 @@ IO_PAGE		.equ	$ef00			; I/O private data page
 
 UART_BUFSIZ	.equ	64			; UART buffer size
 
+;===============================================================================
+; Opcodes & Addressing Modes
+;-------------------------------------------------------------------------------
+
+OP_ADC		.equ	0<<1
+OP_AND		.equ	1<<1
+OP_ASL		.equ	2<<1
+OP_BCC		.equ	3<<1
+OP_BCS		.equ	4<<1
+OP_BEQ		.equ	5<<1
+OP_BIT		.equ	6<<1
+OP_BMI		.equ	7<<1
+OP_BNE		.equ	8<<1
+OP_BPL		.equ	9<<1
+OP_BRA		.equ	10<<1
+OP_BRK		.equ	11<<1
+OP_BRL		.equ	12<<1
+OP_BVC		.equ	13<<1
+OP_BVS		.equ	14<<1
+OP_CLC		.equ	15<<1
+OP_CLD		.equ	16<<1
+OP_CLI		.equ	17<<1
+OP_CLV		.equ	18<<1
+OP_CMP		.equ	19<<1
+OP_COP		.equ	20<<1
+OP_CPX		.equ	21<<1
+OP_CPY		.equ	22<<1
+OP_DEC		.equ	23<<1
+OP_DEX		.equ	24<<1
+OP_DEY		.equ	25<<1
+OP_EOR		.equ	26<<1
+OP_INC		.equ	27<<1
+OP_INX		.equ	28<<1
+OP_INY		.equ	29<<1
+OP_JML		.equ	30<<1
+OP_JMP		.equ	31<<1
+OP_JSL		.equ	32<<1
+OP_JSR		.equ	33<<1
+OP_LDA		.equ	34<<1
+OP_LDX		.equ	35<<1
+OP_LDY		.equ	36<<1
+OP_LSR		.equ	37<<1
+OP_MVN		.equ	38<<1
+OP_MVP		.equ	39<<1
+OP_NOP		.equ	40<<1
+OP_ORA		.equ	41<<1
+OP_PEA		.equ	42<<1
+OP_PEI		.equ	43<<1
+OP_PER		.equ	44<<1
+OP_PHA		.equ	45<<1
+OP_PHB		.equ	46<<1
+OP_PHD		.equ	47<<1
+OP_PHK		.equ	48<<1
+OP_PHP		.equ	49<<1
+OP_PHX		.equ	50<<1
+OP_PHY		.equ	51<<1
+OP_PLA		.equ	52<<1
+OP_PLB		.equ	53<<1
+OP_PLD		.equ	54<<1
+OP_PLP		.equ	55<<1
+OP_PLX		.equ	56<<1
+OP_PLY		.equ	57<<1
+OP_REP		.equ	58<<1
+OP_ROL		.equ	59<<1
+OP_ROR		.equ	60<<1
+OP_RTI		.equ	61<<1
+OP_RTL		.equ	62<<1
+OP_RTS		.equ	63<<1
+OP_SBC		.equ	64<<1
+OP_SEC		.equ	65<<1
+OP_SED		.equ	66<<1
+OP_SEI		.equ	67<<1
+OP_SEP		.equ	68<<1
+OP_STA		.equ	69<<1
+OP_STP		.equ	70<<1
+OP_STX		.equ	71<<1
+OP_STY		.equ	72<<1
+OP_STZ		.equ	73<<1
+OP_TAX		.equ	74<<1
+OP_TAY		.equ	75<<1
+OP_TCD		.equ	76<<1
+OP_TCS		.equ	77<<1
+OP_TDC		.equ	78<<1
+OP_TRB		.equ	79<<1
+OP_TSB		.equ	80<<1
+OP_TSC		.equ	81<<1
+OP_TSX		.equ	82<<1
+OP_TXA		.equ	83<<1
+OP_TXS		.equ	84<<1
+OP_TXY		.equ	85<<1
+OP_TYA		.equ	86<<1
+OP_TYX		.equ	87<<1
+OP_WAI		.equ	88<<1
+OP_WDM		.equ	89<<1
+OP_XBA		.equ	90<<1
+OP_XCE		.equ	91<<1
+
+MD_ABS		.equ	0<<1			; a
+MD_ACC		.equ	1<<1			; A
+MD_ABX		.equ	2<<1			; a,x
+MD_ABY		.equ	3<<1			; a,y
+MD_ALG		.equ	4<<1			; al
+MD_ALX		.equ	5<<1			; al,x
+MD_AIN		.equ	6<<1			; (a)
+MD_AIX		.equ	7<<1			; (a,x)
+MD_DPG		.equ	8<<1			; d
+MD_STK		.equ	9<<1			; d,s
+MD_DPX		.equ	10<<1			; d,x
+MD_DPY		.equ	11<<1			; d,x
+MD_DIN		.equ	12<<1			; (d)
+MD_DLI		.equ	13<<1			; [d]
+MD_SKY		.equ	14<<1			; (d,s),y
+MD_DIX		.equ	15<<1			; (d,x)
+MD_DIY		.equ	16<<1			; (d),y
+MD_DLY		.equ	17<<1			; [d],y
+MD_IMP		.equ	18<<1			;
+MD_REL		.equ	19<<1			; r
+MD_RLG		.equ	20<<1			; rl
+MD_MOV		.equ	21<<1			; xyc
+MD_IMM		.equ	22<<1			; # (A or M)
+MD_INT		.equ	23<<1			; # (BRK/COP/WDM)
+MD_IMX		.equ	24<<1			; # (X or Y)
+
 		.page
 ;===============================================================================
 ; Data Areas
@@ -91,14 +221,12 @@ UART_BUFSIZ	.equ	64			; UART buffer size
 
 		.page0
 		.org	0
-		
-
 
 ;-------------------------------------------------------------------------------
 
 		.bss
 		.org	IO_PAGE
-		
+
 TX_HEAD:	.space	1			; Transmit buffer head and tail
 TX_TAIL:	.space	1			; .. indices
 RX_HEAD:	.space	1			; Receive buffer head and tail
@@ -112,7 +240,7 @@ RX_DATA:	.space	UART_BUFSIZ		; Uart receive buffer
 		.if	$ > $efff
 		.error	"Exceeded I/O Page size"
 		.endif
-		
+
 		.page
 ;===============================================================================
 ; Operating System Entry Points
@@ -147,7 +275,7 @@ RESET:
 		 dex
 		 stz	IO_PAGE,x
 		until eq
-		
+
 		clc				; Switch to native mode
 		xce
 
@@ -157,7 +285,7 @@ RESET:
 		lda	#INT_CLK|INT_U1RX	; Enable clock and receive
 		wdm	#WDM_IER_WR
 		cli				; Allow interrupts
-			
+
 		short_a				; Display a boot message
 		ldx	#BOOT_MESSAGE
 		repeat
@@ -166,10 +294,10 @@ RESET:
 		 jsl	Uart1Tx
 		 inx
 		forever
-		
+
 		brk	#0			; Then enter the monitor
 		stp
-		
+
 BOOT_MESSAGE:	.byte	CR,LF,"EM-65C816-ESP32 [19.06]"
 		.byte	CR,LF,"(C)2018-2019 Andrew Jacobs"
 		.byte	CR,LF,0
@@ -200,7 +328,7 @@ Uart1Tx:
 		and	#UART_BUFSIZ-1		; .. and wrap
 		repeat
 		 cmp	>TX_HEAD		; If buffer is completely full
-		 break ne			; .. wait for it to drain	
+		 break ne			; .. wait for it to drain
 		 wai
 		forever
 		sei				; Update the tail
@@ -217,7 +345,7 @@ Uart1Tx:
 		plx				; Restore X
 		plp				; .. and MX flags
 		rtl				; Done
-		
+
 ; Receive a character from UART1 into A regardless of the state of rhe processor
 ; preserving all other registers. If the buffer is empty then wait for some data
 ; to arrive.
@@ -265,18 +393,18 @@ BRKN:		 sep	#M_FLAG			; Ensure 8-bit A/M
 		 jml	Monitor			; Enter the monitor
 		endif
 
-		xba				; Save users B				
+		xba				; Save users B
 		pha
 		phx				; .. and X
-		
+
 		jsr	IRQHandler		; Do common processing
-		
+
 		plx				; Restore users X,
 		pla				; .. B, and A
 		xba
 		pla
 		rti				; .. and continue
-	
+
 ;-------------------------------------------------------------------------------
 
 		.longa	?
@@ -286,14 +414,14 @@ IRQN:
 		pha				; .. and save C & X
 		phx
 		short_a				; Then make A/M 8-bits
-		
+
 		jsr	IRQHandler		; Do commo processing
-		
+
 		long_a				; Restore users X & C
 		plx
-		pla				
+		pla
 		rti				; .. and continue
-		
+
 ;-------------------------------------------------------------------------------
 
 ; This is the main IRQ handler used in both native and emulation mode. The size
@@ -306,15 +434,15 @@ IRQHandler:
 		phb				; Save users data bank
 		phk				; And switch to bank $00
 		plb
-		
+
 		wdm	#WDM_IFLAGS		; Fetch interrupt flags
 		pha				; .. and save some copies
 		pha
-		
+
 		and	#INT_CLK		; Is this a timer interrupt?
 		if ne
 		 wdm	#WDM_IFR_CLR		; Yes, clear it
-		 
+
 		 inc	TICK+0			; Bump the tick counter
 		 if eq
 		  inc	TICK+1
@@ -326,7 +454,7 @@ IRQHandler:
 		  endif
 		 endif
 		endif
-		
+
 		pla				; Check for received data
 		and	#INT_U1RX
 		if ne
@@ -340,11 +468,11 @@ IRQHandler:
 		 cmp	RX_HEAD			; Is RX buffer complete full?
 		 if ne
 		  sta	RX_TAIL			; No, save new tail
-		 endif		
+		 endif
 		endif
-		
+
 		pla				; Ready to transmit?
-		and	#INT_U1TX		
+		and	#INT_U1TX
 		if ne
 		 lda	TX_HEAD			; Fetch next character to send
 		 tax
@@ -360,7 +488,7 @@ IRQHandler:
 		  wdm	#WDM_IER_CLR		; Yes disable TX interrupt
 		 endif
 		endif
-		
+
 		plb
 		rts				; Done
 
@@ -437,10 +565,13 @@ VEND		.space	0
 ;===============================================================================
 ; Monitor
 ;-------------------------------------------------------------------------------
-;
-; The monitor runs with interrupts disabled and performs polled I/O. If it is
-; not entered then its workspace page is never accessed and could be used by
-; another application.
+; This is a simple monitor based on my SXB-Hacker code. It allows access to the
+; emulated address space and the ability to download, inspect, change and run
+; machine language programs. It uses the interrupt driven I/O routines in the
+; boot ROM accessed by JSLs to $F000 and $F003.
+;;
+; If the monitor is not in use workspace page is never accessed and could be
+; used by another application.
 
 		.bss
 		.org	$00ee00
@@ -459,8 +590,11 @@ REG_PBR		.space	1
 REG_DBR		.space	1
 
 CMD_LEN		.space	1			; Command buffer length
+BANK		.space	1
+ADDRS		.space	3
+ADDRL		.space	3
 
-		.align	128			; Used for stack
+		.align	128			; Gap used for stack
 CMD_BUF		.space	128			; Command buffer
 
 ;-------------------------------------------------------------------------------
@@ -646,7 +780,7 @@ Monitor:
 		jsr	.NewLine		; Print the entry prompt
 		lda	#'.'
 		jsr	.UartTx
-		
+
 		ldx	#0
 		repeat
 		 txa
@@ -656,22 +790,22 @@ Monitor:
 		 jsr	.UartTx
 		 inx
 		forever
-		
+
 		repeat
 		 jsr	.UartRx			; Read a real character
 		 sta	CMD_BUF,x		; .. and save it
-		 
+
 		 cmp	#BS			; Map BS to DEL
 		 beq	.BackSpace
 		 cmp	#CR			; End of input?
-		 break 	eq
-		 
-		 cmp 	#' '			; Printable?
+		 break	eq
+
+		 cmp	#' '			; Printable?
 		 if cs
-		  cmp	#DEL			; Delete?	
+		  cmp	#DEL			; Delete?
 		  if cs
 .BackSpace:	   txa				; Is buffer empty?
-		   beq	.Beep			; Yes, make a noise 
+		   beq	.Beep			; Yes, make a noise
 
 		   lda	#BS			; Erase the last character
 		   jsr	.UartTx
@@ -687,43 +821,43 @@ Monitor:
 		 endif
 		 jsr	.UartTx			; And echo char, BEL or BS
 		forever
-		
+
 		txa				; Save the buffer length
 		sta	CMD_LEN
-		
-		lda	#0			; Start processing at the	
+
+		lda	#0			; Start processing at the
 		tax				; .. start of the line
 		jsr	.SkipSpaces
 		jsr	.ToUpper
-		
+
 		cmp	#CR
 		beq	.NewCommand
-		
+
 ;-------------------------------------------------------------------------------
-		
-		cmp 	#'?'
+
+		cmp	#'?'
 		if eq
 		 ldx	#.StrHelp
 		 jsr	.Print
 		 bra	.NewCommand
 		endif
-		
+
 ;-------------------------------------------------------------------------------
-		
-		cmp 	#'D'
+
+		cmp	#'D'
 		if eq
-		
+
 		 jmp	.NewCommand
 		endif
 
 ;-------------------------------------------------------------------------------
-		
-		cmp 	#'M'
+
+		cmp	#'M'
 		if eq
-		
+
 		 jmp	.NewCommand
 		endif
-		
+
 ;-------------------------------------------------------------------------------
 
 		cmp	#'Q'
@@ -731,23 +865,40 @@ Monitor:
 		 jsr	.NewLine
 		 stp
 		endif
-		
+
 ;-------------------------------------------------------------------------------
-		
-		cmp 	#'R'
+
+		cmp	#'R'
 		if eq
-		
+
 		 jmp	.ShowRegisters
 		endif
 
 ;-------------------------------------------------------------------------------
-		
-		ldx	#.StrError
-		jsr	.Print		
+
+.ShowError
+		ldx	#.StrError		; Print the error string
+		jsr	.Print
 		jmp	.NewCommand
-		
+
 ;-------------------------------------------------------------------------------
 
+		.longa	off
+		.longi	on
+.GetAddr:
+
+		.longa	off
+		.longi	on
+.GetWord:
+
+		.longa	off
+		.longi	on
+.GetByte:
+
+;-------------------------------------------------------------------------------
+
+		.longa	off
+		.longi	on
 .SkipSpaces:
 		repeat
 		 lda	CMD_BUF,x		; Fetch characters
@@ -755,7 +906,8 @@ Monitor:
 		 cmp #' '			; .. until a non-space
 		until ne
 		rts				; Done
-		
+
+		.longa	off
 .ToUpper:
 		cmp	#'a'			; If A is 'a'..'z'
 		if cs
@@ -765,12 +917,15 @@ Monitor:
 		 endif
 		endif
 		rts
-		
+
+
 ;-------------------------------------------------------------------------------
 
 ; Print the null terminated string pointed to the address in the X register to
 ; the UART.
 
+		.longa	off
+		.longi	on
 .Print:
 		repeat
 		 lda	!0,x
@@ -783,6 +938,7 @@ Monitor:
 
 ; Output a CR+LF character sequence to move the cursor to the next line.
 
+		.longa	off
 .NewLine:
 		lda	#CR
 		jsr	.UartTx
@@ -829,6 +985,7 @@ Monitor:
 
 ; Print the value in the A registers in hex.
 
+		.longa	off
 .Hex2:
 		pha				; Save the byte
 		lsr	a			; Shift down the high nybble
@@ -840,6 +997,7 @@ Monitor:
 
 ; Print the value in the low nybble of A in hex.
 
+		.longa	off
 .Hex:
 		and	#$0f			; Strip out the low nybble
 		sed				; And make printable
@@ -857,18 +1015,6 @@ Monitor:
 .UartTx:
 		jsl	$00f000
 		rts
-		
-		php				; Save MX bits
-		long_a
-		pha				; Save user data
-		repeat
-		 wdm	#WDM_IFR_RD		; Ready to transmit?
-		 and	#INT_U1TX
-		until ne
-		pla				; Yes, recover data
-		wdm	#WDM_U1TX		; .. and send
-		plp				; Restore MX
-		rts				; Done
 
 ; Output an openning bracket character.
 
@@ -888,18 +1034,8 @@ Monitor:
 
 		.longa	?
 .UartRx:
-		jsl	$00f003
+		jsl	>$00f003
 		rts
-		
-		php				; Save MX bits
-		long_a
-		repeat
-		 wdm	#WDM_IFR_RD		; Any data to read?
-		 and	#INT_U1RX
-		until ne
-		wdm	#WDM_U1RX		; Yes, fetch a byte
-		plp				; Restore MX
-		rts				; Done
 
 ;-------------------------------------------------------------------------------
 
@@ -920,10 +1056,238 @@ Monitor:
 .StrSP:		.byte	" SP=",0
 .StrDBR:	.byte	" DBR=",0
 
-.StrError:	.byte	CR,LF,"Error",0
+.StrError:	.byte	CR,LF,"Error - Type ? for help",0
 
-.StrHelp:	
+.StrHelp:
 		.byte	CR,LF,"? - Display this help"
 		.byte	0
+		
+;-------------------------------------------------------------------------------
+
+OPCODES:
+		.byte	OP_BRK,OP_ORA,OP_COP,OP_ORA	; 00
+		.byte	OP_TSB,OP_ORA,OP_ASL,OP_ORA
+		.byte	OP_PHP,OP_ORA,OP_ASL,OP_PHD
+		.byte	OP_TSB,OP_ORA,OP_ASL,OP_ORA
+		.byte	OP_BPL,OP_ORA,OP_ORA,OP_ORA	; 10
+		.byte	OP_TRB,OP_ORA,OP_ASL,OP_ORA
+		.byte	OP_CLC,OP_ORA,OP_INC,OP_TCS
+		.byte	OP_TRB,OP_ORA,OP_ASL,OP_ORA
+		.byte	OP_JSR,OP_AND,OP_JSL,OP_AND	; 20
+		.byte	OP_BIT,OP_AND,OP_ROL,OP_AND
+		.byte	OP_PLP,OP_AND,OP_ROL,OP_PLD
+		.byte	OP_BIT,OP_AND,OP_ROL,OP_AND
+		.byte	OP_BMI,OP_AND,OP_AND,OP_AND	; 30
+		.byte	OP_BIT,OP_AND,OP_ROL,OP_AND
+		.byte	OP_SEC,OP_AND,OP_DEC,OP_TSC
+		.byte	OP_BIT,OP_AND,OP_ROL,OP_AND
+		.byte	OP_RTI,OP_EOR,OP_WDM,OP_EOR	; 40
+		.byte	OP_MVP,OP_EOR,OP_LSR,OP_EOR
+		.byte	OP_PHA,OP_EOR,OP_LSR,OP_PHK
+		.byte	OP_JMP,OP_EOR,OP_LSR,OP_EOR
+		.byte	OP_BVC,OP_EOR,OP_EOR,OP_EOR	; 50
+		.byte	OP_MVN,OP_EOR,OP_LSR,OP_EOR
+		.byte	OP_CLI,OP_EOR,OP_PHY,OP_TCD
+		.byte	OP_JMP,OP_EOR,OP_LSR,OP_EOR
+		.byte	OP_RTS,OP_ADC,OP_PER,OP_ADC	; 60
+		.byte	OP_STZ,OP_ADC,OP_ROR,OP_ADC
+		.byte	OP_PLA,OP_ADC,OP_ROR,OP_RTL
+		.byte	OP_JMP,OP_ADC,OP_ROR,OP_ADC
+		.byte	OP_BVS,OP_ADC,OP_ADC,OP_ADC	; 70
+		.byte	OP_STZ,OP_ADC,OP_ROR,OP_ADC
+		.byte	OP_SEI,OP_ADC,OP_PLY,OP_TDC
+		.byte	OP_JMP,OP_ADC,OP_ROR,OP_ADC
+		.byte	OP_BRA,OP_STA,OP_BRL,OP_STA	; 80
+		.byte	OP_STY,OP_STA,OP_STX,OP_STA
+		.byte	OP_DEY,OP_BIT,OP_TXA,OP_PHB
+		.byte	OP_STY,OP_STA,OP_STX,OP_STA
+		.byte	OP_BCC,OP_STA,OP_STA,OP_STA	; 90
+		.byte	OP_STY,OP_STA,OP_STX,OP_STA
+		.byte	OP_TYA,OP_STA,OP_TXS,OP_TXY
+		.byte	OP_STZ,OP_STA,OP_STZ,OP_STA
+		.byte	OP_LDY,OP_LDA,OP_LDX,OP_LDA	; A0
+		.byte	OP_LDY,OP_LDA,OP_LDX,OP_LDA
+		.byte	OP_TAY,OP_LDA,OP_TAX,OP_PLB
+		.byte	OP_LDY,OP_LDA,OP_LDX,OP_LDA
+		.byte	OP_BCS,OP_LDA,OP_LDA,OP_LDA	; B0
+		.byte	OP_LDA,OP_LDY,OP_LDX,OP_LDA
+		.byte	OP_CLV,OP_LDA,OP_TSX,OP_TYX
+		.byte	OP_LDY,OP_LDA,OP_LDX,OP_LDA
+		.byte	OP_CPY,OP_CMP,OP_REP,OP_CMP	; C0
+		.byte	OP_CPY,OP_CMP,OP_DEC,OP_CMP
+		.byte	OP_INY,OP_CMP,OP_DEX,OP_WAI
+		.byte	OP_CPY,OP_CMP,OP_DEC,OP_CMP
+		.byte	OP_BNE,OP_CMP,OP_CMP,OP_CMP	; D0
+		.byte	OP_PEI,OP_CMP,OP_DEC,OP_CMP
+		.byte	OP_CLD,OP_CMP,OP_PHX,OP_STP
+		.byte	OP_JML,OP_CMP,OP_DEC,OP_CMP
+		.byte	OP_CPX,OP_SBC,OP_SEP,OP_SBC	; E0
+		.byte	OP_CPX,OP_SBC,OP_INC,OP_SBC
+		.byte	OP_INX,OP_SBC,OP_NOP,OP_XBA
+		.byte	OP_CPX,OP_SBC,OP_INC,OP_SBC
+		.byte	OP_BEQ,OP_SBC,OP_SBC,OP_SBC	; F0
+		.byte	OP_PEA,OP_SBC,OP_INC,OP_SBC
+		.byte	OP_SED,OP_SBC,OP_PLX,OP_XCE
+		.byte	OP_JSR,OP_SBC,OP_INC,OP_SBC
+
+MODES:
+		.byte	MD_INT,MD_DIX,MD_INT,MD_STK	; 00
+		.byte	MD_DPG,MD_DPG,MD_DPG,MD_DLI
+		.byte	MD_IMP,MD_IMM,MD_ACC,MD_IMP
+		.byte	MD_ABS,MD_ABS,MD_ABS,MD_ALG
+		.byte	MD_REL,MD_DIY,MD_DIN,MD_SKY	; 10
+		.byte	MD_DPG,MD_DPX,MD_DPX,MD_DLY
+		.byte	MD_IMP,MD_ABY,MD_ACC,MD_IMP
+		.byte	MD_ABS,MD_ABX,MD_ABX,MD_ALX
+		.byte	MD_ABS,MD_DIX,MD_ALG,MD_STK	; 20
+		.byte	MD_DPG,MD_DPG,MD_DPG,MD_DLI
+		.byte	MD_IMP,MD_IMM,MD_ACC,MD_IMP
+		.byte	MD_ABS,MD_ABS,MD_ABS,MD_ALG
+		.byte	MD_REL,MD_DIY,MD_DIN,MD_SKY	; 30
+		.byte	MD_DPX,MD_DPX,MD_DPX,MD_DLY
+		.byte	MD_IMP,MD_ABY,MD_ACC,MD_IMP
+		.byte	MD_ABX,MD_ABX,MD_ABX,MD_ALX
+		.byte	MD_IMP,MD_DIX,MD_INT,MD_STK	; 40
+		.byte	MD_MOV,MD_DPG,MD_DPG,MD_DLI
+		.byte	MD_IMP,MD_IMM,MD_ACC,MD_IMP
+		.byte	MD_ABS,MD_ABS,MD_ABS,MD_ALG
+		.byte	MD_REL,MD_DIY,MD_DIN,MD_SKY	; 50
+		.byte	MD_MOV,MD_DPX,MD_DPX,MD_DLY
+		.byte	MD_IMP,MD_ABY,MD_IMP,MD_IMP
+		.byte	MD_ALG,MD_ABX,MD_ABX,MD_ALX
+		.byte	MD_IMP,MD_DIX,MD_IMP,MD_STK	; 60
+		.byte	MD_DPG,MD_DPG,MD_DPG,MD_DLI
+		.byte	MD_IMP,MD_IMM,MD_ACC,MD_IMP
+		.byte	MD_AIN,MD_ABS,MD_ABS,MD_ALG
+		.byte	MD_REL,MD_DIY,MD_DIN,MD_SKY	; 70
+		.byte	MD_DPX,MD_DPX,MD_DPX,MD_DLY
+		.byte	MD_IMP,MD_ABY,MD_IMP,MD_IMP
+		.byte	MD_AIX,MD_ABX,MD_ABX,MD_ALX
+		.byte	MD_REL,MD_DIX,MD_RLG,MD_STK	; 80
+		.byte	MD_DPG,MD_DPG,MD_DPG,MD_DLI
+		.byte	MD_IMP,MD_IMM,MD_IMP,MD_IMP
+		.byte	MD_ABS,MD_ABS,MD_ABS,MD_ALG
+		.byte	MD_REL,MD_DIY,MD_DIN,MD_SKY	; 90
+		.byte	MD_DPX,MD_DPX,MD_DPY,MD_DLY
+		.byte	MD_IMP,MD_ABY,MD_IMP,MD_IMP
+		.byte	MD_ABS,MD_ABX,MD_ABX,MD_ALX
+		.byte	MD_IMX,MD_DIX,MD_IMX,MD_STK	; A0
+		.byte	MD_DPG,MD_DPG,MD_DPG,MD_DLI
+		.byte	MD_IMP,MD_IMM,MD_IMP,MD_IMP
+		.byte	MD_ABS,MD_ABS,MD_ABS,MD_ALG
+		.byte	MD_REL,MD_DIY,MD_DIN,MD_SKY	; B0
+		.byte	MD_DPX,MD_DPX,MD_DPY,MD_DLY
+		.byte	MD_IMP,MD_ABY,MD_IMP,MD_IMP
+		.byte	MD_ABX,MD_ABX,MD_ABY,MD_ALX
+		.byte	MD_IMX,MD_DIX,MD_INT,MD_STK	; C0
+		.byte	MD_DPG,MD_DPG,MD_DPG,MD_DLI
+		.byte	MD_IMP,MD_IMM,MD_IMP,MD_IMP
+		.byte	MD_ABS,MD_ABS,MD_ABS,MD_ALG
+		.byte	MD_REL,MD_DIY,MD_DIN,MD_SKY	; D0
+		.byte	MD_IMP,MD_DPX,MD_DPX,MD_DLY
+		.byte	MD_IMP,MD_ABY,MD_IMP,MD_IMP
+		.byte	MD_AIN,MD_ABX,MD_ABX,MD_ALX
+		.byte	MD_IMX,MD_DIX,MD_INT,MD_STK	; E0
+		.byte	MD_DPG,MD_DPG,MD_DPG,MD_DLI
+		.byte	MD_IMP,MD_IMM,MD_IMP,MD_IMP
+		.byte	MD_ABS,MD_ABS,MD_ABS,MD_ALG
+		.byte	MD_REL,MD_DIY,MD_DIN,MD_SKY	; F0
+		.byte	MD_IMP,MD_DPX,MD_DPX,MD_DLY
+		.byte	MD_IMP,MD_ABY,MD_IMP,MD_IMP
+		.byte	MD_AIX,MD_ABX,MD_ABX,MD_ALX
+
+MNEMONICS:
+		MNEM	'A','D','C'
+		MNEM	'A','N','D'
+		MNEM	'A','S','L'
+		MNEM	'B','C','C'
+		MNEM	'B','C','S'
+		MNEM	'B','E','Q'
+		MNEM	'B','I','T'
+		MNEM	'B','M','I'
+		MNEM	'B','N','E'
+		MNEM	'B','P','L'
+		MNEM	'B','R','A'
+		MNEM	'B','R','K'
+		MNEM	'B','R','L'
+		MNEM	'B','V','C'
+		MNEM	'B','V','S'
+		MNEM	'C','L','C'
+		MNEM	'C','L','D'
+		MNEM	'C','L','I'
+		MNEM	'C','L','V'
+		MNEM	'C','M','P'
+		MNEM	'C','O','P'
+		MNEM	'C','P','X'
+		MNEM	'C','P','Y'
+		MNEM	'D','E','C'
+		MNEM	'D','E','X'
+		MNEM	'D','E','Y'
+		MNEM	'E','O','R'
+		MNEM	'I','N','C'
+		MNEM	'I','N','X'
+		MNEM	'I','N','Y'
+		MNEM	'J','M','L'
+		MNEM	'J','M','P'
+		MNEM	'J','S','L'
+		MNEM	'J','S','R'
+		MNEM	'L','D','A'
+		MNEM	'L','D','X'
+		MNEM	'L','D','Y'
+		MNEM	'L','S','R'
+		MNEM	'M','V','N'
+		MNEM	'M','V','P'
+		MNEM	'N','O','P'
+		MNEM	'O','R','A'
+		MNEM	'P','E','A'
+		MNEM	'P','E','I'
+		MNEM	'P','E','R'
+		MNEM	'P','H','A'
+		MNEM	'P','H','B'
+		MNEM	'P','H','D'
+		MNEM	'P','H','K'
+		MNEM	'P','H','P'
+		MNEM	'P','H','X'
+		MNEM	'P','H','Y'
+		MNEM	'P','L','A'
+		MNEM	'P','L','B'
+		MNEM	'P','L','D'
+		MNEM	'P','L','P'
+		MNEM	'P','L','X'
+		MNEM	'P','L','Y'
+		MNEM	'R','E','P'
+		MNEM	'R','O','L'
+		MNEM	'R','O','R'
+		MNEM	'R','T','I'
+		MNEM	'R','T','L'
+		MNEM	'R','T','S'
+		MNEM	'S','B','C'
+		MNEM	'S','E','C'
+		MNEM	'S','E','D'
+		MNEM	'S','E','I'
+		MNEM	'S','E','P'
+		MNEM	'S','T','A'
+		MNEM	'S','T','P'
+		MNEM	'S','T','X'
+		MNEM	'S','T','Y'
+		MNEM	'S','T','Z'
+		MNEM	'T','A','X'
+		MNEM	'T','A','Y'
+		MNEM	'T','C','D'
+		MNEM	'T','C','S'
+		MNEM	'T','D','C'
+		MNEM	'T','R','B'
+		MNEM	'T','S','B'
+		MNEM	'T','S','C'
+		MNEM	'T','S','X'
+		MNEM	'T','X','A'
+		MNEM	'T','X','S'
+		MNEM	'T','X','Y'
+		MNEM	'T','Y','A'
+		MNEM	'T','Y','X'
+		MNEM	'W','A','I'
+		MNEM	'W','D','M'
+		MNEM	'X','B','A'
+		MNEM	'X','C','E'
 
 		.end
