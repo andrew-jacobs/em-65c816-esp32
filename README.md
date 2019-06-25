@@ -1,9 +1,20 @@
 # EM-65C816-ESP32
-This project contains the source code for a 65C816 emulator designed for ESP32 based modules. Some of its feaures are incomplete (e.g. video, PS/2 support) and the emulator needs mode testing but it boots and runs simple programs.
+This project contains the source code for a 65C816 emulator designed for ESP32 based modules and some supporting code to execute within it. Some of its feaures are incomplete (e.g. video, PS/2 support) and the emulator needs mode testing but it boots and runs simple programs so I thought I would make it available for other people to play with.
+
+### Required Hardware & Software
+To play with this project you will need an ESP32 module and a suitable USB cable to connect it to a PC. Suitable modules are available on eBay for as little as £4 (direct from China) or a little more on stores like Amazon.
+
+![My ESP32](images/esp32.jpg)
+
+The emulator is written using the ESP32 Arduino framework so you will need a copy of the Arduino IDE (I'm using version 1.8.9) with the ESP32 addins (i.e. Add https://dl.espressif.com/dl/package_esp32_index.json to the board manager list).
+
+After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like TeraTerm (https://osdn.net/projects/ttssh2/releases/).
+
+## Emulator Details
+The emulator supports both the 65C816's emulation and native modes. It supports RESET, IRQ, BRK, COP and NMI interrupts in both modes (although there is no way to generate an NMI at the moment). All interrupts are vectored through their standard vector table locations (defined in the boot ROM).
 
 ## Memory
-
-The ESP32 version of this emulator supports a 256K memory map split between RAM and ROM areas as shown in the following table. The ROM areas are mapped to ESP32 flash memory and are not writable at runtime.
+The ESP32 version of this emulator supports a 256K memory map split between RAM and ROM areas as shown in the following table. The memory address is masked so that it always falls in one of these areas.
 
 Start    | End      | Description
 -------- | -------- | ----------- 
@@ -17,12 +28,11 @@ $05:0000 | $05:ffff | ROM1 (Spare)
 $06:0000 | $06:ffff | ROM2 (Spare)
 $07:0000 | $07:ffff | ROM3 (Spare)
 
-The 'roms' directory within the repository contains the tools and scripts needed to build the ROM image data files included into the emulator during compilation.
+The ROM areas are mapped to ESP32 flash memory and are not writable at runtime. The 'roms' directory within the repository contains the tools and scripts needed to build the ROM image data files included into the emulator source code during compilation.
 
 > Although there is 110K of free heap memory I found I could not allocate another 64K RAM bank. The ESP32's RAM area appears highly fragmented at startup and dynamic allocations of large blocks fail. As a result most of the memory is allocated in 4K chunks. There is lots of free flash for more ROM banks.
 
 ## Virtual Peripherals
-
 Normally a 65C816 based computer would have a set of memory mapped peripherals but in an emulator the cost of checking every memory access adversely affects the speed of instruction execution so instead this emulator uses the WDM instruction ($42) to access a set of virtual peripherals.
 
 Like BRK and COP the WDM instruction is followed by a 'signature' byte. The following table shows the currently supported values.
@@ -52,12 +62,14 @@ Bit # | Mask | Description
 
 See the boot ROM source code for examples of interrupt handlers that use the WDM functions.
 
-## Observations
+## User Code
 
+
+
+## Observations
 I'm a little disappointed with execution speed of the ESP32, especially considering that it has two cores. The best emulated CPU rate I have achieved is a little over 12MHz. The code in the repository achieves around 7.5MHz. As soon you use Arduino functions to access the UART performance suffers. I've tried assigning tasks on core 0 but this almost always leads to the code becoming unresponsive. I guess I have a lot more to learn about the ESP32.
 
 ## To Do:
-
 These are all the bits and pieces I have yet to get around to:
 
 - Video generation (800x600 monochrome).

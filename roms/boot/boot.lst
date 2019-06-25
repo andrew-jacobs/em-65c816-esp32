@@ -1,0 +1,1305 @@
+
+Portable 65xx Assembler [19.05]
+
+                             ;===============================================================================
+                             ;  _____ __  __        __  ____   ____ ___  _  __
+                             ; | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_
+                             ; |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \
+                             ; | |___| |  | |_____| (_) |__) | |__| (_) | | (_) |
+                             ; |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/
+                             ; | ____/ ___||  _ \___ /___ \
+                             ; |  _| \___ \| |_) ||_ \ __) |
+                             ; | |___ ___) |  __/___) / __/
+                             ; |_____|____/|_|  |____/_____|
+                             ;
+                             ; Boot ROM, Monitor & Operating System
+                             ;-------------------------------------------------------------------------------
+                             ; Copyright (C),2019 Andrew John Jacobs
+                             ; All rights reserved.
+                             ;
+                             ; This work is made available under the terms of the Creative Commons
+                             ; Attribution-NonCommercial-ShareAlike 4.0 International license. Open the
+                             ; following URL to see the details.
+                             ;
+                             ; http://creativecommons.org/licenses/by-nc-sa/4.0/
+                             ;
+                             ;===============================================================================
+                             ; Notes:
+                             ;
+                             ; This source file builds both the boot ($00:f000-ffff) and rom0 ($04:0000-ffff)
+                             ; images.
+                             ;
+                             ; The following table describes the memory map of the target system.
+                             ;
+                             ; +---------+----+-------------------------------
+                             ; | 00:0000 | RW | OS Variables & Stack
+                             ; +---------+----+-------------------------------
+                             ; | 00:1000 | RW | Task Zero Pages & Stack
+                             ; |---------+----+-------------------------------
+                             ; | 00:2000 | RW | Other tasks areas
+                             ; |         |    |
+                             ; |         |    |
+                             ; +---------+----+-------------------------------
+                             ; | 00:ee00 | RW | Monitor Workspace - Can be overwritten
+                             ; +---------+----+-------------------------------
+                             ; | 00:ef00 | RW | I/O Workspace (Timer & UART Buffers)
+                             ; +---------+----+-------------------------------
+                             ; | 00:f000 | RO | OS Boot ROM & Interrupt Handlers
+                             ; | 00:ffe0 |    | Native Mode Vectors
+                             ; | 00:fff0 |    | Emulation Mode Vectors
+                             ; +---------+----+-------------------------------
+                             ; | 01:0000 | RW | Video
+                             ; +---------+----+-------------------------------
+                             ; | 02:0000 | RW | SRAM
+                             ; | 03:0000 |    |
+                             ; +---------+----+-------------------------------
+                             ; | 04:0000 | RO | OS Code + Monitor
+                             ; | 05:0000 |    | ROM1 (Spare)
+
+Portable 65xx Assembler [19.05]
+
+                             ; | 06:0000 |    | ROM2 (Spare)
+                             ; | 07:0000 |    | ROM3 (Spare)
+                             ; +---------+----+-------------------------------
+                             ;
+                             ;
+                             ;-------------------------------------------------------------------------------
+
+                                             .65816
+
+                                             .include "../w65c816.inc"
+                             ;==============================================================================
+                             ; __        ____  ____   ____ ___  _  __
+                             ; \ \      / / /_| ___| / ___( _ )/ |/ /_
+                             ;  \ \ /\ / / '_ \___ \| |   / _ \| | '_ \
+                             ;   \ V  V /| (_) |__) | |__| (_) | | (_) |
+                             ;    \_/\_/  \___/____/ \____\___/|_|\___/
+                             ;
+                             ; Western Design Center W65C816 device definitions
+                             ;------------------------------------------------------------------------------
+                             ; Copyright (C)2015-2019 HandCoded Software Ltd.
+                             ; All rights reserved.
+                             ;
+                             ; This work is made available under the terms of the Creative Commons
+                             ; Attribution-NonCommercial-ShareAlike 4.0 International license. Open the
+                             ; following URL to see the details.
+                             ;
+                             ; http://creativecommons.org/licenses/by-nc-sa/4.0/
+                             ;
+                             ;===============================================================================
+                             ; Notes:
+                             ;
+                             ; Various macros and definitions for the W65C816 microprocessor.
+                             ;
+                             ;===============================================================================
+                             ; Revision History:
+                             ;
+                             ; 2015-12-18 AJ Initial version
+                             ;-------------------------------------------------------------------------------
+
+                             ;==============================================================================
+                             ; Status Register Bits
+                             ;------------------------------------------------------------------------------
+
+         00000080          = N_FLAG          .equ    1<<7
+         00000040          = V_FLAG          .equ    1<<6
+         00000020          = M_FLAG          .equ    1<<5
+         00000010          = X_FLAG          .equ    1<<4
+         00000010          = B_FLAG          .equ    1<<4
+         00000008          = D_FLAG          .equ    1<<3
+         00000004          = I_FLAG          .equ    1<<2
+         00000002          = Z_FLAG          .equ    1<<1
+         00000001          = C_FLAG          .equ    1<<0
+
+                             ;==============================================================================
+
+Portable 65xx Assembler [19.05]
+
+                             ; Macros
+                             ;------------------------------------------------------------------------------
+
+                             ; Puts the processor in emulation mode. A, X and Y become 8-bits and the stack
+                             ; is fixed at $0100-$01ff.
+
+                             emulate         .macro
+                                             sec
+                                             xce
+                                             .endm
+
+                             ; Puts the processor in native mode. The size of the memory and index register
+                             ; operations is not controlled by the M & X bits in the status register.
+
+                             native          .macro
+                                             clc
+                                             xce
+                                             .endm
+
+                             ; Resets the M bit making the accumulator and memory accesses 16-bits wide.
+
+                             long_a          .macro
+                                             rep     #M_FLAG
+                                             .longa  on
+                                             .endm
+
+                             ; Resets the X bit making the index registers 16-bits wide
+
+                             long_i          .macro
+                                             rep     #X_FLAG
+                                             .longi  on
+                                             .endm
+
+                             ; Resets the M and X bits making the accumulator, memory accesses and index
+                             ; registers 16-bits wide.
+
+                             long_ai         .macro
+                                             rep     #M_FLAG|X_FLAG
+                                             .longa  on
+                                             .longi  on
+                                             .endm
+
+                             ; Sets the M bit making the accumulator and memory accesses 8-bits wide.
+
+                             short_a         .macro
+                                             sep     #M_FLAG
+                                             .longa  off
+                                             .endm
+
+                             ; Sets the X bit making the index registers 8-bits wide.
+
+                             short_i         .macro
+                                             sep     #X_FLAG
+                                             .longi  off
+
+Portable 65xx Assembler [19.05]
+
+                                             .endm
+
+                             ; Sets the M & X bits making the accumulator, memory accesses and index
+                             ; registers 8-bits wide.
+
+                             short_ai        .macro
+                                             sep     #M_FLAG|X_FLAG
+                                             .longa  off
+                                             .longi  off
+                                             .endm
+                                             .include "../signature.inc"
+                             ;===============================================================================
+                             ;  _____ __  __        __  ____   ____ ___  _  __
+                             ; | ____|  \/  |      / /_| ___| / ___( _ )/ |/ /_
+                             ; |  _| | |\/| |_____| '_ \___ \| |   / _ \| | '_ \
+                             ; | |___| |  | |_____| (_) |__) | |__| (_) | | (_) |
+                             ; |_____|_|__|_|___ __\___/____/ \____\___/|_|\___/
+                             ; | ____/ ___||  _ \___ /___ \
+                             ; |  _| \___ \| |_) ||_ \ __) |
+                             ; | |___ ___) |  __/___) / __/
+                             ; |_____|____/|_|  |____/_____|
+                             ;
+                             ;-------------------------------------------------------------------------------
+                             ; Copyright (C)2018-2019 Andrew John Jacobs
+                             ; All rights reserved.
+                             ;
+                             ; This work is made available under the terms of the Creative Commons
+                             ; Attribution-NonCommercial-ShareAlike 4.0 International license. Open the
+                             ; following URL to see the details.
+                             ;
+                             ; http://creativecommons.org/licenses/by-nc-sa/4.0/
+                             ;===============================================================================
+                             ;
+                             ; Notes:
+                             ;
+                             ;-------------------------------------------------------------------------------
+
+                             ;===============================================================================
+                             ; WDM Signature Bytes
+                             ;-------------------------------------------------------------------------------
+
+         00000000          = WDM_IER_RD      .equ    $00
+         00000001          = WDM_IER_WR      .equ    $01
+         00000002          = WDM_IER_SET     .equ    $02
+         00000003          = WDM_IER_CLR     .equ    $03
+
+         00000004          = WDM_IFR_RD      .equ    $04
+         00000005          = WDM_IFR_WR      .equ    $05
+         00000006          = WDM_IFR_SET     .equ    $06
+         00000007          = WDM_IFR_CLR     .equ    $07
+
+         00000008          = WDM_IFLAGS      .equ    $08
+
+         00000010          = WDM_U1TX        .equ    $10
+
+Portable 65xx Assembler [19.05]
+
+         00000011          = WDM_U1RX        .equ    $11
+
+                             ;===============================================================================
+                             ; IER/IFR Bits
+                             ;-------------------------------------------------------------------------------
+
+         00000001          = INT_CLK         .equ    $0001
+         00000002          = INT_U1RX        .equ    $0002
+         00000004          = INT_U1TX        .equ    $0004
+
+
+                             ;===============================================================================
+                             ; Constants
+                             ;-------------------------------------------------------------------------------
+
+                             ; ASCII Control characters
+
+         00000007          = BEL             .equ    $07
+         00000008          = BS              .equ    $08
+         0000000A          = LF              .equ    $0a
+         0000000D          = CR              .equ    $0d
+         0000007F          = DEL             .equ    $7f
+
+                             ;-------------------------------------------------------------------------------
+
+         0000EE00          = MON_PAGE        .equ    $ee00                   ; Monitors private data page
+         0000EF00          = IO_PAGE         .equ    $ef00                   ; I/O private data page
+
+         00000040          = UART_BUFSIZ     .equ    64                      ; UART buffer size
+
+                                             .page
+
+Portable 65xx Assembler [19.05]
+
+                             ;===============================================================================
+                             ; Data Areas
+                             ;-------------------------------------------------------------------------------
+
+                                             .page0
+                                             .org    0
+
+
+
+                             ;-------------------------------------------------------------------------------
+
+                                             .bss
+                                             .org    IO_PAGE
+
+00:EF00  00                : TX_HEAD:        .space  1                       ; Transmit buffer head and tail
+00:EF01  00                : TX_TAIL:        .space  1                       ; .. indices
+00:EF02  00                : RX_HEAD:        .space  1                       ; Receive buffer head and tail
+00:EF03  00                : RX_TAIL:        .space  1                       ; .. indices
+
+00:EF04  00000000          : TICK:           .space  4                       ; Clock tick counter
+
+00:EF08  0000000000000000> : TX_DATA:        .space  UART_BUFSIZ             ; Uart transmit buffer
+00:EF48  0000000000000000> : RX_DATA:        .space  UART_BUFSIZ             ; Uart receive buffer
+
+                                             .if     $ > $efff
+                                             .error  "Exceeded I/O Page size"
+                                             .endif
+
+                                             .page
+
+Portable 65xx Assembler [19.05]
+
+                             ;===============================================================================
+                             ; Operating System Entry Points
+                             ;-------------------------------------------------------------------------------
+                                             .code
+                                             .org    $f000
+
+00:F000  826900            :                 brl     Uart1Tx                 ; JSL $f000 - UART1 Transmit
+00:F003  829800            :                 brl     Uart1Rx                 ; JSL $f003 - UART1 Receive
+
+                             ;===============================================================================
+                             ; API Entry
+                             ;-------------------------------------------------------------------------------
+
+                             COPE:
+00:F006  60                :                 rts
+                             COPN:
+00:F007  6B                :                 rtl
+
+                             ;===============================================================================
+                             ; Power On Reset
+                             ;-------------------------------------------------------------------------------
+
+                                             .longa  off
+                                             .longi  off
+                             RESET:
+00:F008  78                :                 sei                             ; Ensure no interrupts
+00:F009  D8                :                 cld
+
+00:F00A  A208              :                 ldx     #8                      ; Clear FIFO indexes and timer
+                                             repeat
+00:F00C  CA                :                  dex
+00:F00D  9E00EF            :                  stz    IO_PAGE,x
+00:F010  D0FA              :                 until eq
+
+00:F012  18                :                 clc                             ; Switch to native mode
+00:F013  FB                :                 xce
+
+                                             long_ai
+00:F014  C230              +                 rep     #M_FLAG|X_FLAG
+                           +                 .longa  on
+                           +                 .longi  on
+00:F016  A2FF0F            :                 ldx     #$0fff                  ; Set O/S stack
+00:F019  9A                :                 txs
+00:F01A  A90300            :                 lda     #INT_CLK|INT_U1RX       ; Enable clock and receive
+00:F01D  4201              :                 wdm     #WDM_IER_WR
+00:F01F  58                :                 cli                             ; Allow interrupts
+
+                                             short_a                         ; Display a boot message
+00:F020  E220              +                 sep     #M_FLAG
+                           +                 .longa  off
+00:F022  A234F0            :                 ldx     #BOOT_MESSAGE
+                                             repeat
+00:F025  BD0000            :                  lda    !0,x
+00:F028  F007              :                  break eq
+
+Portable 65xx Assembler [19.05]
+
+00:F02A  226CF000          :                  jsl    Uart1Tx
+00:F02E  E8                :                  inx
+00:F02F  80F4              :                 forever
+
+00:F031  0000              :                 brk     #0                      ; Then enter the monitor
+00:F033  DB                :                 stp
+
+00:F034  0D0A454D2D363543> : BOOT_MESSAGE:   .byte   CR,LF,"EM-65C816-ESP32 [19.06]"
+00:F04D  0D0A284329323031> :                 .byte   CR,LF,"(C)2018-2019 Andrew Jacobs"
+00:F069  0D0A00            :                 .byte   CR,LF,0
+
+                             ;===============================================================================
+                             ; Uart1 I/O
+                             ;-------------------------------------------------------------------------------
+
+                             ; Transmit the character in A via UART1 regardless of the state of the processor
+                             ; and preserve all the registers. If the buffer is full then wait for it to
+                             ; drain so there is at least one free space.
+
+                                             .longa  ?
+                                             .longi  ?
+                             Uart1Tx:
+00:F06C  08                :                 php                             ; Save MX bits
+00:F06D  DA                :                 phx                             ; .. and X
+                                             short_a                         ; Make A/M 8-bits
+00:F06E  E220              +                 sep     #M_FLAG
+                           +                 .longa  off
+00:F070  48                :                 pha                             ; Sava A & B
+00:F071  EB                :                 xba
+00:F072  48                :                 pha
+00:F073  AF01EF00          :                 lda     >TX_TAIL                ; Insert data at end of queue
+00:F077  AA                :                 tax
+00:F078  EB                :                 xba
+00:F079  9F08EF00          :                 sta     >TX_DATA,x
+00:F07D  E8                :                 inx                             ; Bump tail index
+00:F07E  8A                :                 txa
+00:F07F  293F              :                 and     #UART_BUFSIZ-1          ; .. and wrap
+                                             repeat
+00:F081  CF00EF00          :                  cmp    >TX_HEAD                ; If buffer is completely full
+00:F085  D003              :                  break ne                       ; .. wait for it to drain
+00:F087  CB                :                  wai
+00:F088  80F7              :                 forever
+00:F08A  78                :                 sei                             ; Update the tail
+00:F08B  8F01EF00          :                 sta     >TX_TAIL
+00:F08F  A900              :                 lda     #>INT_U1TX              ; Ensure TX interrupt enabled
+00:F091  EB                :                 xba
+00:F092  A904              :                 lda     #<INT_U1TX
+00:F094  4202              :                 wdm     #WDM_IER_SET
+00:F096  58                :                 cli
+00:F097  68                :                 pla                             ; Restore B & A
+00:F098  EB                :                 xba
+00:F099  68                :                 pla
+00:F09A  EB                :                 xba
+00:F09B  FA                :                 plx                             ; Restore X
+
+Portable 65xx Assembler [19.05]
+
+00:F09C  28                :                 plp                             ; .. and MX flags
+00:F09D  6B                :                 rtl                             ; Done
+
+                             ; Receive a character from UART1 into A regardless of the state of rhe processor
+                             ; preserving all other registers. If the buffer is empty then wait for some data
+                             ; to arrive.
+
+                                             .longa  ?
+                                             .longi  ?
+                             Uart1Rx:
+00:F09E  08                :                 php                             ; Save MX bits & x
+00:F09F  DA                :                 phx
+                                             short_a                         ; Make A/M 8-bit
+00:F0A0  E220              +                 sep     #M_FLAG
+                           +                 .longa  off
+                                             repeat
+00:F0A2  AF02EF00          :                  lda    >RX_HEAD                ; Wait while buffer is empty
+00:F0A6  CF03EF00          :                  cmp    >RX_TAIL
+00:F0AA  D003              :                  break ne
+00:F0AC  CB                :                  wai
+00:F0AD  80F3              :                 forever
+00:F0AF  AA                :                 tax
+00:F0B0  BF48EF00          :                 lda     >RX_DATA,x
+00:F0B4  48                :                 pha
+00:F0B5  E8                :                 inx                             ; Bump head index
+00:F0B6  8A                :                 txa
+00:F0B7  293F              :                 and     #UART_BUFSIZ-1          ; .. and wrap
+00:F0B9  8F02EF00          :                 sta     >RX_HEAD                ; Then update head
+00:F0BD  68                :                 pla
+00:F0BE  FA                :                 plx                             ; Restore X and flags
+00:F0BF  28                :                 plp
+00:F0C0  6B                :                 rtl
+
+                             ;===============================================================================
+                             ; Interrupt Handlers
+                             ;-------------------------------------------------------------------------------
+
+                             ; In emulation mode the interrupt handler must differentiate between IRQ and
+                             ; BRK.
+
+                                             .longa  off
+                                             .longi  off
+                             IRQBRK:
+00:F0C1  48                :                 pha                             ; Save users A
+00:F0C2  A302              :                 lda     2,s                     ; Recover P
+00:F0C4  2910              :                 and     #$10
+00:F0C6  F007              :                 if ne
+00:F0C8  68                :                  pla                            ; Restores users A
+00:F0C9  E220              : BRKN:            sep    #M_FLAG                 ; Ensure 8-bit A/M
+00:F0CB  5C000004          :                  jml    Monitor                 ; Enter the monitor
+                                             endif
+
+00:F0CF  EB                :                 xba                             ; Save users B
+00:F0D0  48                :                 pha
+
+Portable 65xx Assembler [19.05]
+
+00:F0D1  DA                :                 phx                             ; .. and X
+
+00:F0D2  20E8F0            :                 jsr     IRQHandler              ; Do common processing
+
+00:F0D5  FA                :                 plx                             ; Restore users X,
+00:F0D6  68                :                 pla                             ; .. B, and A
+00:F0D7  EB                :                 xba
+00:F0D8  68                :                 pla
+00:F0D9  40                :                 rti                             ; .. and continue
+
+                             ;-------------------------------------------------------------------------------
+
+                                             .longa  ?
+                                             .longi  ?
+                             IRQN:
+                                             long_ai                         ; Then go full 16-bit
+00:F0DA  C230              +                 rep     #M_FLAG|X_FLAG
+                           +                 .longa  on
+                           +                 .longi  on
+00:F0DC  48                :                 pha                             ; .. and save C & X
+00:F0DD  DA                :                 phx
+                                             short_a                         ; Then make A/M 8-bits
+00:F0DE  E220              +                 sep     #M_FLAG
+                           +                 .longa  off
+
+00:F0E0  20E8F0            :                 jsr     IRQHandler              ; Do commo processing
+
+                                             long_a                          ; Restore users X & C
+00:F0E3  C220              +                 rep     #M_FLAG
+                           +                 .longa  on
+00:F0E5  FA                :                 plx
+00:F0E6  68                :                 pla
+00:F0E7  40                :                 rti                             ; .. and continue
+
+                             ;-------------------------------------------------------------------------------
+
+                             ; This is the main IRQ handler used in both native and emulation mode. The size
+                             ; of A/M access is 8-bits but X/Y are undefined. X is used to index into buffer
+                             ; areas but is always loaded/stored via A.
+
+                                             .longa  off
+                                             .longi  ?
+                             IRQHandler:
+00:F0E8  8B                :                 phb                             ; Save users data bank
+00:F0E9  4B                :                 phk                             ; And switch to bank $00
+00:F0EA  AB                :                 plb
+
+00:F0EB  4208              :                 wdm     #WDM_IFLAGS             ; Fetch interrupt flags
+00:F0ED  48                :                 pha                             ; .. and save some copies
+00:F0EE  48                :                 pha
+
+00:F0EF  2901              :                 and     #INT_CLK                ; Is this a timer interrupt?
+00:F0F1  F014              :                 if ne
+00:F0F3  4207              :                  wdm    #WDM_IFR_CLR            ; Yes, clear it
+
+Portable 65xx Assembler [19.05]
+
+
+00:F0F5  EE04EF            :                  inc    TICK+0                  ; Bump the tick counter
+00:F0F8  D00D              :                  if eq
+00:F0FA  EE05EF            :                   inc   TICK+1
+00:F0FD  D008              :                   if eq
+00:F0FF  EE06EF            :                    inc  TICK+2
+00:F102  D003              :                    if eq
+00:F104  EE07EF            :                     inc TICK+3
+                                                endif
+                                               endif
+                                              endif
+                                             endif
+
+00:F107  68                :                 pla                             ; Check for received data
+00:F108  2902              :                 and     #INT_U1RX
+00:F10A  F015              :                 if ne
+00:F10C  AD03EF            :                  lda    RX_TAIL                 ; Save at tail of RX buffer
+00:F10F  AA                :                  tax
+00:F110  4211              :                  wdm    #WDM_U1RX
+00:F112  9D48EF            :                  sta    RX_DATA,x
+00:F115  E8                :                  inx                            ; Bump the index
+00:F116  8A                :                  txa
+00:F117  293F              :                  and    #UART_BUFSIZ-1          ; .. and wrap
+00:F119  CD02EF            :                  cmp    RX_HEAD                 ; Is RX buffer complete full?
+00:F11C  F003              :                  if ne
+00:F11E  8D03EF            :                   sta   RX_TAIL                 ; No, save new tail
+                                              endif
+                                             endif
+
+00:F121  68                :                 pla                             ; Ready to transmit?
+00:F122  2904              :                 and     #INT_U1TX
+00:F124  F019              :                 if ne
+00:F126  AD00EF            :                  lda    TX_HEAD                 ; Fetch next character to send
+00:F129  AA                :                  tax
+00:F12A  BD08EF            :                  lda    TX_DATA,x
+00:F12D  4210              :                  wdm    #WDM_U1TX               ; .. and transmit it
+00:F12F  E8                :                  inx                            ; Bump the index
+00:F130  8A                :                  txa
+00:F131  293F              :                  and    #UART_BUFSIZ-1          ; .. and wrap
+00:F133  8D00EF            :                  sta    TX_HEAD                 ; Save updated head
+00:F136  CD01EF            :                  cmp    TX_TAIL                 ; Is the buffer now empty?
+00:F139  D004              :                  if eq
+00:F13B  A904              :                   lda   #INT_U1TX
+00:F13D  4203              :                   wdm   #WDM_IER_CLR            ; Yes disable TX interrupt
+                                              endif
+                                             endif
+
+00:F13F  AB                :                 plb
+00:F140  60                :                 rts                             ; Done
+
+                             ;===============================================================================
+                             ; Unused Vector Trap
+                             ;-------------------------------------------------------------------------------
+
+
+Portable 65xx Assembler [19.05]
+
+                             ; If any undefined vectors are invoked execution will end up here doing in an
+                             ; infinite loop.
+
+                             UnusedVector
+00:F141  DB                :                 stp
+00:F142  80FE              :                 bra     $
+
+                             ;===============================================================================
+                             ; Vectors
+                             ;-------------------------------------------------------------------------------
+
+                             ; Native Mode Vectors
+
+                                             .org    $ffe0
+
+00:FFE0  00000000          :                 .space  4                       ; Reserved
+00:FFE4  07F0              :                 .word   COPN                    ; $FFE4 - COP(816)
+00:FFE6  C9F0              :                 .word   BRKN                    ; $FFE6 - BRK(816)
+00:FFE8  41F1              :                 .word   UnusedVector            ; $FFE8 - ABORT(816)
+00:FFEA  41F1              :                 .word   UnusedVector            ; $FFEA - NMI(816)
+00:FFEC  0000              :                 .space  2                       ; Reserved
+00:FFEE  DAF0              :                 .word   IRQN                    ; $FFEE - IRQ(816)
+
+                             ; Emulation Mode Vectors
+
+                                             .org    $fff0
+00:FFF0  00000000          :                 .space  4
+00:FFF4  41F1              :                 .word   UnusedVector            ; $FFF4 - COP(C02)
+00:FFF6  0000              :                 .space  2                       ; $Reserved
+00:FFF8  41F1              :                 .word   UnusedVector            ; $FFF8 - ABORT(C02)
+00:FFFA  41F1              :                 .word   UnusedVector            ; $FFFA - NMI(C02)
+00:FFFC  08F0              :                 .word   RESET                   ; $FFFC - RESET(C02)
+00:FFFE  C1F0              :                 .word   IRQBRK                  ; $FFFE - IRQBRK(C02)
+
+                                             .page
+
+Portable 65xx Assembler [19.05]
+
+                             ;===============================================================================
+                             ; Video RAM
+                             ;-------------------------------------------------------------------------------
+
+                             ; Bank $01 is reserved for video data. The intended display will be 800x600
+                             ; monochrome.
+
+         00000320          = SVGA_WIDTH      .equ    800
+         00000258          = SVGA_HEIGHT     .equ    600
+         00000008          = PIXELS_PER_BYTE .equ    8
+         00000064          = BYTES_PER_LINE  .equ    SVGA_WIDTH / PIXELS_PER_BYTE
+
+                                             .bss
+                                             .org    $010000
+
+01:0000  0000000000000000> : VLINES          .space  SVGA_HEIGHT * 2         ; Scan line pointers
+
+01:04B0  0000000000000000> : VDATA           .space  SVGA_HEIGHT * BYTES_PER_LINE
+                             VEND            .space  0
+
+                                             .page
+
+Portable 65xx Assembler [19.05]
+
+                             ;===============================================================================
+                             ; Operating System
+                             ;-------------------------------------------------------------------------------
+
+                                             .code
+                                             .org    $040000
+
+                             ; This is the target area for my operating system ROM.
+
+                                             .page
+
+Portable 65xx Assembler [19.05]
+
+                             ;===============================================================================
+                             ; Monitor
+                             ;-------------------------------------------------------------------------------
+                             ;
+                             ; The monitor runs with interrupts disabled and performs polled I/O. If it is
+                             ; not entered then its workspace page is never accessed and could be used by
+                             ; another application.
+
+                                             .bss
+                                             .org    $00ee00
+
+                             ; User Registers
+
+00:EE00  00                : REG_E           .space  1                       ; In bit 7
+00:EE01  00                : REG_P           .space  1
+00:EE02  0000              : REG_C           .space  2
+00:EE04  0000              : REG_X           .space  2
+00:EE06  0000              : REG_Y           .space  2
+00:EE08  0000              : REG_SP          .space  2
+00:EE0A  0000              : REG_DP          .space  2
+00:EE0C  0000              : REG_PC          .space  2
+00:EE0E  00                : REG_PBR         .space  1
+00:EE0F  00                : REG_DBR         .space  1
+
+00:EE10  00                : CMD_LEN         .space  1                       ; Command buffer length
+
+00:EE11  0000000000000000> :                 .align  128                     ; Used for stack
+00:EE80  0000000000000000> : CMD_BUF         .space  128                     ; Command buffer
+
+                             ;-------------------------------------------------------------------------------
+
+                             ; The entry point is called from the boot ROM when a BRK instruction is executed
+                             ; in either emulation or native mode. A/M has been set to 8-bits as part of the
+                             ; interrupt handling.
+
+                                             .code
+                                             .longa  off
+                                             .longi  ?
+                                             .dpage  REG_E
+                             Monitor:
+04:0000  0B                :                 phd                             ; Push users DP
+04:0001  F400EE            :                 pea     #REG_E                  ; Move to monitor's direct page
+04:0004  2B                :                 pld
+04:0005  8502              :                 sta     REG_C+0                 ; Save C
+04:0007  EB                :                 xba
+04:0008  8503              :                 sta     REG_C+1
+04:000A  68                :                 pla                             ; Save DP
+04:000B  850A              :                 sta     REG_DP+0
+04:000D  68                :                 pla
+04:000E  850B              :                 sta     REG_DP+1
+04:0010  68                :                 pla                             ; Save P
+04:0011  8501              :                 sta     REG_P
+04:0013  38                :                 sec                             ; Save PC (adjusting for BRK)
+04:0014  68                :                 pla
+
+Portable 65xx Assembler [19.05]
+
+                                             ;sbc    #2
+04:0015  850C              :                 sta     REG_PC+0
+04:0017  68                :                 pla
+                                             ;sbc    #0
+04:0018  850D              :                 sta     REG_PC+1
+04:001A  18                :                 clc                             ; Switch to native mode
+04:001B  FB                :                 xce
+04:001C  640E              :                 stz     REG_PBR
+04:001E  B003              :                 if cc
+04:0020  68                :                  pla
+04:0021  850E              :                  sta    REG_PBR                 ; Save PBR
+                                             endif
+04:0023  6600              :                 ror     REG_E                   ; Save E
+04:0025  8B                :                 phb                             ; Save DBR
+04:0026  68                :                 pla
+04:0027  850F              :                 sta     REG_DBR
+                                             long_i
+04:0029  C210              +                 rep     #X_FLAG
+                           +                 .longi  on
+04:002B  8604              :                 stx     REG_X                   ; Save X
+04:002D  8406              :                 sty     REG_Y                   ; Save Y
+04:002F  BA                :                 tsx
+04:0030  8608              :                 stx     REG_SP                  ; Save SP
+04:0032  A27FEE            :                 ldx     #CMD_BUF-1              ; .. then load ours
+04:0035  9A                :                 txs
+
+04:0036  4B                :                 phk                             ; Set DBR to this bank (to
+04:0037  AB                :                 plb                             ; .. access data and strings)
+04:0038  58                :                 cli                             ; And allow interrupts
+
+                             ;-------------------------------------------------------------------------------
+
+                             ; Show the state of the users registers when the BRK was executed.
+
+                             .ShowRegisters:
+04:0039  20D801            :                 jsr     .NewLine
+
+04:003C  A24802            :                 ldx     #.StrPC
+04:003F  20CC01            :                 jsr     .Print
+04:0042  A50E              :                 lda     REG_PBR                 ; Show PBR and PC
+04:0044  20F601            :                 jsr     .Hex2
+04:0047  A93A              :                 lda     #':'
+04:0049  200802            :                 jsr     .UartTx
+04:004C  A50D              :                 lda     REG_PC+1
+04:004E  EB                :                 xba
+04:004F  A50C              :                 lda     REG_PC+0
+04:0051  20F101            :                 jsr     .Hex4
+
+04:0054  A24C02            :                 ldx     #.StrE                  ; Show E bit
+04:0057  20CC01            :                 jsr     .Print
+04:005A  A930              :                 lda     #'0'
+04:005C  2400              :                 bit     REG_E
+04:005E  1001              :                 if mi
+04:0060  1A                :                  inc    a
+
+Portable 65xx Assembler [19.05]
+
+                                             endif
+04:0061  200802            :                 jsr     .UartTx
+
+04:0064  A25002            :                 ldx     #.StrP                  ; Show P
+04:0067  20CC01            :                 jsr     .Print
+04:006A  A20700            :                 ldx     #7
+                                             repeat
+04:006D  BD4002            :                  lda    .Mask,x                 ; .. as individual flags
+04:0070  2501              :                  and    REG_P
+04:0072  08                :                  php
+04:0073  BD3802            :                  lda    .Flag,x
+04:0076  28                :                  plp
+04:0077  D002              :                  if eq
+04:0079  A92E              :                   lda   #'.'
+                                              endif
+04:007B  200802            :                  jsr    .UartTx
+04:007E  CA                :                  dex
+04:007F  10EC              :                 until mi
+
+04:0081  A25402            :                 ldx     #.StrC                  ; Show C
+04:0084  20CC01            :                 jsr     .Print
+04:0087  2400              :                 bit     REG_E
+04:0089  300E              :                 bmi     .ShortA
+04:008B  A920              :                 lda     #M_FLAG
+04:008D  2401              :                 bit     REG_P
+04:008F  D008              :                 if eq
+04:0091  201D02            :                  jsr    .OpenBracket
+04:0094  20E101            :                  jsr    .HexCHi
+04:0097  8006              :                 else
+04:0099  20E101            : .ShortA:         jsr    .HexCHi
+04:009C  201D02            :                  jsr    .OpenBracket
+                                             endif
+04:009F  A502              :                 lda     REG_C+0
+04:00A1  20F601            :                 jsr     .Hex2
+04:00A4  202102            :                 jsr     .CloseBracket
+
+04:00A7  A25802            :                 ldx     #.StrX                  ; Show X
+04:00AA  20CC01            :                 jsr     .Print
+04:00AD  2400              :                 bit     REG_E
+04:00AF  300E              :                 bmi     .ShortX
+04:00B1  A910              :                 lda     #X_FLAG
+04:00B3  2401              :                 bit     REG_P
+04:00B5  D008              :                 if eq
+04:00B7  201D02            :                  jsr    .OpenBracket
+04:00BA  20E501            :                  jsr    .HexXHi
+04:00BD  8006              :                 else
+04:00BF  20E501            : .ShortX:         jsr    .HexXHi
+04:00C2  201D02            :                  jsr    .OpenBracket
+                                             endif
+04:00C5  A504              :                 lda     REG_X+0
+04:00C7  20F601            :                 jsr     .Hex2
+04:00CA  202102            :                 jsr     .CloseBracket
+
+04:00CD  A25C02            :                 ldx     #.StrY                  ; Show Y
+
+Portable 65xx Assembler [19.05]
+
+04:00D0  20CC01            :                 jsr     .Print
+04:00D3  2400              :                 bit     REG_E
+04:00D5  300E              :                 bmi     .ShortY
+04:00D7  A910              :                 lda     #X_FLAG
+04:00D9  2401              :                 bit     REG_P
+04:00DB  D008              :                 if eq
+04:00DD  201D02            :                  jsr    .OpenBracket
+04:00E0  20E901            :                  jsr    .HexYHi
+04:00E3  8006              :                 else
+04:00E5  20E901            : .ShortY:         jsr    .HexYHi
+04:00E8  201D02            :                  jsr    .OpenBracket
+                                             endif
+04:00EB  A506              :                 lda     REG_Y+0
+04:00ED  20F601            :                 jsr     .Hex2
+04:00F0  202102            :                 jsr     .CloseBracket
+
+04:00F3  A26002            :                 ldx     #.StrDP                 ; Show DP
+04:00F6  20CC01            :                 jsr     .Print
+04:00F9  A50B              :                 lda     REG_DP+1
+04:00FB  EB                :                 xba
+04:00FC  A50A              :                 lda     REG_DP+0
+04:00FE  20F101            :                 jsr     .Hex4
+
+04:0101  A26502            :                 ldx     #.StrSP                 ; Show SP
+04:0104  20CC01            :                 jsr     .Print
+04:0107  2400              :                 bit     REG_E
+04:0109  1008              :                 if mi
+04:010B  20ED01            :                  jsr    .HexSPHi
+04:010E  201D02            :                  jsr    .OpenBracket
+04:0111  8006              :                 else
+04:0113  201D02            :                  jsr    .OpenBracket
+04:0116  20ED01            :                  jsr    .HexSPHi
+                                             endif
+04:0119  A508              :                 lda     REG_SP+0
+04:011B  20F601            :                 jsr     .Hex2
+04:011E  202102            :                 jsr     .CloseBracket
+
+04:0121  A26A02            :                 ldx     #.StrDBR                ; Show DBR
+04:0124  20CC01            :                 jsr     .Print
+04:0127  A50F              :                 lda     REG_DBR
+04:0129  20F601            :                 jsr     .Hex2
+
+                             ;-------------------------------------------------------------------------------
+
+                             ; Read a command from the user into the buffer area. Pressing either BS or DEL
+                             ; erases the last character.
+
+                             .NewCommand:
+04:012C  6410              :                 stz     CMD_LEN                 ; Clear command buffer
+04:012E  20D801            :                 jsr     .NewLine                ; Print the entry prompt
+04:0131  A92E              :                 lda     #'.'
+04:0133  200802            :                 jsr     .UartTx
+
+04:0136  A20000            :                 ldx     #0
+
+Portable 65xx Assembler [19.05]
+
+                                             repeat
+04:0139  8A                :                  txa
+04:013A  C510              :                  cmp    CMD_LEN                 ; Any forced characters?
+04:013C  F008              :                  break  eq
+04:013E  B580              :                  lda    CMD_BUF,x               ; Yes, print one
+04:0140  200802            :                  jsr    .UartTx
+04:0143  E8                :                  inx
+04:0144  80F3              :                 forever
+
+                                             repeat
+04:0146  202502            :                  jsr    .UartRx                 ; Read a real character
+04:0149  9580              :                  sta    CMD_BUF,x               ; .. and save it
+
+04:014B  C908              :                  cmp    #BS                     ; Map BS to DEL
+04:014D  F00C              :                  beq    .BackSpace
+04:014F  C90D              :                  cmp    #CR                     ; End of input?
+04:0151  F024              :                  break  eq
+
+04:0153  C920              :                  cmp    #' '                    ; Printable?
+04:0155  9019              :                  if cs
+04:0157  C97F              :                   cmp   #DEL                    ; Delete?
+04:0159  9012              :                   if cs
+04:015B  8A                : .BackSpace:        txa                          ; Is buffer empty?
+04:015C  F012              :                    beq  .Beep                   ; Yes, make a noise
+
+04:015E  A908              :                    lda  #BS                     ; Erase the last character
+04:0160  200802            :                    jsr  .UartTx
+04:0163  A920              :                    lda  #' '
+04:0165  200802            :                    jsr  .UartTx
+04:0168  A908              :                    lda  #BS
+04:016A  CA                :                    dex
+04:016B  8001              :                   else
+04:016D  E8                :                    inx                          ; Keep the last character
+                                               endif
+04:016E  8002              :                  else
+04:0170  A907              : .Beep:            lda   #BEL
+                                              endif
+04:0172  200802            :                  jsr    .UartTx                 ; And echo char, BEL or BS
+04:0175  80CF              :                 forever
+
+04:0177  8A                :                 txa                             ; Save the buffer length
+04:0178  8510              :                 sta     CMD_LEN
+
+04:017A  A900              :                 lda     #0                      ; Start processing at the
+04:017C  AA                :                 tax                             ; .. start of the line
+04:017D  20B901            :                 jsr     .SkipSpaces
+04:0180  20C101            :                 jsr     .ToUpper
+
+04:0183  C90D              :                 cmp     #CR
+04:0185  F0A5              :                 beq     .NewCommand
+
+                             ;-------------------------------------------------------------------------------
+
+04:0187  C93F              :                 cmp     #'?'
+
+Portable 65xx Assembler [19.05]
+
+04:0189  D008              :                 if eq
+04:018B  A27802            :                  ldx    #.StrHelp
+04:018E  20CC01            :                  jsr    .Print
+04:0191  8099              :                  bra    .NewCommand
+                                             endif
+
+                             ;-------------------------------------------------------------------------------
+
+04:0193  C944              :                 cmp     #'D'
+04:0195  D003              :                 if eq
+
+04:0197  4C2C01            :                  jmp    .NewCommand
+                                             endif
+
+                             ;-------------------------------------------------------------------------------
+
+04:019A  C94D              :                 cmp     #'M'
+04:019C  D003              :                 if eq
+
+04:019E  4C2C01            :                  jmp    .NewCommand
+                                             endif
+
+                             ;-------------------------------------------------------------------------------
+
+04:01A1  C951              :                 cmp     #'Q'
+04:01A3  D004              :                 if eq
+04:01A5  20D801            :                  jsr    .NewLine
+04:01A8  DB                :                  stp
+                                             endif
+
+                             ;-------------------------------------------------------------------------------
+
+04:01A9  C952              :                 cmp     #'R'
+04:01AB  D003              :                 if eq
+
+04:01AD  4C3900            :                  jmp    .ShowRegisters
+                                             endif
+
+                             ;-------------------------------------------------------------------------------
+
+04:01B0  A27002            :                 ldx     #.StrError
+04:01B3  20CC01            :                 jsr     .Print
+04:01B6  4C2C01            :                 jmp     .NewCommand
+
+                             ;-------------------------------------------------------------------------------
+
+                             .SkipSpaces:
+                                             repeat
+04:01B9  B580              :                  lda    CMD_BUF,x               ; Fetch characters
+04:01BB  E8                :                  inx
+04:01BC  C920              :                  cmp #' '                       ; .. until a non-space
+04:01BE  F0F9              :                 until ne
+04:01C0  60                :                 rts                             ; Done
+
+
+Portable 65xx Assembler [19.05]
+
+                             .ToUpper:
+04:01C1  C961              :                 cmp     #'a'                    ; If A is 'a'..'z'
+04:01C3  9006              :                 if cs
+04:01C5  C97B              :                  cmp    #'z'+1
+04:01C7  B002              :                  if cc
+04:01C9  E91F              :                   sbc   #31                     ; .. then capitalise
+                                              endif
+                                             endif
+04:01CB  60                :                 rts
+
+                             ;-------------------------------------------------------------------------------
+
+                             ; Print the null terminated string pointed to the address in the X register to
+                             ; the UART.
+
+                             .Print:
+                                             repeat
+04:01CC  BD0000            :                  lda    !0,x
+04:01CF  D001              :                  if eq
+04:01D1  60                :                   rts
+                                              endif
+04:01D2  200802            :                  jsr    .UartTx
+04:01D5  E8                :                  inx
+04:01D6  80F4              :                 forever
+
+                             ; Output a CR+LF character sequence to move the cursor to the next line.
+
+                             .NewLine:
+04:01D8  A90D              :                 lda     #CR
+04:01DA  200802            :                 jsr     .UartTx
+04:01DD  A90A              :                 lda     #LF
+04:01DF  8027              :                 bra     .UartTx
+
+                             ;-------------------------------------------------------------------------------
+
+                             ; Output the high byte of the C register in hex.
+
+                                             .longa  off
+                             .HexCHi:
+04:01E1  A503              :                 lda     REG_C+1
+04:01E3  8011              :                 bra     .Hex2
+
+                             ; Output the high byte of the X register in hex.
+
+                                             .longa  off
+                             .HexXHi:
+04:01E5  A505              :                 lda     REG_X+1
+04:01E7  800D              :                 bra     .Hex2
+
+                             ; Output the high byte of the Y register in hex.
+
+                                             .longa  off
+                             .HexYHi:
+04:01E9  A507              :                 lda     REG_Y+1
+
+Portable 65xx Assembler [19.05]
+
+04:01EB  8009              :                 bra     .Hex2
+
+                             ; Output the high byte of the SP register in hex.
+
+                                             .longa  off
+                             .HexSPHi:
+04:01ED  A509              :                 lda     REG_SP+1
+04:01EF  8005              :                 bra     .Hex2
+
+                             ; Print the value in the C register in hex.
+
+                                             .longa  off
+                             .Hex4:
+04:01F1  EB                :                 xba                             ; Swap the high and low bytes
+04:01F2  20F601            :                 jsr     .Hex2                   ; Print the high byte
+04:01F5  EB                :                 xba                             ; Swap back then ..
+
+                             ; Print the value in the A registers in hex.
+
+                             .Hex2:
+04:01F6  48                :                 pha                             ; Save the byte
+04:01F7  4A                :                 lsr     a                       ; Shift down the high nybble
+04:01F8  4A                :                 lsr     a
+04:01F9  4A                :                 lsr     a
+04:01FA  4A                :                 lsr     a
+04:01FB  20FF01            :                 jsr     .Hex                    ; Print it
+04:01FE  68                :                 pla                             ; Recover the byte then ..
+
+                             ; Print the value in the low nybble of A in hex.
+
+                             .Hex:
+04:01FF  290F              :                 and     #$0f                    ; Strip out the low nybble
+04:0201  F8                :                 sed                             ; And make printable
+04:0202  18                :                 clc
+04:0203  6990              :                 adc     #$90
+04:0205  6940              :                 adc     #$40
+04:0207  D8                :                 cld                             ; Then drop into ..
+
+                             ;-------------------------------------------------------------------------------
+
+                             ; Transmit the character in A using the UART. Poll the UART to see if its
+                             ; busy before outputing the character.
+
+                                             .longa  ?
+                             .UartTx:
+04:0208  2200F000          :                 jsl     $00f000
+04:020C  60                :                 rts
+
+04:020D  08                :                 php                             ; Save MX bits
+                                             long_a
+04:020E  C220              +                 rep     #M_FLAG
+                           +                 .longa  on
+04:0210  48                :                 pha                             ; Save user data
+                                             repeat
+
+Portable 65xx Assembler [19.05]
+
+04:0211  4204              :                  wdm    #WDM_IFR_RD             ; Ready to transmit?
+04:0213  290400            :                  and    #INT_U1TX
+04:0216  F0F9              :                 until ne
+04:0218  68                :                 pla                             ; Yes, recover data
+04:0219  4210              :                 wdm     #WDM_U1TX               ; .. and send
+04:021B  28                :                 plp                             ; Restore MX
+04:021C  60                :                 rts                             ; Done
+
+                             ; Output an openning bracket character.
+
+                                             .longa  off
+                             .OpenBracket:
+04:021D  A95B              :                 lda     #'['
+04:021F  80E7              :                 bra     .UartTx
+
+                             ; Output a closing bracket character.
+
+                                             .longa  off
+                             .CloseBracket:
+04:0221  A95D              :                 lda     #']'
+04:0223  80E3              :                 bra     .UartTx
+
+                             ; Receive a character from UART performing a polled wait for data to arrive.
+
+                                             .longa  ?
+                             .UartRx:
+04:0225  2203F000          :                 jsl     $00f003
+04:0229  60                :                 rts
+
+04:022A  08                :                 php                             ; Save MX bits
+                                             long_a
+04:022B  C220              +                 rep     #M_FLAG
+                           +                 .longa  on
+                                             repeat
+04:022D  4204              :                  wdm    #WDM_IFR_RD             ; Any data to read?
+04:022F  290200            :                  and    #INT_U1RX
+04:0232  F0F9              :                 until ne
+04:0234  4211              :                 wdm     #WDM_U1RX               ; Yes, fetch a byte
+04:0236  28                :                 plp                             ; Restore MX
+04:0237  60                :                 rts                             ; Done
+
+                             ;-------------------------------------------------------------------------------
+
+                             ; 65xx Flags Bits
+
+04:0238  435A4944584D564E  : .Flag:          .byte   'C','Z','I','D','X','M','V','N'
+04:0240  0102040810204080  : .Mask:          .byte   $01,$02,$04,$08,$10,$20,$40,$80
+
+                             ; Various Strings
+
+04:0248  50433D00          : .StrPC:         .byte   "PC=",0
+04:024C  20453D00          : .StrE:          .byte   " E=",0
+04:0250  20503D00          : .StrP:          .byte   " P=",0
+04:0254  20433D00          : .StrC:          .byte   " C=",0
+
+Portable 65xx Assembler [19.05]
+
+04:0258  20583D00          : .StrX:          .byte   " X=",0
+04:025C  20593D00          : .StrY:          .byte   " Y=",0
+04:0260  2044503D00        : .StrDP:         .byte   " DP=",0
+04:0265  2053503D00        : .StrSP:         .byte   " SP=",0
+04:026A  204442523D00      : .StrDBR:        .byte   " DBR=",0
+
+04:0270  0D0A4572726F7200  : .StrError:      .byte   CR,LF,"Error",0
+
+                             .StrHelp:
+04:0278  0D0A3F202D204469> :                 .byte   CR,LF,"? - Display this help"
+04:028F  00                :                 .byte   0
+
+                                             .end
+
+
+Portable 65xx Assembler [19.05]
+
+Symbol Table
+
+BEL                              00000007  | WDM_IER_RD                       00000000
+BOOT_MESSAGE                     0000F034  | __6501__                         00000000
+BRKN                             0000F0C9  | __6502__                         00000000
+BS                               00000008  | __65832__                        00000000
+BYTES_PER_LINE                   00000064  | __65C02__                        00000000
+B_FLAG                           00000010  | __65SC02__                       00000000
+CMD_BUF                          0000EE80  | C_FLAG                           00000001
+CMD_LEN                          0000EE10  | INT_CLK                          00000001
+COPE                             0000F006  | WDM_IER_WR                       00000001
+COPN                             0000F007  | __65816__                        00000001
+CR                               0000000D  | INT_U1RX                         00000002
+C_FLAG                           00000001  | WDM_IER_SET                      00000002
+DEL                              0000007F  | Z_FLAG                           00000002
+D_FLAG                           00000008  | WDM_IER_CLR                      00000003
+INT_CLK                          00000001  | INT_U1TX                         00000004
+INT_U1RX                         00000002  | I_FLAG                           00000004
+INT_U1TX                         00000004  | WDM_IFR_RD                       00000004
+IO_PAGE                          0000EF00  | WDM_IFR_WR                       00000005
+IRQBRK                           0000F0C1  | WDM_IFR_SET                      00000006
+IRQHandler                       0000F0E8  | BEL                              00000007
+IRQN                             0000F0DA  | WDM_IFR_CLR                      00000007
+I_FLAG                           00000004  | BS                               00000008
+LF                               0000000A  | D_FLAG                           00000008
+MON_PAGE                         0000EE00  | PIXELS_PER_BYTE                  00000008
+M_FLAG                           00000020  | WDM_IFLAGS                       00000008
+Monitor                          00040000  | LF                               0000000A
+Monitor.BackSpace                0004015B  | CR                               0000000D
+Monitor.Beep                     00040170  | B_FLAG                           00000010
+Monitor.CloseBracket             00040221  | WDM_U1TX                         00000010
+Monitor.Flag                     00040238  | X_FLAG                           00000010
+Monitor.Hex                      000401FF  | WDM_U1RX                         00000011
+Monitor.Hex2                     000401F6  | M_FLAG                           00000020
+Monitor.Hex4                     000401F1  | UART_BUFSIZ                      00000040
+Monitor.HexCHi                   000401E1  | V_FLAG                           00000040
+Monitor.HexSPHi                  000401ED  | BYTES_PER_LINE                   00000064
+Monitor.HexXHi                   000401E5  | DEL                              0000007F
+Monitor.HexYHi                   000401E9  | N_FLAG                           00000080
+Monitor.Mask                     00040240  | SVGA_HEIGHT                      00000258
+Monitor.NewCommand               0004012C  | SVGA_WIDTH                       00000320
+Monitor.NewLine                  000401D8  | MON_PAGE                         0000EE00
+Monitor.OpenBracket              0004021D  | REG_E                            0000EE00
+Monitor.Print                    000401CC  | REG_P                            0000EE01
+Monitor.ShortA                   00040099  | REG_C                            0000EE02
+Monitor.ShortX                   000400BF  | REG_X                            0000EE04
+Monitor.ShortY                   000400E5  | REG_Y                            0000EE06
+Monitor.ShowRegisters            00040039  | REG_SP                           0000EE08
+Monitor.SkipSpaces               000401B9  | REG_DP                           0000EE0A
+Monitor.StrC                     00040254  | REG_PC                           0000EE0C
+Monitor.StrDBR                   0004026A  | REG_PBR                          0000EE0E
+Monitor.StrDP                    00040260  | REG_DBR                          0000EE0F
+Monitor.StrE                     0004024C  | CMD_LEN                          0000EE10
+Monitor.StrError                 00040270  | CMD_BUF                          0000EE80
+
+Portable 65xx Assembler [19.05]
+
+Monitor.StrHelp                  00040278  | IO_PAGE                          0000EF00
+Monitor.StrP                     00040250  | TX_HEAD                          0000EF00
+Monitor.StrPC                    00040248  | TX_TAIL                          0000EF01
+Monitor.StrSP                    00040265  | RX_HEAD                          0000EF02
+Monitor.StrX                     00040258  | RX_TAIL                          0000EF03
+Monitor.StrY                     0004025C  | TICK                             0000EF04
+Monitor.ToUpper                  000401C1  | TX_DATA                          0000EF08
+Monitor.UartRx                   00040225  | RX_DATA                          0000EF48
+Monitor.UartTx                   00040208  | COPE                             0000F006
+N_FLAG                           00000080  | COPN                             0000F007
+PIXELS_PER_BYTE                  00000008  | RESET                            0000F008
+REG_C                            0000EE02  | BOOT_MESSAGE                     0000F034
+REG_DBR                          0000EE0F  | Uart1Tx                          0000F06C
+REG_DP                           0000EE0A  | Uart1Rx                          0000F09E
+REG_E                            0000EE00  | IRQBRK                           0000F0C1
+REG_P                            0000EE01  | BRKN                             0000F0C9
+REG_PBR                          0000EE0E  | IRQN                             0000F0DA
+REG_PC                           0000EE0C  | IRQHandler                       0000F0E8
+REG_SP                           0000EE08  | UnusedVector                     0000F141
+REG_X                            0000EE04  | VLINES                           00010000
+REG_Y                            0000EE06  | VDATA                            000104B0
+RESET                            0000F008  | VEND                             0001EF10
+RX_DATA                          0000EF48  | Monitor                          00040000
+RX_HEAD                          0000EF02  | Monitor.ShowRegisters            00040039
+RX_TAIL                          0000EF03  | Monitor.ShortA                   00040099
+SVGA_HEIGHT                      00000258  | Monitor.ShortX                   000400BF
+SVGA_WIDTH                       00000320  | Monitor.ShortY                   000400E5
+TICK                             0000EF04  | Monitor.NewCommand               0004012C
+TX_DATA                          0000EF08  | Monitor.BackSpace                0004015B
+TX_HEAD                          0000EF00  | Monitor.Beep                     00040170
+TX_TAIL                          0000EF01  | Monitor.SkipSpaces               000401B9
+UART_BUFSIZ                      00000040  | Monitor.ToUpper                  000401C1
+Uart1Rx                          0000F09E  | Monitor.Print                    000401CC
+Uart1Tx                          0000F06C  | Monitor.NewLine                  000401D8
+UnusedVector                     0000F141  | Monitor.HexCHi                   000401E1
+VDATA                            000104B0  | Monitor.HexXHi                   000401E5
+VEND                             0001EF10  | Monitor.HexYHi                   000401E9
+VLINES                           00010000  | Monitor.HexSPHi                  000401ED
+V_FLAG                           00000040  | Monitor.Hex4                     000401F1
+WDM_IER_CLR                      00000003  | Monitor.Hex2                     000401F6
+WDM_IER_RD                       00000000  | Monitor.Hex                      000401FF
+WDM_IER_SET                      00000002  | Monitor.UartTx                   00040208
+WDM_IER_WR                       00000001  | Monitor.OpenBracket              0004021D
+WDM_IFLAGS                       00000008  | Monitor.CloseBracket             00040221
+WDM_IFR_CLR                      00000007  | Monitor.UartRx                   00040225
+WDM_IFR_RD                       00000004  | Monitor.Flag                     00040238
+WDM_IFR_SET                      00000006  | Monitor.Mask                     00040240
+WDM_IFR_WR                       00000005  | Monitor.StrPC                    00040248
+WDM_U1RX                         00000011  | Monitor.StrE                     0004024C
+WDM_U1TX                         00000010  | Monitor.StrP                     00040250
+X_FLAG                           00000010  | Monitor.StrC                     00040254
+Z_FLAG                           00000002  | Monitor.StrX                     00040258
+__6501__                         00000000  | Monitor.StrY                     0004025C
+__6502__                         00000000  | Monitor.StrDP                    00040260
+
+Portable 65xx Assembler [19.05]
+
+__65816__                        00000001  | Monitor.StrSP                    00040265
+__65832__                        00000000  | Monitor.StrDBR                   0004026A
+__65C02__                        00000000  | Monitor.StrError                 00040270
+__65SC02__                       00000000  | Monitor.StrHelp                  00040278

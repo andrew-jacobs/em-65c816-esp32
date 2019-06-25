@@ -29,10 +29,10 @@ TARGETS	= \
 	boot.h rom0.h
 
 LK1_FLAGS = \
-	-bss $$0000-$$7FFF -code $$00f000-$$00ffff
+	-bss $$0000-$$efff -code $$00f000-$$00ffff
 
 LK2_FLAGS = \
-	-bss $$0000-$$7FFF -code $$040000-$$04ffff
+	-bss $$0000-$$efff -code $$040000-$$04ffff
 
 all:	$(TARGETS)
 

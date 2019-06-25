@@ -42,11 +42,15 @@ using namespace std;
 #define SHOW_CY(CY)		Trace::cycles(CY)
 #define BYTES(NM)		Trace::bytes(NM)
 #define TRACE(OP)		Trace::trace (#OP, eal, eah)
+
+#define CLK_FREQ		1
 #else
 #define SHOW_PC()
 #define SHOW_CY(CY)
 #define BYTES(NM)
 #define TRACE(OP)
+
+#define CLK_FREQ		100
 #endif
 
 //==============================================================================
@@ -2156,7 +2160,7 @@ protected:
 	{
 		TRACE(phb);
 
-		pushByte(pbr.b);
+		pushByte(dbr.b);
 		return (3);
 	}
 
@@ -3058,7 +3062,7 @@ protected:
 	{
 		TRACE(tax);
 
-		setnz_w(x.w = p.m ? c.w : c.l);
+		setnz_w(x.w = p.m ? c.l : c.w);
 		return (2);
 	}
 
@@ -3066,7 +3070,7 @@ protected:
 	{
 		TRACE(tay);
 
-		setnz_w(y.w = p.m ? c.w : c.l);
+		setnz_w(y.w = p.m ? c.l : c.w);
 		return (2);
 	}
 

@@ -38,8 +38,10 @@ WDM_IFR_WR	.equ	$05
 WDM_IFR_SET	.equ	$06
 WDM_IFR_CLR	.equ	$07
 
-WDM_U1TX	.equ	$08
-WDM_U1RX	.equ	$09
+WDM_IFLAGS	.equ	$08
+
+WDM_U1TX	.equ	$10
+WDM_U1RX	.equ	$11
 
 ;===============================================================================
 ; IER/IFR Bits

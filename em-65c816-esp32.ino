@@ -64,11 +64,11 @@ uint32_t        delta;
 volatile uint8_t u1rxd;
 volatile uint8_t u1txd;
 
-// Signal timer interrupt every 10 milliseconds
+// Signal timer interrupt at the configured rate
 void doTimerTask (void *pArg)
 {
     for (;;) {
-        delay (100);
+        delay (1000 / CLK_FREQ);
 
         Emulator::ifr.tmr = 1;
     }
@@ -99,12 +99,6 @@ void doU1txTask (void *pArg)
 void setup (void)
 {
     Serial.begin (115200);
-
-    Serial.println ();
-    Serial.println ("EM-65C816-ESP32 [19.05]");
-    Serial.println ("Copyright (C)2019 Andrew John Jacobs.");
-    Serial.println ();
-
     Serial.printf (">> CPU running at %d MHz\n", ESP.getCpuFreqMHz ());
 
     Serial.println (">> Memory configuration:");
@@ -171,13 +165,15 @@ uint8_t Common::op_wdm(uint32_t eal, uint32_t eah)
     case 0x06:  ifr.f |=  c.w;      break;
     case 0x07:  ifr.f &= ~c.w;      break;
 
-    case 0x08:	{
+    case 0x08:  c.w = ier.f & ifr.f; break;
+
+    case 0x10:	{
             ifr.u1tx = 0;
             u1txd = c.l;
             vTaskResume (u1txTask);
             break;
         }
-    case 0x09:	{
+    case 0x11:	{
             ifr.u1rx = 0;
             c.l = u1rxd;
             vTaskResume (u1rxTask);

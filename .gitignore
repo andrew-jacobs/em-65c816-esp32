@@ -1,11 +1,15 @@
 /roms/boot/boot.obj
-/roms/boot/boot.lst
 /roms/boot/boot.map
 /roms/boot/boot.h
 /roms/boot/rom0.h
 /roms/boot/rom0.map
 /.vscode
+/roms/rom1/rom1.obj
+/roms/rom1/rom1.h
+/roms/rom1/rom1.map
+/roms/rom2/rom2.obj
+/roms/rom2/rom2.h
+/roms/rom2/rom2.map
 /roms/rom3/rom3.obj
 /roms/rom3/rom3.h
-/roms/rom3/rom3.lst
 /roms/rom3/rom3.map

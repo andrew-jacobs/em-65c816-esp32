@@ -9,7 +9,7 @@
 ; | |___ ___) |	 __/___) / __/
 ; |_____|____/|_|  |____/_____|
 ;
-; Boot ROM & Operating System
+; Boot ROM, Monitor & Operating System
 ;-------------------------------------------------------------------------------
 ; Copyright (C),2019 Andrew John Jacobs
 ; All rights reserved.
@@ -23,28 +23,37 @@
 ;===============================================================================
 ; Notes:
 ;
+; This source file builds both the boot ($00:f000-ffff) and rom0 ($04:0000-ffff)
+; images.
+;
+; The following table describes the memory map of the target system.
+;
 ; +---------+----+-------------------------------
-; | 00:0000 | WR | OS Variables & Stack
+; | 00:0000 | RW | OS Variables & Stack
 ; +---------+----+-------------------------------
-; | 00:1000 | WR | Task Zero Pages & Stack
-; +---------+----+------------------------------
-; | 00:ee00 | WR | Monitor Workspace - Can be overwritten
-; +---------+----+------------------------------
-; | 00:ef00 | WR | I/O Workspace (Timer & UART Buffers)
-; +---------+----+------------------------------
+; | 00:1000 | RW | Task Zero Pages & Stack
+; |---------+----+-------------------------------
+; | 00:2000 | RW | Other tasks areas
+; |         |    |
+; |         |    |
+; +---------+----+-------------------------------
+; | 00:ee00 | RW | Monitor Workspace - Can be overwritten
+; +---------+----+-------------------------------
+; | 00:ef00 | RW | I/O Workspace (Timer & UART Buffers)
+; +---------+----+-------------------------------
 ; | 00:f000 | RO | OS Boot ROM & Interrupt Handlers
 ; | 00:ffe0 |    | Native Mode Vectors
 ; | 00:fff0 |    | Emulation Mode Vectors
-; +---------+----+------------------------------
-; | 01:0000 | WR | Video
-; +---------+----+------------------------------
-; | 02:0000 |    | 
+; +---------+----+-------------------------------
+; | 01:0000 | RW | Video
+; +---------+----+-------------------------------
+; | 02:0000 | RW | SRAM
 ; | 03:0000 |    |
-; +---------+----+------------------------------
+; +---------+----+-------------------------------
 ; | 04:0000 | RO | OS Code + Monitor
-; | 05:0000 |    |
-; | 06:0000 |    |
-; | 07:0000 |    |
+; | 05:0000 |    | ROM1 (Spare)
+; | 06:0000 |    | ROM2 (Spare)
+; | 07:0000 |    | ROM3 (Spare)
 ; +---------+----+-------------------------------
 ;
 ;
@@ -55,14 +64,6 @@
 		.include "../w65c816.inc"
 		.include "../signature.inc"
 		
-;===============================================================================
-;-------------------------------------------------------------------------------
-
-MON_PAGE	.equ	$ee00
-IO_PAGE		.equ	$ef00
-
-
-UART_BUFSIZ	.equ	64
 
 ;===============================================================================
 ; Constants
@@ -76,34 +77,64 @@ LF		.equ	$0a
 CR		.equ	$0d
 DEL		.equ	$7f
 
-		.page0
+;-------------------------------------------------------------------------------
 
+MON_PAGE	.equ	$ee00			; Monitors private data page
+IO_PAGE		.equ	$ef00			; I/O private data page
 
+UART_BUFSIZ	.equ	64			; UART buffer size
 
-
+		.page
 ;===============================================================================
+; Data Areas
+;-------------------------------------------------------------------------------
+
+		.page0
+		.org	0
+		
+
+
 ;-------------------------------------------------------------------------------
 
 		.bss
 		.org	IO_PAGE
 		
-TX_HEAD:	.space	1
-TX_TAIL:	.space	1
-RX_HEAD:	.space	1
-RX_TAIL:	.space	1
+TX_HEAD:	.space	1			; Transmit buffer head and tail
+TX_TAIL:	.space	1			; .. indices
+RX_HEAD:	.space	1			; Receive buffer head and tail
+RX_TAIL:	.space	1			; .. indices
 
-MSEC:		.space	4
+TICK:		.space	4			; Clock tick counter
 
-TX_DATA:	.space	UART_BUFSIZ
-RX_DATA:	.space	UART_BUFSIZ
+TX_DATA:	.space	UART_BUFSIZ		; Uart transmit buffer
+RX_DATA:	.space	UART_BUFSIZ		; Uart receive buffer
 
 		.if	$ > $efff
 		.error	"Exceeded I/O Page size"
 		.endif
-
+		
+		.page
+;===============================================================================
+; Operating System Entry Points
+;-------------------------------------------------------------------------------
 		.code
 		.org	$f000
 
+		brl	Uart1Tx			; JSL $f000 - UART1 Transmit
+		brl	Uart1Rx			; JSL $f003 - UART1 Receive
+
+;===============================================================================
+; API Entry
+;-------------------------------------------------------------------------------
+
+COPE:
+		rts
+COPN:
+		rtl
+
+;===============================================================================
+; Power On Reset
+;-------------------------------------------------------------------------------
 
 		.longa	off
 		.longi	off
@@ -121,137 +152,95 @@ RESET:
 		xce
 
 		long_ai
-		ldx	#$0fff
+		ldx	#$0fff			; Set O/S stack
 		txs
 		lda	#INT_CLK|INT_U1RX	; Enable clock and receive
 		wdm	#WDM_IER_WR
 		cli				; Allow interrupts
-		
+			
+		short_a				; Display a boot message
+		ldx	#BOOT_MESSAGE
 		repeat
-;		 jsl	Uart1Rx
-
-	.if 0
-		 lda	#'0'
+		 lda	!0,x
+		 break eq
 		 jsl	Uart1Tx
-		 lda	#'1'
-		 jsl	Uart1Tx
-		 lda	#'2'
-		 jsl	Uart1Tx
-		 lda	#'3'
-		 jsl	Uart1Tx
-		 lda	#'4'
-		 jsl	Uart1Tx
-		 lda	#'5'
-		 jsl	Uart1Tx
-		 lda	#'6'
-		 jsl	Uart1Tx
-		 lda	#'7'
-		 jsl	Uart1Tx
-		 lda	#'8'
-		 jsl	Uart1Tx
-		 lda	#'9'
-		 jsl	Uart1Tx
-	.endif
-	
-		 lda	#'.'
-		 jsl	Uart1Tx
-		 lda	MSEC+0
-		 repeat
-		  cmp	MSEC+0
-		 until ne
+		 inx
 		forever
-
-		brk	#0
+		
+		brk	#0			; Then enter the monitor
 		stp
 		
-	.if 0
-		long_ai
-
-		lda	#0			; Clear video RAM area
-		sta	>VLINES
-		tax
-		tay
-		iny
-		dec	a
-;	lda	#$0010
-		mvn	bank(VLINES),bank(VLINES)
-
-		ldx	#0
-		lda	#VDATA
-		repeat
-		 sta	!VLINES,x		; Setup video line offset
-		 clc
-		 adc	#BYTES_PER_LINE
-		 inx
-		 inx
-		 cpx	#SVGA_HEIGHT * 2	; Repeat for entire screen
-		until eq
-	.endif
-
-
-COPN:
-		jmp	($f000,x)
+BOOT_MESSAGE:	.byte	CR,LF,"EM-65C816-ESP32 [19.06]"
+		.byte	CR,LF,"(C)2018-2019 Andrew Jacobs"
+		.byte	CR,LF,0
 
 ;===============================================================================
 ; Uart1 I/O
 ;-------------------------------------------------------------------------------
-		
+
+; Transmit the character in A via UART1 regardless of the state of the processor
+; and preserve all the registers. If the buffer is full then wait for it to
+; drain so there is at least one free space.
+
 		.longa	?
 		.longi	?
 Uart1Tx:
 		php				; Save MX bits
-		phx
-		short_a
-		pha
+		phx				; .. and X
+		short_a				; Make A/M 8-bits
+		pha				; Sava A & B
 		xba
 		pha
-		lda	#0
-		xba
-		pha				; Insert data at end of queue
-		lda	TX_TAIL	
+		lda	>TX_TAIL		; Insert data at end of queue
 		tax
-		pla
-		sta	TX_DATA,x
+		xba
+		sta	>TX_DATA,x
 		inx				; Bump tail index
 		txa
 		and	#UART_BUFSIZ-1		; .. and wrap
 		repeat
-		 cmp	TX_HEAD			; If buffer is completely full
-		 break ne
-		 nop;wai				; .. wait for it to drain
+		 cmp	>TX_HEAD		; If buffer is completely full
+		 break ne			; .. wait for it to drain	
+		 wai
 		forever
 		sei				; Update the tail
-		sta	TX_TAIL
-		lda	#INT_U1TX		; Ensure TX interrupt enabled
+		sta	>TX_TAIL
+		lda	#>INT_U1TX		; Ensure TX interrupt enabled
+		xba
+		lda	#<INT_U1TX
 		wdm	#WDM_IER_SET
 		cli
-		pla				; Restore registers and flags
+		pla				; Restore B & A
 		xba
 		pla
 		xba
-		plx
-		plp
+		plx				; Restore X
+		plp				; .. and MX flags
 		rtl				; Done
 		
+; Receive a character from UART1 into A regardless of the state of rhe processor
+; preserving all other registers. If the buffer is empty then wait for some data
+; to arrive.
+
 		.longa	?
 		.longi	?
 Uart1Rx:
-		php				; Save MX bits
+		php				; Save MX bits & x
 		phx
-		short_a
+		short_a				; Make A/M 8-bit
 		repeat
-		 lda	RX_HEAD			; Wait while buffer is empty
-		 cmp	RX_TAIL
+		 lda	>RX_HEAD		; Wait while buffer is empty
+		 cmp	>RX_TAIL
 		 break ne
 		 wai
 		forever
 		tax
-		lda	RX_DATA,x
+		lda	>RX_DATA,x
 		pha
 		inx				; Bump head index
 		txa
 		and	#UART_BUFSIZ-1		; .. and wrap
-		sta	RX_HEAD			; Then update head
+		sta	>RX_HEAD		; Then update head
 		pla
 		plx				; Restore X and flags
 		plp
@@ -272,72 +261,18 @@ IRQBRK:
 		and	#$10
 		if ne
 		 pla				; Restores users A
-BRKN:		 sep	#M_FLAG			; Ensure 8-bit A
+BRKN:		 sep	#M_FLAG			; Ensure 8-bit A/M
 		 jml	Monitor			; Enter the monitor
 		endif
 
 		xba				; Save users B				
 		pha
+		phx				; .. and X
 		
-		wdm	#WDM_IFR_RD		; Fetch interrupt flags
-		pha				; .. and save some copies
-		pha
+		jsr	IRQHandler		; Do common processing
 		
-		and	#INT_CLK		; Is this a timer interrupt?
-		if ne
-		 wdm	#WDM_IFR_CLR		; Yes, clear it
-		 
-		 inc	MSEC+0			; Bump the timer
-		 if eq
-		  inc	MSEC+1
-		  if eq
-		   inc	MSEC+2
-		   if eq
-		    inc	MSEC+3
-		   endif
-		  endif
-		 endif
-		endif
-		
-		pla				; Check for received data
-		and	#INT_U1RX
-		if ne
-		 lda	RX_TAIL			; Save at tail of RX buffer
-		 tax
-		 wdm	#WDM_U1RX
-		 sta	RX_DATA,x
-		 inx				; Bump the index
-		 txa
-		 and	#UART_BUFSIZ-1		; .. and wrap
-		 cmp	RX_HEAD			; Is RX buffer complete full?
-		 if ne
-		  sta	RX_TAIL			; No, save new tail
-		 endif		
-		endif
-		
-		pla				; Ready to transmit?
-		and	#INT_U1TX
-		if ne
-		 wdm	#WDM_IER_RD		; And enabled?
-		 and	#INT_U1TX
-		 if ne
-		  lda	TX_HEAD			; Fetch next character to send
-		  tax
-		  lda	TX_DATA,x
-		  wdm	#WDM_U1TX		; .. and transmit it
-		  inx				; Bump the index
-		  txa
-		  and	#UART_BUFSIZ-1		; .. and wrap
-		  sta	TX_HEAD			; Save updated head
-		  cmp	TX_TAIL			; Is the buffer now empty?
-		  if eq
-		   lda	#INT_U1TX
-		   wdm	#WDM_IER_CLR		; Yes disable TX interrupt
-		  endif
-		 endif		 
-		endif
-
-		pla				; Restore users B & A
+		plx				; Restore users X,
+		pla				; .. B, and A
 		xba
 		pla
 		rti				; .. and continue
@@ -350,9 +285,29 @@ IRQN:
 		long_ai				; Then go full 16-bit
 		pha				; .. and save C & X
 		phx
-		short_a				; Than make A 8-bits
+		short_a				; Then make A/M 8-bits
 		
-		wdm	#WDM_IFR_RD		; Fetch interrupt flags
+		jsr	IRQHandler		; Do commo processing
+		
+		long_a				; Restore users X & C
+		plx
+		pla				
+		rti				; .. and continue
+		
+;-------------------------------------------------------------------------------
+
+; This is the main IRQ handler used in both native and emulation mode. The size
+; of A/M access is 8-bits but X/Y are undefined. X is used to index into buffer
+; areas but is always loaded/stored via A.
+
+		.longa	off
+		.longi	?
+IRQHandler:
+		phb				; Save users data bank
+		phk				; And switch to bank $00
+		plb
+		
+		wdm	#WDM_IFLAGS		; Fetch interrupt flags
 		pha				; .. and save some copies
 		pha
 		
@@ -360,13 +315,13 @@ IRQN:
 		if ne
 		 wdm	#WDM_IFR_CLR		; Yes, clear it
 		 
-		 inc	MSEC+0			; Bump the timer
+		 inc	TICK+0			; Bump the tick counter
 		 if eq
-		  inc	MSEC+1
+		  inc	TICK+1
 		  if eq
-		   inc	MSEC+2
+		   inc	TICK+2
 		   if eq
-		    inc	MSEC+3
+		    inc	TICK+3
 		   endif
 		  endif
 		 endif
@@ -391,29 +346,23 @@ IRQN:
 		pla				; Ready to transmit?
 		and	#INT_U1TX		
 		if ne
-		 wdm	#WDM_IER_RD		; And enabled?
-		 and	#INT_U1TX
-		 if ne
-		  lda	TX_HEAD			; Fetch next character to send
-		  tax
-		  lda	TX_DATA,x
-		  wdm	#WDM_U1TX		; .. and transmit it
-		  inx				; Bump the index
-		  txa
-		  and	#UART_BUFSIZ-1		; .. and wrap
-		  sta	TX_HEAD			; Save updated head
-		  cmp	TX_TAIL			; Is the buffer now empty?
-		  if eq
-		   lda	#INT_U1TX
-		   wdm	#WDM_IER_CLR		; Yes disable TX interrupt
-		  endif
-		 endif	
+		 lda	TX_HEAD			; Fetch next character to send
+		 tax
+		 lda	TX_DATA,x
+		 wdm	#WDM_U1TX		; .. and transmit it
+		 inx				; Bump the index
+		 txa
+		 and	#UART_BUFSIZ-1		; .. and wrap
+		 sta	TX_HEAD			; Save updated head
+		 cmp	TX_TAIL			; Is the buffer now empty?
+		 if eq
+		  lda	#INT_U1TX
+		  wdm	#WDM_IER_CLR		; Yes disable TX interrupt
+		 endif
 		endif
 		
-		long_a
-		plx
-		pla
-		rti
+		plb
+		rts				; Done
 
 ;===============================================================================
 ; Unused Vector Trap
@@ -453,9 +402,13 @@ UnusedVector
 		.word	RESET			; $FFFC - RESET(C02)
 		.word	IRQBRK			; $FFFE - IRQBRK(C02)
 
+		.page
 ;===============================================================================
 ; Video RAM
 ;-------------------------------------------------------------------------------
+
+; Bank $01 is reserved for video data. The intended display will be 800x600
+; monochrome.
 
 SVGA_WIDTH	.equ	800
 SVGA_HEIGHT	.equ	600
@@ -470,20 +423,15 @@ VLINES		.space	SVGA_HEIGHT * 2		; Scan line pointers
 VDATA		.space	SVGA_HEIGHT * BYTES_PER_LINE
 VEND		.space	0
 
-;-------------------------------------------------------------------------------
-
-
-
-
+		.page
 ;===============================================================================
+; Operating System
 ;-------------------------------------------------------------------------------
 
 		.code
 		.org	$040000
 
-		.byte	"Main ROM Area",0
-
-
+; This is the target area for my operating system ROM.
 
 		.page
 ;===============================================================================
@@ -518,11 +466,12 @@ CMD_BUF		.space	128			; Command buffer
 ;-------------------------------------------------------------------------------
 
 ; The entry point is called from the boot ROM when a BRK instruction is executed
-; in either emulation or native mode.
+; in either emulation or native mode. A/M has been set to 8-bits as part of the
+; interrupt handling.
 
 		.code
 		.longa	off
-		.longi	off
+		.longi	?
 		.dpage	REG_E
 Monitor:
 		phd				; Push users DP
@@ -539,10 +488,10 @@ Monitor:
 		sta	REG_P
 		sec				; Save PC (adjusting for BRK)
 		pla
-		sbc	#2
+		;sbc	#2
 		sta	REG_PC+0
 		pla
-		sbc	#0
+		;sbc	#0
 		sta	REG_PC+1
 		clc				; Switch to native mode
 		xce
@@ -565,6 +514,7 @@ Monitor:
 
 		phk				; Set DBR to this bank (to
 		plb				; .. access data and strings)
+		cli				; And allow interrupts
 
 ;-------------------------------------------------------------------------------
 
@@ -905,6 +855,9 @@ Monitor:
 
 		.longa	?
 .UartTx:
+		jsl	$00f000
+		rts
+		
 		php				; Save MX bits
 		long_a
 		pha				; Save user data
@@ -935,6 +888,9 @@ Monitor:
 
 		.longa	?
 .UartRx:
+		jsl	$00f003
+		rts
+		
 		php				; Save MX bits
 		long_a
 		repeat
