@@ -6,9 +6,9 @@ To play with this project you will need an ESP32 module and a USB cable to conne
 
 ![My ESP32](images/esp32.jpg)
 
-The emulator is written using the ESP32 Arduino framework so you will need a copy of the Arduino IDE (I'm using version 1.8.9) to build it with the ESP32 addins (i.e. Add https://dl.espressif.com/dl/package_esp32_index.json to the board manager list).
+The emulator is written using the ESP32 Arduino framework so you will need a copy of the Arduino IDE (I'm using version 1.8.9) to build it with the ESP32 addins (i.e. Add the path 'https://dl.espressif.com/dl/package_esp32_index.json' to the board manager list).
 
-After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like TeraTerm (https://osdn.net/projects/ttssh2/releases/. The IDE's terminal window only allows sending lines of text terminated by a line feed ('\n');
+After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like ![TeraTerm](https://osdn.net/projects/ttssh2/releases/). The IDE's built in terinal terminal window is good for watching trace output but only allows sending lines of text terminated by a line feed ('\n');
 
 ## Emulator Details
 The emulator supports both the 65C816's emulation and native modes. It supports RESET, IRQ, BRK, COP and NMI interrupts in both modes (although there is no way to generate an NMI at the moment). All interrupts are vectored through their standard vector table locations (defined in the boot ROM).
@@ -18,15 +18,15 @@ The ESP32 version of this emulator supports a 512K memory map split between RAM 
 
 Start    | End      | Size | Description
 -------- | -------- | -----|----- 
-$00:0000 | $00:efff | 60K | RAM
-$00:f000 | $00:ffff | 4K  | ROM (Boot)
-$01:0000 | $01:ffff | 64K | RAM (Reserved for video)
-$02:0000 | $02:ffff | 64K | RAM
-$03:0000 | $03:ffff | 64K | RAM
-$04:0000 | $04:ffff | 64K | ROM0 (Reserved for O/S)
-$05:0000 | $05:ffff | 64K | ROM1 (Spare)
-$06:0000 | $06:ffff | 64K | ROM2 (Spare)
-$07:0000 | $07:ffff | 64K | ROM3 (Spare)
+$00:0000 | $00:EFFF | 60K | RAM
+$00:F000 | $00:FFFF | 4K  | ROM (Boot)
+$01:0000 | $01:FFFF | 64K | RAM (Reserved for video)
+$02:0000 | $02:FFFF | 64K | RAM
+$03:0000 | $03:FFFF | 64K | RAM
+$04:0000 | $04:FFFF | 64K | ROM0 (Reserved for O/S)
+$05:0000 | $05:FFFF | 64K | ROM1 (Spare)
+$06:0000 | $06:FFFF | 64K | ROM2 (Spare)
+$07:0000 | $07:FFFF | 64K | ROM3 (Spare)
 
 The ROM areas are mapped to ESP32 flash memory and are not writable at runtime. The 'roms' directory within the repository contains the tools and scripts needed to build the ROM image data files included into the emulator source code during compilation.
 
