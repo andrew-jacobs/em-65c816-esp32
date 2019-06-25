@@ -8,7 +8,7 @@ To play with this project you will need an ESP32 module and a USB cable to conne
 
 The emulator is written using the ESP32 Arduino framework so you will need a copy of the Arduino IDE (I'm using version 1.8.9) to build it with the ESP32 addins (i.e. Add the path 'https://dl.espressif.com/dl/package_esp32_index.json' to the board manager list).
 
-After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like ![TeraTerm](https://osdn.net/projects/ttssh2/releases/). The IDE's built in terinal terminal window is good for watching trace output but only allows sending lines of text terminated by a line feed ('\n');
+After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like [TeraTerm](https://osdn.net/projects/ttssh2/releases/). The IDE's built in terinal terminal window is good for watching trace output but only allows sending lines of text terminated by a line feed ('\n');
 
 ## Emulator Details
 The emulator supports both the 65C816's emulation and native modes. It supports RESET, IRQ, BRK, COP and NMI interrupts in both modes (although there is no way to generate an NMI at the moment). All interrupts are vectored through their standard vector table locations (defined in the boot ROM).
@@ -64,7 +64,7 @@ Bit # | Mask | Description
 See the boot ROM source code for examples of interrupt handlers that use the WDM functions.
 
 ## User Code
-In the roms folder there are three empty source files that build the ROM images compiled into emulator. I have been using my ![Dev65](https://github.com/andrew-jacobs/dev65) assembler development suite (included in the repository) which is coded in Java and should work on any system with a Java runtime but the Makefile might need a tweak or two. My assembler supports the 6502, 65C02, 65C816 and some other variants and also supports structured assembly, macros and relocatable code.
+In the roms folder there are three empty source files that build the ROM images compiled into emulator. I have been using my [Dev65](https://github.com/andrew-jacobs/dev65) assembler development suite (included in the repository) which is coded in Java and should work on any system with a Java runtime but the Makefile might need a tweak or two. My assembler supports the 6502, 65C02, 65C816 and some other variants and also supports structured assembly, macros and relocatable code.
 
 As the emulator has three 64K RAM banks (banks 1, 2 and 3) it may be better to use the monitor to upload S28 files into these for testing until code is stable enough to be moved to ROM.
 
