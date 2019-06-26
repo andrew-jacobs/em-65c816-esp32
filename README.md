@@ -8,7 +8,7 @@ To play with this project you will need an ESP32 module and a USB cable to conne
 
 The emulator is written using the ESP32 Arduino framework so you will need a copy of the Arduino IDE (I'm using version 1.8.9) to build it with the ESP32 addins (i.e. Add the path 'https://dl.espressif.com/dl/package_esp32_index.json' to the board manager list).
 
-After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like [TeraTerm](https://osdn.net/projects/ttssh2/releases/). The IDE's built in terinal terminal window is good for watching trace output but only allows sending lines of text terminated by a line feed ('\n');
+After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like [TeraTerm](https://osdn.net/projects/ttssh2/releases). The IDE's built in terinal terminal window is good for watching trace output but only allows sending lines of text terminated by a line feed ('\n');
 
 ## Emulator Details
 The emulator supports both the 65C816's emulation and native modes. It supports RESET, IRQ, BRK, COP and NMI interrupts in both modes (although there is no way to generate an NMI at the moment). All interrupts are vectored through their standard vector table locations (defined in the boot ROM).
@@ -69,7 +69,7 @@ In the roms folder there are three empty source files that build the ROM images 
 As the emulator has three 64K RAM banks (banks 1, 2 and 3) it may be better to use the monitor to upload S28 files into these for testing until code is stable enough to be moved to ROM.
 
 ## Observations
-I'm a little disappointed with execution speed of the ESP32, especially considering that it has two cores. The best emulated CPU rate I have achieved is a little over 12MHz. The code in the repository achieves around 7.5MHz. As soon you use Arduino functions to access the UART performance suffers. I've tried assigning tasks on core 0 but this almost always leads to the code becoming unresponsive. I guess I have a lot more to learn about the ESP32.
+I'm a little disappointed with execution speed of the ESP32, especially considering that it has two cores. The best emulated CPU rate I have achieved is a little over 12MHz. The code in the repository achieves around 6MHz, faster if you do less I/O and more computation. As soon you use Arduino functions to access the UART performance suffers. I've tried assigning tasks on core 0 but this almost always leads to the code becoming unresponsive. I guess I have a lot more to learn about the ESP32.
 
 ## To Do:
 These are all the bits and pieces I have yet to get around to:

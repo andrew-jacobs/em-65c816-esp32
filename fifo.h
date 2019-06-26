@@ -23,67 +23,51 @@
 //
 //==============================================================================
 
-#include <Arduino.h>
+#ifndef FIFO_H
+#define FIFO_H
 
-#pragma GCC optimize ("-O3")
-
-#include "Emulator.h"
+#include <stdint.h>
 
 //==============================================================================
-// Registers & State
-//------------------------------------------------------------------------------
 
-Word		Registers::pc;
-Word		Registers::sp;
-Word		Registers::dp;
-Word		Registers::c;
-Word		Registers::x;
-Word		Registers::y;
-Address		Registers::pbr;
-Address		Registers::dbr;
-Flags		Registers::p;
-
-bool		Registers::e;
-
-Interrupts	Registers::ier;
-volatile Interrupts	Registers::ifr;
-
-bool		Registers::stopped = true;
-bool		Registers::interrupted;
-bool		Registers::waiting;
-
-const OpcodeSet *Registers::pOpcodeSet;
-
-//------------------------------------------------------------------------------
-
-void Emulator::setMode(void)
+template <uint16_t size> class Fifo
 {
-	if (e)
-		pOpcodeSet = &CpuModeE11::opcodeSet;
-	else {
-		if (p.m)
-			pOpcodeSet = p.x ? &CpuModeN11::opcodeSet : &CpuModeN10::opcodeSet;
-		else
-			pOpcodeSet = p.x ? &CpuModeN01::opcodeSet : &CpuModeN00::opcodeSet;
-	}
-}
+private:
+    volatile uint16_t   head;
+    volatile uint16_t   tail;
+    volatile uint8_t    data [size];
 
-void Emulator::reset(void)
-{
-	pc.w = Memory::getWord(0xfffc, 0xfffd);
-	sp.w = 0x0100;
-	dp.w = 0x0000;
-	p.i = 1;
-	p.d = 0;
-	p.m = 1;
-	p.x = 1;
-	pbr.a = 0;
-	dbr.a = 0;
-	e = true;
+public:
+    // Construct an empty Fifo instance
+    Fifo (void)
+        : head(0), tail(0)
+    { }
 
-	stopped = false;
-	interrupted = false;
-	waiting = false;
+    // Is the Fifo completely full?
+    bool isFull (void) const
+    {
+        return ((tail + 1) % size == head);
+    }
 
-	setMode();
-}
+    // Is the Fifo completely empty?
+    bool isEmpty (void) const
+    {
+        return (head == tail);
+    }
+
+    // Enqueue a value. The Fifo MUST NOT be full.
+    void enqueue (uint8_t value)
+    {
+        data [tail] = value;
+        tail = (tail + 1) % size;
+    }
+
+    // Dequeue a value. The Fifo MUST NOT be empty
+    uint8_t dequeue (void)
+    {
+        uint8_t value = data [head];
+        head = (head + 1) % size;
+        return (value);
+    }
+ };
+#endif

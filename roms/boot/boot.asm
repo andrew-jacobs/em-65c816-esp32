@@ -91,137 +91,9 @@ IO_PAGE		.equ	$ef00			; I/O private data page
 
 UART_BUFSIZ	.equ	64			; UART buffer size
 
-;===============================================================================
-; Opcodes & Addressing Modes
-;-------------------------------------------------------------------------------
-
-OP_ADC		.equ	0<<1
-OP_AND		.equ	1<<1
-OP_ASL		.equ	2<<1
-OP_BCC		.equ	3<<1
-OP_BCS		.equ	4<<1
-OP_BEQ		.equ	5<<1
-OP_BIT		.equ	6<<1
-OP_BMI		.equ	7<<1
-OP_BNE		.equ	8<<1
-OP_BPL		.equ	9<<1
-OP_BRA		.equ	10<<1
-OP_BRK		.equ	11<<1
-OP_BRL		.equ	12<<1
-OP_BVC		.equ	13<<1
-OP_BVS		.equ	14<<1
-OP_CLC		.equ	15<<1
-OP_CLD		.equ	16<<1
-OP_CLI		.equ	17<<1
-OP_CLV		.equ	18<<1
-OP_CMP		.equ	19<<1
-OP_COP		.equ	20<<1
-OP_CPX		.equ	21<<1
-OP_CPY		.equ	22<<1
-OP_DEC		.equ	23<<1
-OP_DEX		.equ	24<<1
-OP_DEY		.equ	25<<1
-OP_EOR		.equ	26<<1
-OP_INC		.equ	27<<1
-OP_INX		.equ	28<<1
-OP_INY		.equ	29<<1
-OP_JML		.equ	30<<1
-OP_JMP		.equ	31<<1
-OP_JSL		.equ	32<<1
-OP_JSR		.equ	33<<1
-OP_LDA		.equ	34<<1
-OP_LDX		.equ	35<<1
-OP_LDY		.equ	36<<1
-OP_LSR		.equ	37<<1
-OP_MVN		.equ	38<<1
-OP_MVP		.equ	39<<1
-OP_NOP		.equ	40<<1
-OP_ORA		.equ	41<<1
-OP_PEA		.equ	42<<1
-OP_PEI		.equ	43<<1
-OP_PER		.equ	44<<1
-OP_PHA		.equ	45<<1
-OP_PHB		.equ	46<<1
-OP_PHD		.equ	47<<1
-OP_PHK		.equ	48<<1
-OP_PHP		.equ	49<<1
-OP_PHX		.equ	50<<1
-OP_PHY		.equ	51<<1
-OP_PLA		.equ	52<<1
-OP_PLB		.equ	53<<1
-OP_PLD		.equ	54<<1
-OP_PLP		.equ	55<<1
-OP_PLX		.equ	56<<1
-OP_PLY		.equ	57<<1
-OP_REP		.equ	58<<1
-OP_ROL		.equ	59<<1
-OP_ROR		.equ	60<<1
-OP_RTI		.equ	61<<1
-OP_RTL		.equ	62<<1
-OP_RTS		.equ	63<<1
-OP_SBC		.equ	64<<1
-OP_SEC		.equ	65<<1
-OP_SED		.equ	66<<1
-OP_SEI		.equ	67<<1
-OP_SEP		.equ	68<<1
-OP_STA		.equ	69<<1
-OP_STP		.equ	70<<1
-OP_STX		.equ	71<<1
-OP_STY		.equ	72<<1
-OP_STZ		.equ	73<<1
-OP_TAX		.equ	74<<1
-OP_TAY		.equ	75<<1
-OP_TCD		.equ	76<<1
-OP_TCS		.equ	77<<1
-OP_TDC		.equ	78<<1
-OP_TRB		.equ	79<<1
-OP_TSB		.equ	80<<1
-OP_TSC		.equ	81<<1
-OP_TSX		.equ	82<<1
-OP_TXA		.equ	83<<1
-OP_TXS		.equ	84<<1
-OP_TXY		.equ	85<<1
-OP_TYA		.equ	86<<1
-OP_TYX		.equ	87<<1
-OP_WAI		.equ	88<<1
-OP_WDM		.equ	89<<1
-OP_XBA		.equ	90<<1
-OP_XCE		.equ	91<<1
-
-MD_ABS		.equ	0<<1			; a
-MD_ACC		.equ	1<<1			; A
-MD_ABX		.equ	2<<1			; a,x
-MD_ABY		.equ	3<<1			; a,y
-MD_ALG		.equ	4<<1			; al
-MD_ALX		.equ	5<<1			; al,x
-MD_AIN		.equ	6<<1			; (a)
-MD_AIX		.equ	7<<1			; (a,x)
-MD_DPG		.equ	8<<1			; d
-MD_STK		.equ	9<<1			; d,s
-MD_DPX		.equ	10<<1			; d,x
-MD_DPY		.equ	11<<1			; d,x
-MD_DIN		.equ	12<<1			; (d)
-MD_DLI		.equ	13<<1			; [d]
-MD_SKY		.equ	14<<1			; (d,s),y
-MD_DIX		.equ	15<<1			; (d,x)
-MD_DIY		.equ	16<<1			; (d),y
-MD_DLY		.equ	17<<1			; [d],y
-MD_IMP		.equ	18<<1			;
-MD_REL		.equ	19<<1			; r
-MD_RLG		.equ	20<<1			; rl
-MD_MOV		.equ	21<<1			; xyc
-MD_IMM		.equ	22<<1			; # (A or M)
-MD_INT		.equ	23<<1			; # (BRK/COP/WDM)
-MD_IMX		.equ	24<<1			; # (X or Y)
-
 		.page
 ;===============================================================================
-; Data Areas
-;-------------------------------------------------------------------------------
-
-		.page0
-		.org	0
-
+; Private I/O Data Area
 ;-------------------------------------------------------------------------------
 
 		.bss
@@ -241,7 +113,6 @@ RX_DATA:	.space	UART_BUFSIZ		; Uart receive buffer
 		.error	"Exceeded I/O Page size"
 		.endif
 
-		.page
 ;===============================================================================
 ; Operating System Entry Points
 ;-------------------------------------------------------------------------------
@@ -294,7 +165,7 @@ RESET:
 		 jsl	Uart1Tx
 		 inx
 		forever
-
+		
 		brk	#0			; Then enter the monitor
 		stp
 
@@ -328,9 +199,7 @@ Uart1Tx:
 		and	#UART_BUFSIZ-1		; .. and wrap
 		repeat
 		 cmp	>TX_HEAD		; If buffer is completely full
-		 break ne			; .. wait for it to drain
-		 wai
-		forever
+		until ne			; .. wait for it to drain
 		sei				; Update the tail
 		sta	>TX_TAIL
 		lda	#>INT_U1TX		; Ensure TX interrupt enabled
@@ -341,7 +210,6 @@ Uart1Tx:
 		pla				; Restore B & A
 		xba
 		pla
-		xba
 		plx				; Restore X
 		plp				; .. and MX flags
 		rtl				; Done
@@ -359,9 +227,7 @@ Uart1Rx:
 		repeat
 		 lda	>RX_HEAD		; Wait while buffer is empty
 		 cmp	>RX_TAIL
-		 break ne
-		 wai
-		forever
+		until ne
 		tax
 		lda	>RX_DATA,x
 		pha
@@ -389,8 +255,7 @@ IRQBRK:
 		and	#$10
 		if ne
 		 pla				; Restores users A
-BRKN:		 sep	#M_FLAG			; Ensure 8-bit A/M
-		 jml	Monitor			; Enter the monitor
+BRKN:		 jml	Monitor			; Enter the monitor
 		endif
 
 		xba				; Save users B
@@ -415,7 +280,7 @@ IRQN:
 		phx
 		short_a				; Then make A/M 8-bits
 
-		jsr	IRQHandler		; Do commo processing
+		jsr	IRQHandler		; Do common processing
 
 		long_a				; Restore users X & C
 		plx
@@ -569,9 +434,136 @@ VEND		.space	0
 ; emulated address space and the ability to download, inspect, change and run
 ; machine language programs. It uses the interrupt driven I/O routines in the
 ; boot ROM accessed by JSLs to $F000 and $F003.
-;;
+;
 ; If the monitor is not in use workspace page is never accessed and could be
 ; used by another application.
+
+;===============================================================================
+; Opcodes & Addressing Modes
+;-------------------------------------------------------------------------------
+
+OP_ADC		.equ	0<<1
+OP_AND		.equ	1<<1
+OP_ASL		.equ	2<<1
+OP_BCC		.equ	3<<1
+OP_BCS		.equ	4<<1
+OP_BEQ		.equ	5<<1
+OP_BIT		.equ	6<<1
+OP_BMI		.equ	7<<1
+OP_BNE		.equ	8<<1
+OP_BPL		.equ	9<<1
+OP_BRA		.equ	10<<1
+OP_BRK		.equ	11<<1
+OP_BRL		.equ	12<<1
+OP_BVC		.equ	13<<1
+OP_BVS		.equ	14<<1
+OP_CLC		.equ	15<<1
+OP_CLD		.equ	16<<1
+OP_CLI		.equ	17<<1
+OP_CLV		.equ	18<<1
+OP_CMP		.equ	19<<1
+OP_COP		.equ	20<<1
+OP_CPX		.equ	21<<1
+OP_CPY		.equ	22<<1
+OP_DEC		.equ	23<<1
+OP_DEX		.equ	24<<1
+OP_DEY		.equ	25<<1
+OP_EOR		.equ	26<<1
+OP_INC		.equ	27<<1
+OP_INX		.equ	28<<1
+OP_INY		.equ	29<<1
+OP_JML		.equ	30<<1
+OP_JMP		.equ	31<<1
+OP_JSL		.equ	32<<1
+OP_JSR		.equ	33<<1
+OP_LDA		.equ	34<<1
+OP_LDX		.equ	35<<1
+OP_LDY		.equ	36<<1
+OP_LSR		.equ	37<<1
+OP_MVN		.equ	38<<1
+OP_MVP		.equ	39<<1
+OP_NOP		.equ	40<<1
+OP_ORA		.equ	41<<1
+OP_PEA		.equ	42<<1
+OP_PEI		.equ	43<<1
+OP_PER		.equ	44<<1
+OP_PHA		.equ	45<<1
+OP_PHB		.equ	46<<1
+OP_PHD		.equ	47<<1
+OP_PHK		.equ	48<<1
+OP_PHP		.equ	49<<1
+OP_PHX		.equ	50<<1
+OP_PHY		.equ	51<<1
+OP_PLA		.equ	52<<1
+OP_PLB		.equ	53<<1
+OP_PLD		.equ	54<<1
+OP_PLP		.equ	55<<1
+OP_PLX		.equ	56<<1
+OP_PLY		.equ	57<<1
+OP_REP		.equ	58<<1
+OP_ROL		.equ	59<<1
+OP_ROR		.equ	60<<1
+OP_RTI		.equ	61<<1
+OP_RTL		.equ	62<<1
+OP_RTS		.equ	63<<1
+OP_SBC		.equ	64<<1
+OP_SEC		.equ	65<<1
+OP_SED		.equ	66<<1
+OP_SEI		.equ	67<<1
+OP_SEP		.equ	68<<1
+OP_STA		.equ	69<<1
+OP_STP		.equ	70<<1
+OP_STX		.equ	71<<1
+OP_STY		.equ	72<<1
+OP_STZ		.equ	73<<1
+OP_TAX		.equ	74<<1
+OP_TAY		.equ	75<<1
+OP_TCD		.equ	76<<1
+OP_TCS		.equ	77<<1
+OP_TDC		.equ	78<<1
+OP_TRB		.equ	79<<1
+OP_TSB		.equ	80<<1
+OP_TSC		.equ	81<<1
+OP_TSX		.equ	82<<1
+OP_TXA		.equ	83<<1
+OP_TXS		.equ	84<<1
+OP_TXY		.equ	85<<1
+OP_TYA		.equ	86<<1
+OP_TYX		.equ	87<<1
+OP_WAI		.equ	88<<1
+OP_WDM		.equ	89<<1
+OP_XBA		.equ	90<<1
+OP_XCE		.equ	91<<1
+
+MD_ABS		.equ	0<<1			; a
+MD_ACC		.equ	1<<1			; A
+MD_ABX		.equ	2<<1			; a,x
+MD_ABY		.equ	3<<1			; a,y
+MD_ALG		.equ	4<<1			; al
+MD_ALX		.equ	5<<1			; al,x
+MD_AIN		.equ	6<<1			; (a)
+MD_AIX		.equ	7<<1			; (a,x)
+MD_DPG		.equ	8<<1			; d
+MD_STK		.equ	9<<1			; d,s
+MD_DPX		.equ	10<<1			; d,x
+MD_DPY		.equ	11<<1			; d,x
+MD_DIN		.equ	12<<1			; (d)
+MD_DLI		.equ	13<<1			; [d]
+MD_SKY		.equ	14<<1			; (d,s),y
+MD_DIX		.equ	15<<1			; (d,x)
+MD_DIY		.equ	16<<1			; (d),y
+MD_DLY		.equ	17<<1			; [d],y
+MD_IMP		.equ	18<<1			;
+MD_REL		.equ	19<<1			; r
+MD_RLG		.equ	20<<1			; rl
+MD_MOV		.equ	21<<1			; xyc
+MD_IMM		.equ	22<<1			; # (A or M)
+MD_INT		.equ	23<<1			; # (BRK/COP/WDM)
+MD_IMX		.equ	24<<1			; # (X or Y)
+
+;===============================================================================
+; Private Data Area
+;-------------------------------------------------------------------------------
 
 		.bss
 		.org	$00ee00
@@ -590,9 +582,11 @@ REG_PBR		.space	1
 REG_DBR		.space	1
 
 CMD_LEN		.space	1			; Command buffer length
-BANK		.space	1
-ADDRS		.space	3
-ADDRL		.space	3
+DEFAULT		.space	1			; Default bank (DBR on entry)
+VALUE		.space	3
+
+ADDR_S		.space	3
+ADDR_E		.space	3
 
 		.align	128			; Gap used for stack
 CMD_BUF		.space	128			; Command buffer
@@ -600,14 +594,14 @@ CMD_BUF		.space	128			; Command buffer
 ;-------------------------------------------------------------------------------
 
 ; The entry point is called from the boot ROM when a BRK instruction is executed
-; in either emulation or native mode. A/M has been set to 8-bits as part of the
-; interrupt handling.
+; in either emulation or native mode.
 
 		.code
-		.longa	off
+		.longa	?
 		.longi	?
 		.dpage	REG_E
 Monitor:
+		short_a				; Ensure A/M 8-bits
 		phd				; Push users DP
 		pea	#REG_E			; Move to monitor's direct page
 		pld
@@ -622,10 +616,10 @@ Monitor:
 		sta	REG_P
 		sec				; Save PC (adjusting for BRK)
 		pla
-		;sbc	#2
+		sbc	#2
 		sta	REG_PC+0
 		pla
-		;sbc	#0
+		sbc	#0
 		sta	REG_PC+1
 		clc				; Switch to native mode
 		xce
@@ -638,6 +632,7 @@ Monitor:
 		phb				; Save DBR
 		pla
 		sta	REG_DBR
+		sta 	DEFAULT
 		long_i
 		stx	REG_X			; Save X
 		sty	REG_Y			; Save Y
@@ -777,6 +772,7 @@ Monitor:
 
 .NewCommand:
 		stz	CMD_LEN			; Clear command buffer
+.OldCommand:
 		jsr	.NewLine		; Print the entry prompt
 		lda	#'.'
 		jsr	.UartTx
@@ -825,14 +821,12 @@ Monitor:
 		txa				; Save the buffer length
 		sta	CMD_LEN
 
-		lda	#0			; Start processing at the
-		tax				; .. start of the line
-		jsr	.SkipSpaces
-		jsr	.ToUpper
+		ldx	#0			; Set character index
+		jsr	.SkipSpaces		; And get command
 
 		cmp	#CR
 		beq	.NewCommand
-
+		
 ;-------------------------------------------------------------------------------
 
 		cmp	#'?'
@@ -852,17 +846,136 @@ Monitor:
 
 ;-------------------------------------------------------------------------------
 
+		cmp	#'G'
+		if eq
+		 jsr	.GetValue		; Try to get address
+		 if cs
+		  ror	<REG_E			; None, perform reset
+		  lda	>$00fffc		
+		  sta	<VALUE+0
+		  lda	>$00fffd
+		  sta	<VALUE+1
+		  stz	<VALUE+2
+		  stz	<REG_DP+0		; Clear DP
+		  stz	<REG_DP+1
+		 endif
+		 
+		 sei
+		 ldx	<REG_SP			; Restore user stack
+		 txs
+		 
+		 bit	<REG_E			; Push PBR if native mode
+		 if pl
+		  lda	<VALUE+2
+		  pha
+		 endif
+		 lda 	<VALUE+1		; Then PC
+		 pha
+		 lda	<VALUE+0
+		 pha
+		 lda	<REG_P			; And flags
+		 pha
+		 lda	<REG_DP+1		; Push DP
+		 pha
+		 lda	<REG_DP+0
+		 pha
+		 ldx	<REG_X			; Restore X, Y and C
+		 ldy	<REG_Y
+		 lda	<REG_C+1
+		 xba
+		 lda	<REG_C+0
+		 rol	<REG_E			; Restore CPU mode
+		 xce
+		 pld				; Pull DP
+		 rti				; And start execution
+		endif
+
+;-------------------------------------------------------------------------------
+
 		cmp	#'M'
 		if eq
+		 jsr	.GetValue		; Get start address
+		 if cc
+		  jsr	.CopyToStart
+		  jsr	.GetValue
+		  jsr	.CopyToEnd
+		  
+		  repeat
+		   jsr	.NewLine		; Print the address
+		   lda	<ADDR_S+2
+		   jsr	.Hex2
+		   lda	#':'
+		   jsr	.UartTx
+		   lda	<ADDR_S+1
+		   xba
+		   lda	<ADDR_S+0
+		   jsr	.Hex4
+		  
+		   ldy	#0
+		   repeat			; Then 16 bytes of data
+		    lda #' '
+		    jsr	.UartTx
+		    lda	[ADDR_S],y
+		    jsr	.Hex2
+		    iny
+		    cpy	#16
+		   until eq
+		  
+		   lda	#' '			; Show as ASCII
+		   jsr	.UartTx
+		   lda	#'|'
+		   jsr	.UartTx
+		   
+		   ldy	#0
+		   repeat
+		    lda	[ADDR_S],y
+		    cmp #' '
+		    if cc
+		     lda #'.'
+		    endif
+		    cmp #DEL
+		    if cs
+		     lda #'.'
+		    endif
+		    jsr	.UartTx
+		    iny
+		    cpy #16
+		   until eq
+		   lda	#'|'
+		   jsr	.UartTx
+		   
+		   clc				; Update the address
+		   tya
+		   adc	<ADDR_S+0
+		   sta  <ADDR_S+0
+		   if cs
+		    inc	<ADDR_S+1
+		    if eq
+		     inc <ADDR_S+2
+		    endif
+		   endif
+		   
+		   lda	<ADDR_S+2		; Until the target address
+		   cmp	<ADDR_E+2
+		   if cs
+		    lda	<ADDR_S+1
+		    cmp <ADDR_E+1
+		    if cs
+		     lda <ADDR_S+0
+		     cmp <ADDR_E+0
+		    endif
+		   endif
+		  until cs
 
-		 jmp	.NewCommand
+		  jmp	.NewCommand
+		 endif
+		 jmp	.ShowError
 		endif
 
 ;-------------------------------------------------------------------------------
 
 		cmp	#'Q'
 		if eq
-		 jsr	.NewLine
 		 stp
 		endif
 
@@ -870,8 +983,42 @@ Monitor:
 
 		cmp	#'R'
 		if eq
-
 		 jmp	.ShowRegisters
+		endif
+		
+;-------------------------------------------------------------------------------
+
+		cmp	#'S'
+		if eq
+		
+		endif
+		
+;-------------------------------------------------------------------------------
+
+		cmp	#'W'
+		if eq
+		 jsr	.GetValue		; Get start address
+		 if cc
+		  jsr	.CopyToStart
+		  jsr	.GetValue
+		  if cc
+		   lda	<VALUE+0
+		   sta 	[ADDR_S]
+		   
+		   inc	<ADDR_S+0
+		   if eq
+		    inc	<ADDR_S+1
+		    if eq
+		     inc <ADDR_S+1
+		    endif
+		   endif
+		   
+		   lda	#'W'
+		   jmp	.BuildCommand
+		  endif
+		  jmp	.NewCommand
+		 endif
+		 jmp	.ShowError			
 		endif
 
 ;-------------------------------------------------------------------------------
@@ -883,31 +1030,144 @@ Monitor:
 
 ;-------------------------------------------------------------------------------
 
+; Parse a value in for [x[x]:]x[x][x][x] from the command line. if no bank is
+; given use the current default bank.
+ 
 		.longa	off
 		.longi	on
-.GetAddr:
+.GetValue:
+		stz	<VALUE+0		; Clear result area
+		stz	<VALUE+1
+		lda	<DEFAULT		; Assume default bank
+		sta	<VALUE+2
+		
+		jsr	.SkipSpaces		; Find first digit
+		jsr	.AddHexDigit
+		if cs
+		 rts				; None, syntax error
+		endif
+		jsr	.NextChar 		; Try for a second
+		cmp	#':' 
+		beq	.FoundBank		; End of bank
+		jsr	.AddHexDigit
+		bcs	.ReturnValue		
+		jsr	.NextChar		; Try for a third
+		cmp	#':'
+		if eq
+.FoundBank:
+		 lda	<VALUE+0		; Set the bank
+		 sta	<VALUE+2
+		 stz	<VALUE+0
+		 jsr	.NextChar		; Must be followed by digit
+		 jsr	.AddHexDigit
+		 if cs
+		  rts
+		 endif
+		 jsr	.NextChar
+		 jsr	.AddHexDigit
+		 bcs	.ReturnValue
+		 jsr	.NextChar
+		endif
+		jsr	.AddHexDigit		; Must be offset within bank
+		bcs	.ReturnValue
+		jsr	.NextChar
+		jsr	.AddHexDigit
+.ReturnValue:	clc
+		rts
+		  
+; If the character in A is a hex digit then work it into the value being
+; parsed from the line.
 
 		.longa	off
-		.longi	on
-.GetWord:
+.AddHexDigit:
+		jsr 	.HexDigit
+		if cc
+		 asl	<VALUE+0		; Shift up the value
+		 rol	<VALUE+1
+		 asl	<VALUE+0
+		 rol	<VALUE+1
+		 asl	<VALUE+0
+		 rol	<VALUE+1
+		 asl	<VALUE+0
+		 rol	<VALUE+1
+		 clc
+		 adc	<VALUE+0
+		 sta	<VALUE+0
+		 if cs
+		  inc	<VALUE+1
+		 endif
+		 clc
+		endif
+		rts
+
+; Returns with the carry clear if the character in A on entry was a hexidecimal
+; digit and replaces it with its value.
 
 		.longa	off
-		.longi	on
-.GetByte:
+.HexDigit:
+		cmp 	#'0'			; Numeric digit?
+		if cs
+		 cmp 	#'9'+1
+		 if cc
+		  and	#$0f			; Yes, strip out low nybble
+		  rts
+		 endif
+		 
+		 cmp 	#'A'			; Letter A thru F?
+		 if cs
+		  cmp	#'F'+1
+		  if cc
+		   sbc	#'A'-11			; Yes.
+		   clc
+		   rts
+		  endif
+		 endif
+		endif
+		sec				; No.
+		rts
+		
+		.longa off
+.CopyToStart:
+		lda	<VALUE+0
+		sta	<ADDR_S+0
+		lda	<VALUE+1
+		sta	<ADDR_S+1
+		lda	<VALUE+2
+		sta	<ADDR_S+2
+		rts
+
+		.longa off
+.CopyToEnd:
+		lda	<VALUE+0
+		sta	<ADDR_E+0
+		lda	<VALUE+1
+		sta	<ADDR_E+1
+		lda	<VALUE+2
+		sta	<ADDR_E+2
+		rts
 
 ;-------------------------------------------------------------------------------
+
+; Return the next character on the command line line that is not a space.
 
 		.longa	off
 		.longi	on
 .SkipSpaces:
 		repeat
-		 lda	CMD_BUF,x		; Fetch characters
-		 inx
+		 jsr	.NextChar
 		 cmp #' '			; .. until a non-space
 		until ne
 		rts				; Done
 
+; Return the next character from the command line converting it to UPPER case.
+
 		.longa	off
+.NextChar:
+		lda	<CMD_BUF,x		; Fetch a character
+		cmp 	#CR
+		if ne
+		 inx
+		endif
 .ToUpper:
 		cmp	#'a'			; If A is 'a'..'z'
 		if cs
@@ -918,6 +1178,41 @@ Monitor:
 		endif
 		rts
 
+;-------------------------------------------------------------------------------
+
+.BuildCommand:
+		ldx	#0
+		jsr	.AddChar
+		lda	#' '
+		jsr	.AddChar
+		lda	<VALUE+2
+		jsr	.AddHex2
+		lda	#':'
+		jsr	.AddChar
+		lda	<VALUE+1
+		jsr	.AddHex2
+		lda	<VALUE+0
+		jsr	.AddHex2
+		lda	#' '
+		jsr	.AddChar
+		txa
+		sta	CMD_LEN
+		jmp	.OldCommand
+		
+.AddHex2:
+		pha
+		lsr 	a
+		lsr	a
+		lsr	a
+		lsr	a
+		jsr	.AddHex
+		pla
+.AddHex:
+		jsr	.ToHex
+.AddChar:
+		sta	<CMD_BUF,x
+		inx
+		rts
 
 ;-------------------------------------------------------------------------------
 
@@ -951,28 +1246,28 @@ Monitor:
 
 		.longa	off
 .HexCHi:
-		lda	REG_C+1
+		lda	<REG_C+1
 		bra	.Hex2
 
 ; Output the high byte of the X register in hex.
 
 		.longa	off
 .HexXHi:
-		lda	REG_X+1
+		lda	<REG_X+1
 		bra	.Hex2
 
 ; Output the high byte of the Y register in hex.
 
 		.longa	off
 .HexYHi:
-		lda	REG_Y+1
+		lda	<REG_Y+1
 		bra	.Hex2
 
 ; Output the high byte of the SP register in hex.
 
 		.longa	off
 .HexSPHi:
-		lda	REG_SP+1
+		lda	<REG_SP+1
 		bra	.Hex2
 
 ; Print the value in the C register in hex.
@@ -999,13 +1294,19 @@ Monitor:
 
 		.longa	off
 .Hex:
+		jsr	.ToHex
+		bra	.UartTx
+
+
+.ToHex
 		and	#$0f			; Strip out the low nybble
-		sed				; And make printable
-		clc
+		sed	
+		clc				; And convert using BCD
 		adc	#$90
 		adc	#$40
-		cld				; Then drop into ..
-
+		cld
+		rts
+		
 ;-------------------------------------------------------------------------------
 
 ; Transmit the character in A using the UART. Poll the UART to see if its
@@ -1059,7 +1360,13 @@ Monitor:
 .StrError:	.byte	CR,LF,"Error - Type ? for help",0
 
 .StrHelp:
-		.byte	CR,LF,"? - Display this help"
+		.byte	CR,LF,"Commands:"
+		.byte   CR,LF,"G [[xx:]xxxx]            - Execute or RESET"
+		.byte	CR,LF,"M [ss:]ssss [[ee:]eeee]  - Display memory"
+		.byte	CR,LF,"Q                        - Stop emulator"
+		.byte   CR,LF,"R                        - Show registers"
+		.byte	CR,LF,"S...                     - Load S28 record"
+		.byte	CR,LF,"W [ss:]ssss bb           - Write memory byte"
 		.byte	0
 		
 ;-------------------------------------------------------------------------------

@@ -31,6 +31,7 @@
 #include "svga.h"
 #include "memory.h"
 #include "emulator.h"
+#include "fifo.h"
 
 //==============================================================================
 
@@ -61,8 +62,8 @@ uint32_t        cycles;
 uint32_t        start;
 uint32_t        delta;
 
-volatile uint8_t u1rxd;
-volatile uint8_t u1txd;
+Fifo<32> u1rx;
+Fifo<32> u1tx;
 
 // Signal timer interrupt at the configured rate
 void doTimerTask (void *pArg)
@@ -74,25 +75,23 @@ void doTimerTask (void *pArg)
     }
 }
 
-// Generate a RXD interrupt if serial data is available
+// Transfer Serial data into RX FIFO
 void doU1rxTask (void *pArg)
 {
     for (;;) {
-        while (!Serial.available ())
-            delay (1);
-        u1rxd = Serial.read ();
-        Emulator::ifr.u1rx = 1;
-        vTaskSuspend (NULL); 
+        while (Serial.available () && !u1rx.isFull ())
+            u1rx.enqueue (Serial.read ());
+        delay (1);
     }
 }
 
-// Generate a TXD interrupt if serial transmission is possible
+// Transfer Serial data out from TX FIFO
 void doU1txTask (void *pArg)
 {
     for (;;) {
-        Emulator::ifr.u1tx = 1;
-        vTaskSuspend (NULL);
-        Serial.write (u1txd);
+        while (Serial.availableForWrite () && !u1tx.isEmpty ())
+            Serial.write (u1tx.dequeue ());
+        delay (1);
     }
 }
 
@@ -129,7 +128,7 @@ void loop (void)
        if (Emulator::isStopped ()) {
             delta = micros () - start;
 
-            Serial.printf ("Cycles = %d uSec = %d freq = ", cycles, delta);
+            Serial.printf ("\n\nCycles = %d uSec = %d freq = ", cycles, delta);
 
             double speed = cycles / (delta * 1e-6);
 
@@ -142,8 +141,12 @@ void loop (void)
 
             for (;;) delay (1000);
        }
-       else
+       else {
+            Emulator::ifr.u1rx = (!u1rx.isEmpty ()) ? 1 : 0;
+            Emulator::ifr.u1tx = (!u1tx.isFull ()) ? 1 : 0; 
+
             cycles += Emulator::step ();
+       }
 
     } while (--count);
 }
@@ -168,15 +171,11 @@ uint8_t Common::op_wdm(uint32_t eal, uint32_t eah)
     case 0x08:  c.w = ier.f & ifr.f; break;
 
     case 0x10:	{
-            ifr.u1tx = 0;
-            u1txd = c.l;
-            vTaskResume (u1txTask);
+            u1tx.enqueue (c.l);
             break;
         }
     case 0x11:	{
-            ifr.u1rx = 0;
-            c.l = u1rxd;
-            vTaskResume (u1rxTask);
+            c.l = u1rx.dequeue ();
             break;
         }
     }

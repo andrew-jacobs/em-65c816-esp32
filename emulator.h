@@ -803,7 +803,7 @@ protected:
 		register uint16_t   ah = (dp.w + ((of + 1) & 0xff));
 		register uint16_t   au = (dp.w + ((of + 2) & 0xff));
 
-		eal = (au << 16) | (ah << 8) | al;
+		eal = ((getByte (au) << 16) | getWord (al, ah));
 		eah = eal + 1;
 		return (4);
 	}
@@ -817,7 +817,7 @@ protected:
 		register uint16_t   ah = (dp.w + ((of + 1) & 0xff));
 		register uint16_t   au = (dp.w + ((of + 2) & 0xff));
 
-		eal = ((au << 16) | (ah << 8) | al) + y.l;
+		eal = ((getByte (au) << 16) | getWord (al, ah)) + y.l;
 		eah = eal + 1;
 		return (4);
 	}
@@ -965,7 +965,7 @@ protected:
 
 		setn(data & 0x80);
 		setv(data & 0x40);
-		setz(data & c.l);
+		setz((data & c.l) == 0x00);
 		return (2);
 	}
 
@@ -975,7 +975,7 @@ protected:
 
 		register uint8_t data = getByte(eal);
 
-		setz(data & c.l);
+		setz((data & c.l) == 0x00);
 		return (2);
 	}
 
@@ -1617,7 +1617,7 @@ protected:
 
 		register uint8_t data = getByte(eal);
 
-		setz(data & c.l);
+		setz((data & c.l) == 0x00);
 		setByte(eal, data & ~c.l);
 		return (2);
 	}
@@ -1896,7 +1896,7 @@ protected:
 		register uint16_t   ah = (dp.w + ((of + 1) & 0xff));
 		register uint16_t   au = (dp.w + ((of + 2) & 0xff));
 
-		eal = (au << 16) | (ah << 8) | al;
+		eal = ((getByte (au) << 16) | getWord (al, ah));
 		eah = eal + 1;
 		return (4);
 	}
@@ -1910,7 +1910,7 @@ protected:
 		register uint16_t   ah = (dp.w + ((of + 1) & 0xff));
 		register uint16_t   au = (dp.w + ((of + 2) & 0xff));
 
-		eal = ((au << 16) | (ah << 8) | al) + y.w;
+		eal = ((getByte (au) << 16) | getWord (al, ah)) + y.w;
 		eah = eal + 1;
 		return (4);
 	}
@@ -2346,7 +2346,7 @@ protected:
 
 		setn(data & 0x8000);
 		setv(data & 0x4000);
-		setz(data & c.w);
+		setz((data & c.w) == 0x0000);
 		return (3);
 	}
 
@@ -2356,7 +2356,7 @@ protected:
 
 		register uint16_t data = ModeN::getWord(eal, eah);
 
-		setz(data & c.w);
+		setz((data & c.w) == 0x0000);
 		return (3);
 	}
 
@@ -2564,7 +2564,7 @@ protected:
 
 		register uint16_t data = ModeN::getWord(eal, eah);
 
-		setz(data & c.w);
+		setz((data & c.w) == 0x0000);
 		ModeN::setWord(eal, eah, data & ~c.w);
 		return (3);
 	}
@@ -2575,7 +2575,7 @@ protected:
 
 		register uint16_t data = ModeN::getWord(eal, eah);
 
-		setz(data & c.w);
+		setz((data & c.w) == 0x0000);
 		ModeN::setWord(eal, eah, data | c.w);
 		return (3);
 	}
@@ -2667,7 +2667,7 @@ protected:
 
 		setn(data & 0x80);
 		setv(data & 0x40);
-		setz(data & c.l);
+		setz((data & c.l) == 0x00);
 		return (2);
 	}
 
@@ -2677,7 +2677,7 @@ protected:
 
 		register uint8_t data = ModeN::getByte(eal);
 
-		setz(data & c.l);
+		setz((data & c.l) == 0x00);
 		return (2);
 	}
 
@@ -2818,7 +2818,7 @@ protected:
 
 	static uint8_t op_ror(uint32_t eal, uint32_t eah)
 	{
-		TRACE(roe);
+		TRACE(ror);
 
 		register uint8_t data = ModeN::getByte(eal);
 		register uint8_t cin = p.c ? 0x80 : 0x00;
@@ -2880,7 +2880,7 @@ protected:
 
 		register uint8_t data = ModeN::getByte(eal);
 
-		setz(data & c.l);
+		setz((data & c.l) == 0x00);
 		ModeN::setByte(eal, data & ~c.l);
 		return (2);
 	}
@@ -2891,7 +2891,7 @@ protected:
 
 		register uint8_t data = ModeN::getByte(eal);
 
-		setz(data & c.l);
+		setz((data & c.l) == 0x00);
 		ModeN::setByte(eal, data | c.l);
 		return (2);
 	}
@@ -3393,7 +3393,7 @@ protected:
 	OPCODE(54, am_immw, op_mvn, 0) \
 	OPCODE(55, am_dpgx, op_eor, 0) \
 	OPCODE(56, am_dpgx, op_lsr, 0) \
-	OPCODE(57, am_dpil, op_eor, 0) \
+	OPCODE(57, am_dily, op_eor, 0) \
 	OPCODE(58, am_impl, op_cli, 0) \
 	OPCODE(59, am_absy, op_eor, 0) \
 	OPCODE(5a, am_impl, op_phy, 0) \
@@ -3489,7 +3489,7 @@ protected:
 	OPCODE(b4, am_dpgx, op_ldy, 0) \
 	OPCODE(b5, am_dpgx, op_lda, 0) \
 	OPCODE(b6, am_dpgy, op_ldx, 0) \
-	OPCODE(b7, am_dpil, op_lda, 0) \
+	OPCODE(b7, am_dily, op_lda, 0) \
 	OPCODE(b8, am_impl, op_clv, 0) \
 	OPCODE(b9, am_absy, op_lda, 0) \
 	OPCODE(ba, am_impl, op_tsx, 0) \

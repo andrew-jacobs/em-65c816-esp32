@@ -266,146 +266,12 @@ Portable 65xx Assembler [19.05]
 
          00000040          = UART_BUFSIZ     .equ    64                      ; UART buffer size
 
-                             ;===============================================================================
-                             ; Opcodes & Addressing Modes
-                             ;-------------------------------------------------------------------------------
-
-         00000000          = OP_ADC          .equ    0<<1
-         00000002          = OP_AND          .equ    1<<1
-         00000004          = OP_ASL          .equ    2<<1
-         00000006          = OP_BCC          .equ    3<<1
-         00000008          = OP_BCS          .equ    4<<1
-         0000000A          = OP_BEQ          .equ    5<<1
-         0000000C          = OP_BIT          .equ    6<<1
-         0000000E          = OP_BMI          .equ    7<<1
-         00000010          = OP_BNE          .equ    8<<1
-         00000012          = OP_BPL          .equ    9<<1
-         00000014          = OP_BRA          .equ    10<<1
-         00000016          = OP_BRK          .equ    11<<1
-         00000018          = OP_BRL          .equ    12<<1
-
-Portable 65xx Assembler [19.05]
-
-         0000001A          = OP_BVC          .equ    13<<1
-         0000001C          = OP_BVS          .equ    14<<1
-         0000001E          = OP_CLC          .equ    15<<1
-         00000020          = OP_CLD          .equ    16<<1
-         00000022          = OP_CLI          .equ    17<<1
-         00000024          = OP_CLV          .equ    18<<1
-         00000026          = OP_CMP          .equ    19<<1
-         00000028          = OP_COP          .equ    20<<1
-         0000002A          = OP_CPX          .equ    21<<1
-         0000002C          = OP_CPY          .equ    22<<1
-         0000002E          = OP_DEC          .equ    23<<1
-         00000030          = OP_DEX          .equ    24<<1
-         00000032          = OP_DEY          .equ    25<<1
-         00000034          = OP_EOR          .equ    26<<1
-         00000036          = OP_INC          .equ    27<<1
-         00000038          = OP_INX          .equ    28<<1
-         0000003A          = OP_INY          .equ    29<<1
-         0000003C          = OP_JML          .equ    30<<1
-         0000003E          = OP_JMP          .equ    31<<1
-         00000040          = OP_JSL          .equ    32<<1
-         00000042          = OP_JSR          .equ    33<<1
-         00000044          = OP_LDA          .equ    34<<1
-         00000046          = OP_LDX          .equ    35<<1
-         00000048          = OP_LDY          .equ    36<<1
-         0000004A          = OP_LSR          .equ    37<<1
-         0000004C          = OP_MVN          .equ    38<<1
-         0000004E          = OP_MVP          .equ    39<<1
-         00000050          = OP_NOP          .equ    40<<1
-         00000052          = OP_ORA          .equ    41<<1
-         00000054          = OP_PEA          .equ    42<<1
-         00000056          = OP_PEI          .equ    43<<1
-         00000058          = OP_PER          .equ    44<<1
-         0000005A          = OP_PHA          .equ    45<<1
-         0000005C          = OP_PHB          .equ    46<<1
-         0000005E          = OP_PHD          .equ    47<<1
-         00000060          = OP_PHK          .equ    48<<1
-         00000062          = OP_PHP          .equ    49<<1
-         00000064          = OP_PHX          .equ    50<<1
-         00000066          = OP_PHY          .equ    51<<1
-         00000068          = OP_PLA          .equ    52<<1
-         0000006A          = OP_PLB          .equ    53<<1
-         0000006C          = OP_PLD          .equ    54<<1
-         0000006E          = OP_PLP          .equ    55<<1
-         00000070          = OP_PLX          .equ    56<<1
-         00000072          = OP_PLY          .equ    57<<1
-         00000074          = OP_REP          .equ    58<<1
-         00000076          = OP_ROL          .equ    59<<1
-         00000078          = OP_ROR          .equ    60<<1
-         0000007A          = OP_RTI          .equ    61<<1
-         0000007C          = OP_RTL          .equ    62<<1
-         0000007E          = OP_RTS          .equ    63<<1
-         00000080          = OP_SBC          .equ    64<<1
-         00000082          = OP_SEC          .equ    65<<1
-         00000084          = OP_SED          .equ    66<<1
-
-Portable 65xx Assembler [19.05]
-
-         00000086          = OP_SEI          .equ    67<<1
-         00000088          = OP_SEP          .equ    68<<1
-         0000008A          = OP_STA          .equ    69<<1
-         0000008C          = OP_STP          .equ    70<<1
-         0000008E          = OP_STX          .equ    71<<1
-         00000090          = OP_STY          .equ    72<<1
-         00000092          = OP_STZ          .equ    73<<1
-         00000094          = OP_TAX          .equ    74<<1
-         00000096          = OP_TAY          .equ    75<<1
-         00000098          = OP_TCD          .equ    76<<1
-         0000009A          = OP_TCS          .equ    77<<1
-         0000009C          = OP_TDC          .equ    78<<1
-         0000009E          = OP_TRB          .equ    79<<1
-         000000A0          = OP_TSB          .equ    80<<1
-         000000A2          = OP_TSC          .equ    81<<1
-         000000A4          = OP_TSX          .equ    82<<1
-         000000A6          = OP_TXA          .equ    83<<1
-         000000A8          = OP_TXS          .equ    84<<1
-         000000AA          = OP_TXY          .equ    85<<1
-         000000AC          = OP_TYA          .equ    86<<1
-         000000AE          = OP_TYX          .equ    87<<1
-         000000B0          = OP_WAI          .equ    88<<1
-         000000B2          = OP_WDM          .equ    89<<1
-         000000B4          = OP_XBA          .equ    90<<1
-         000000B6          = OP_XCE          .equ    91<<1
-
-         00000000          = MD_ABS          .equ    0<<1                    ; a
-         00000002          = MD_ACC          .equ    1<<1                    ; A
-         00000004          = MD_ABX          .equ    2<<1                    ; a,x
-         00000006          = MD_ABY          .equ    3<<1                    ; a,y
-         00000008          = MD_ALG          .equ    4<<1                    ; al
-         0000000A          = MD_ALX          .equ    5<<1                    ; al,x
-         0000000C          = MD_AIN          .equ    6<<1                    ; (a)
-         0000000E          = MD_AIX          .equ    7<<1                    ; (a,x)
-         00000010          = MD_DPG          .equ    8<<1                    ; d
-         00000012          = MD_STK          .equ    9<<1                    ; d,s
-         00000014          = MD_DPX          .equ    10<<1                   ; d,x
-         00000016          = MD_DPY          .equ    11<<1                   ; d,x
-         00000018          = MD_DIN          .equ    12<<1                   ; (d)
-         0000001A          = MD_DLI          .equ    13<<1                   ; [d]
-         0000001C          = MD_SKY          .equ    14<<1                   ; (d,s),y
-         0000001E          = MD_DIX          .equ    15<<1                   ; (d,x)
-         00000020          = MD_DIY          .equ    16<<1                   ; (d),y
-         00000022          = MD_DLY          .equ    17<<1                   ; [d],y
-         00000024          = MD_IMP          .equ    18<<1                   ;
-         00000026          = MD_REL          .equ    19<<1                   ; r
-         00000028          = MD_RLG          .equ    20<<1                   ; rl
-         0000002A          = MD_MOV          .equ    21<<1                   ; xyc
-         0000002C          = MD_IMM          .equ    22<<1                   ; # (A or M)
-         0000002E          = MD_INT          .equ    23<<1                   ; # (BRK/COP/WDM)
-         00000030          = MD_IMX          .equ    24<<1                   ; # (X or Y)
-
                                              .page
 
 Portable 65xx Assembler [19.05]
 
                              ;===============================================================================
-                             ; Data Areas
-                             ;-------------------------------------------------------------------------------
-
-                                             .page0
-                                             .org    0
-
+                             ; Private I/O Data Area
                              ;-------------------------------------------------------------------------------
 
                                              .bss
@@ -425,10 +291,6 @@ Portable 65xx Assembler [19.05]
                                              .error  "Exceeded I/O Page size"
                                              .endif
 
-                                             .page
-
-Portable 65xx Assembler [19.05]
-
                              ;===============================================================================
                              ; Operating System Entry Points
                              ;-------------------------------------------------------------------------------
@@ -436,7 +298,7 @@ Portable 65xx Assembler [19.05]
                                              .org    $f000
 
 00:F000  826900            :                 brl     Uart1Tx                 ; JSL $f000 - UART1 Transmit
-00:F003  829800            :                 brl     Uart1Rx                 ; JSL $f003 - UART1 Receive
+00:F003  829400            :                 brl     Uart1Rx                 ; JSL $f003 - UART1 Receive
 
                              ;===============================================================================
                              ; API Entry
@@ -462,6 +324,9 @@ Portable 65xx Assembler [19.05]
 00:F00C  CA                :                  dex
 00:F00D  9E00EF            :                  stz    IO_PAGE,x
 00:F010  D0FA              :                 until eq
+
+Portable 65xx Assembler [19.05]
+
 
 00:F012  18                :                 clc                             ; Switch to native mode
 00:F013  FB                :                 xce
@@ -483,9 +348,6 @@ Portable 65xx Assembler [19.05]
                                              repeat
 00:F025  BD0000            :                  lda    !0,x
 00:F028  F007              :                  break eq
-
-Portable 65xx Assembler [19.05]
-
 00:F02A  226CF000          :                  jsl    Uart1Tx
 00:F02E  E8                :                  inx
 00:F02F  80F4              :                 forever
@@ -519,32 +381,29 @@ Portable 65xx Assembler [19.05]
 00:F073  AF01EF00          :                 lda     >TX_TAIL                ; Insert data at end of queue
 00:F077  AA                :                 tax
 00:F078  EB                :                 xba
+
+Portable 65xx Assembler [19.05]
+
 00:F079  9F08EF00          :                 sta     >TX_DATA,x
 00:F07D  E8                :                 inx                             ; Bump tail index
 00:F07E  8A                :                 txa
 00:F07F  293F              :                 and     #UART_BUFSIZ-1          ; .. and wrap
                                              repeat
 00:F081  CF00EF00          :                  cmp    >TX_HEAD                ; If buffer is completely full
-00:F085  D003              :                  break ne                       ; .. wait for it to drain
-00:F087  CB                :                  wai
-00:F088  80F7              :                 forever
-00:F08A  78                :                 sei                             ; Update the tail
-00:F08B  8F01EF00          :                 sta     >TX_TAIL
-00:F08F  A900              :                 lda     #>INT_U1TX              ; Ensure TX interrupt enabled
-00:F091  EB                :                 xba
-00:F092  A904              :                 lda     #<INT_U1TX
-00:F094  4202              :                 wdm     #WDM_IER_SET
-00:F096  58                :                 cli
-00:F097  68                :                 pla                             ; Restore B & A
-00:F098  EB                :                 xba
-00:F099  68                :                 pla
-00:F09A  EB                :                 xba
-00:F09B  FA                :                 plx                             ; Restore X
-
-Portable 65xx Assembler [19.05]
-
-00:F09C  28                :                 plp                             ; .. and MX flags
-00:F09D  6B                :                 rtl                             ; Done
+00:F085  F0FA              :                 until ne                        ; .. wait for it to drain
+00:F087  78                :                 sei                             ; Update the tail
+00:F088  8F01EF00          :                 sta     >TX_TAIL
+00:F08C  A900              :                 lda     #>INT_U1TX              ; Ensure TX interrupt enabled
+00:F08E  EB                :                 xba
+00:F08F  A904              :                 lda     #<INT_U1TX
+00:F091  4202              :                 wdm     #WDM_IER_SET
+00:F093  58                :                 cli
+00:F094  68                :                 pla                             ; Restore B & A
+00:F095  EB                :                 xba
+00:F096  68                :                 pla
+00:F097  FA                :                 plx                             ; Restore X
+00:F098  28                :                 plp                             ; .. and MX flags
+00:F099  6B                :                 rtl                             ; Done
 
                              ; Receive a character from UART1 into A regardless of the state of rhe processor
                              ; preserving all other registers. If the buffer is empty then wait for some data
@@ -553,62 +412,59 @@ Portable 65xx Assembler [19.05]
                                              .longa  ?
                                              .longi  ?
                              Uart1Rx:
-00:F09E  08                :                 php                             ; Save MX bits & x
-00:F09F  DA                :                 phx
+00:F09A  08                :                 php                             ; Save MX bits & x
+00:F09B  DA                :                 phx
                                              short_a                         ; Make A/M 8-bit
-00:F0A0  E220              +                 sep     #M_FLAG
+00:F09C  E220              +                 sep     #M_FLAG
                            +                 .longa  off
                                              repeat
-00:F0A2  AF02EF00          :                  lda    >RX_HEAD                ; Wait while buffer is empty
-00:F0A6  CF03EF00          :                  cmp    >RX_TAIL
-00:F0AA  D003              :                  break ne
-00:F0AC  CB                :                  wai
-00:F0AD  80F3              :                 forever
-00:F0AF  AA                :                 tax
-00:F0B0  BF48EF00          :                 lda     >RX_DATA,x
-00:F0B4  48                :                 pha
-00:F0B5  E8                :                 inx                             ; Bump head index
-00:F0B6  8A                :                 txa
-00:F0B7  293F              :                 and     #UART_BUFSIZ-1          ; .. and wrap
-00:F0B9  8F02EF00          :                 sta     >RX_HEAD                ; Then update head
-00:F0BD  68                :                 pla
-00:F0BE  FA                :                 plx                             ; Restore X and flags
-00:F0BF  28                :                 plp
-00:F0C0  6B                :                 rtl
+00:F09E  AF02EF00          :                  lda    >RX_HEAD                ; Wait while buffer is empty
+00:F0A2  CF03EF00          :                  cmp    >RX_TAIL
+00:F0A6  F0F6              :                 until ne
+00:F0A8  AA                :                 tax
+00:F0A9  BF48EF00          :                 lda     >RX_DATA,x
+00:F0AD  48                :                 pha
+00:F0AE  E8                :                 inx                             ; Bump head index
+00:F0AF  8A                :                 txa
+00:F0B0  293F              :                 and     #UART_BUFSIZ-1          ; .. and wrap
+00:F0B2  8F02EF00          :                 sta     >RX_HEAD                ; Then update head
+00:F0B6  68                :                 pla
+00:F0B7  FA                :                 plx                             ; Restore X and flags
+00:F0B8  28                :                 plp
+00:F0B9  6B                :                 rtl
 
                              ;===============================================================================
                              ; Interrupt Handlers
                              ;-------------------------------------------------------------------------------
 
                              ; In emulation mode the interrupt handler must differentiate between IRQ and
+
+Portable 65xx Assembler [19.05]
+
                              ; BRK.
 
                                              .longa  off
                                              .longi  off
                              IRQBRK:
-00:F0C1  48                :                 pha                             ; Save users A
-00:F0C2  A302              :                 lda     2,s                     ; Recover P
-00:F0C4  2910              :                 and     #$10
-00:F0C6  F007              :                 if ne
-00:F0C8  68                :                  pla                            ; Restores users A
-00:F0C9  E220              : BRKN:            sep    #M_FLAG                 ; Ensure 8-bit A/M
-00:F0CB  5C000004          :                  jml    Monitor                 ; Enter the monitor
+00:F0BA  48                :                 pha                             ; Save users A
+00:F0BB  A302              :                 lda     2,s                     ; Recover P
+00:F0BD  2910              :                 and     #$10
+00:F0BF  F005              :                 if ne
+00:F0C1  68                :                  pla                            ; Restores users A
+00:F0C2  5C000004          : BRKN:            jml    Monitor                 ; Enter the monitor
                                              endif
 
-00:F0CF  EB                :                 xba                             ; Save users B
-00:F0D0  48                :                 pha
-
-Portable 65xx Assembler [19.05]
+00:F0C6  EB                :                 xba                             ; Save users B
+00:F0C7  48                :                 pha
+00:F0C8  DA                :                 phx                             ; .. and X
 
-00:F0D1  DA                :                 phx                             ; .. and X
+00:F0C9  20DFF0            :                 jsr     IRQHandler              ; Do common processing
 
-00:F0D2  20E8F0            :                 jsr     IRQHandler              ; Do common processing
-
-00:F0D5  FA                :                 plx                             ; Restore users X,
-00:F0D6  68                :                 pla                             ; .. B, and A
-00:F0D7  EB                :                 xba
-00:F0D8  68                :                 pla
-00:F0D9  40                :                 rti                             ; .. and continue
+00:F0CC  FA                :                 plx                             ; Restore users X,
+00:F0CD  68                :                 pla                             ; .. B, and A
+00:F0CE  EB                :                 xba
+00:F0CF  68                :                 pla
+00:F0D0  40                :                 rti                             ; .. and continue
 
                              ;-------------------------------------------------------------------------------
 
@@ -616,110 +472,110 @@ Portable 65xx Assembler [19.05]
                                              .longi  ?
                              IRQN:
                                              long_ai                         ; Then go full 16-bit
-00:F0DA  C230              +                 rep     #M_FLAG|X_FLAG
+00:F0D1  C230              +                 rep     #M_FLAG|X_FLAG
                            +                 .longa  on
                            +                 .longi  on
-00:F0DC  48                :                 pha                             ; .. and save C & X
-00:F0DD  DA                :                 phx
+00:F0D3  48                :                 pha                             ; .. and save C & X
+00:F0D4  DA                :                 phx
                                              short_a                         ; Then make A/M 8-bits
-00:F0DE  E220              +                 sep     #M_FLAG
+00:F0D5  E220              +                 sep     #M_FLAG
                            +                 .longa  off
 
-00:F0E0  20E8F0            :                 jsr     IRQHandler              ; Do commo processing
+00:F0D7  20DFF0            :                 jsr     IRQHandler              ; Do commo processing
 
                                              long_a                          ; Restore users X & C
-00:F0E3  C220              +                 rep     #M_FLAG
+00:F0DA  C220              +                 rep     #M_FLAG
                            +                 .longa  on
-00:F0E5  FA                :                 plx
-00:F0E6  68                :                 pla
-00:F0E7  40                :                 rti                             ; .. and continue
+00:F0DC  FA                :                 plx
+00:F0DD  68                :                 pla
+00:F0DE  40                :                 rti                             ; .. and continue
 
                              ;-------------------------------------------------------------------------------
 
                              ; This is the main IRQ handler used in both native and emulation mode. The size
                              ; of A/M access is 8-bits but X/Y are undefined. X is used to index into buffer
                              ; areas but is always loaded/stored via A.
-
-                                             .longa  off
-                                             .longi  ?
-                             IRQHandler:
-00:F0E8  8B                :                 phb                             ; Save users data bank
-00:F0E9  4B                :                 phk                             ; And switch to bank $00
-00:F0EA  AB                :                 plb
-
-00:F0EB  4208              :                 wdm     #WDM_IFLAGS             ; Fetch interrupt flags
-00:F0ED  48                :                 pha                             ; .. and save some copies
-00:F0EE  48                :                 pha
-
-00:F0EF  2901              :                 and     #INT_CLK                ; Is this a timer interrupt?
-00:F0F1  F014              :                 if ne
-00:F0F3  4207              :                  wdm    #WDM_IFR_CLR            ; Yes, clear it
 
 Portable 65xx Assembler [19.05]
 
 
-00:F0F5  EE04EF            :                  inc    TICK+0                  ; Bump the tick counter
-00:F0F8  D00D              :                  if eq
-00:F0FA  EE05EF            :                   inc   TICK+1
-00:F0FD  D008              :                   if eq
-00:F0FF  EE06EF            :                    inc  TICK+2
-00:F102  D003              :                    if eq
-00:F104  EE07EF            :                     inc TICK+3
+                                             .longa  off
+                                             .longi  ?
+                             IRQHandler:
+00:F0DF  8B                :                 phb                             ; Save users data bank
+00:F0E0  4B                :                 phk                             ; And switch to bank $00
+00:F0E1  AB                :                 plb
+
+00:F0E2  4208              :                 wdm     #WDM_IFLAGS             ; Fetch interrupt flags
+00:F0E4  48                :                 pha                             ; .. and save some copies
+00:F0E5  48                :                 pha
+
+00:F0E6  2901              :                 and     #INT_CLK                ; Is this a timer interrupt?
+00:F0E8  F014              :                 if ne
+00:F0EA  4207              :                  wdm    #WDM_IFR_CLR            ; Yes, clear it
+
+00:F0EC  EE04EF            :                  inc    TICK+0                  ; Bump the tick counter
+00:F0EF  D00D              :                  if eq
+00:F0F1  EE05EF            :                   inc   TICK+1
+00:F0F4  D008              :                   if eq
+00:F0F6  EE06EF            :                    inc  TICK+2
+00:F0F9  D003              :                    if eq
+00:F0FB  EE07EF            :                     inc TICK+3
                                                 endif
                                                endif
                                               endif
                                              endif
 
-00:F107  68                :                 pla                             ; Check for received data
-00:F108  2902              :                 and     #INT_U1RX
-00:F10A  F015              :                 if ne
-00:F10C  AD03EF            :                  lda    RX_TAIL                 ; Save at tail of RX buffer
-00:F10F  AA                :                  tax
-00:F110  4211              :                  wdm    #WDM_U1RX
-00:F112  9D48EF            :                  sta    RX_DATA,x
-00:F115  E8                :                  inx                            ; Bump the index
-00:F116  8A                :                  txa
-00:F117  293F              :                  and    #UART_BUFSIZ-1          ; .. and wrap
-00:F119  CD02EF            :                  cmp    RX_HEAD                 ; Is RX buffer complete full?
-00:F11C  F003              :                  if ne
-00:F11E  8D03EF            :                   sta   RX_TAIL                 ; No, save new tail
+00:F0FE  68                :                 pla                             ; Check for received data
+00:F0FF  2902              :                 and     #INT_U1RX
+00:F101  F015              :                 if ne
+00:F103  AD03EF            :                  lda    RX_TAIL                 ; Save at tail of RX buffer
+00:F106  AA                :                  tax
+00:F107  4211              :                  wdm    #WDM_U1RX
+00:F109  9D48EF            :                  sta    RX_DATA,x
+00:F10C  E8                :                  inx                            ; Bump the index
+00:F10D  8A                :                  txa
+00:F10E  293F              :                  and    #UART_BUFSIZ-1          ; .. and wrap
+00:F110  CD02EF            :                  cmp    RX_HEAD                 ; Is RX buffer complete full?
+00:F113  F003              :                  if ne
+00:F115  8D03EF            :                   sta   RX_TAIL                 ; No, save new tail
                                               endif
                                              endif
 
-00:F121  68                :                 pla                             ; Ready to transmit?
-00:F122  2904              :                 and     #INT_U1TX
-00:F124  F019              :                 if ne
-00:F126  AD00EF            :                  lda    TX_HEAD                 ; Fetch next character to send
-00:F129  AA                :                  tax
-00:F12A  BD08EF            :                  lda    TX_DATA,x
-00:F12D  4210              :                  wdm    #WDM_U1TX               ; .. and transmit it
-00:F12F  E8                :                  inx                            ; Bump the index
-00:F130  8A                :                  txa
-00:F131  293F              :                  and    #UART_BUFSIZ-1          ; .. and wrap
-00:F133  8D00EF            :                  sta    TX_HEAD                 ; Save updated head
-00:F136  CD01EF            :                  cmp    TX_TAIL                 ; Is the buffer now empty?
-00:F139  D004              :                  if eq
-00:F13B  A904              :                   lda   #INT_U1TX
-00:F13D  4203              :                   wdm   #WDM_IER_CLR            ; Yes disable TX interrupt
+00:F118  68                :                 pla                             ; Ready to transmit?
+00:F119  2904              :                 and     #INT_U1TX
+00:F11B  F019              :                 if ne
+00:F11D  AD00EF            :                  lda    TX_HEAD                 ; Fetch next character to send
+00:F120  AA                :                  tax
+00:F121  BD08EF            :                  lda    TX_DATA,x
+00:F124  4210              :                  wdm    #WDM_U1TX               ; .. and transmit it
+00:F126  E8                :                  inx                            ; Bump the index
+00:F127  8A                :                  txa
+00:F128  293F              :                  and    #UART_BUFSIZ-1          ; .. and wrap
+
+Portable 65xx Assembler [19.05]
+
+00:F12A  8D00EF            :                  sta    TX_HEAD                 ; Save updated head
+00:F12D  CD01EF            :                  cmp    TX_TAIL                 ; Is the buffer now empty?
+00:F130  D004              :                  if eq
+00:F132  A904              :                   lda   #INT_U1TX
+00:F134  4203              :                   wdm   #WDM_IER_CLR            ; Yes disable TX interrupt
                                               endif
                                              endif
 
-00:F13F  AB                :                 plb
-00:F140  60                :                 rts                             ; Done
+00:F136  AB                :                 plb
+00:F137  60                :                 rts                             ; Done
 
                              ;===============================================================================
                              ; Unused Vector Trap
                              ;-------------------------------------------------------------------------------
 
-
-Portable 65xx Assembler [19.05]
-
                              ; If any undefined vectors are invoked execution will end up here doing in an
                              ; infinite loop.
 
                              UnusedVector
-00:F141  DB                :                 stp
-00:F142  80FE              :                 bra     $
+00:F138  DB                :                 stp
+00:F139  80FE              :                 bra     $
 
                              ;===============================================================================
                              ; Vectors
@@ -731,22 +587,22 @@ Portable 65xx Assembler [19.05]
 
 00:FFE0  00000000          :                 .space  4                       ; Reserved
 00:FFE4  07F0              :                 .word   COPN                    ; $FFE4 - COP(816)
-00:FFE6  C9F0              :                 .word   BRKN                    ; $FFE6 - BRK(816)
-00:FFE8  41F1              :                 .word   UnusedVector            ; $FFE8 - ABORT(816)
-00:FFEA  41F1              :                 .word   UnusedVector            ; $FFEA - NMI(816)
+00:FFE6  C2F0              :                 .word   BRKN                    ; $FFE6 - BRK(816)
+00:FFE8  38F1              :                 .word   UnusedVector            ; $FFE8 - ABORT(816)
+00:FFEA  38F1              :                 .word   UnusedVector            ; $FFEA - NMI(816)
 00:FFEC  0000              :                 .space  2                       ; Reserved
-00:FFEE  DAF0              :                 .word   IRQN                    ; $FFEE - IRQ(816)
+00:FFEE  D1F0              :                 .word   IRQN                    ; $FFEE - IRQ(816)
 
                              ; Emulation Mode Vectors
 
                                              .org    $fff0
 00:FFF0  00000000          :                 .space  4
-00:FFF4  41F1              :                 .word   UnusedVector            ; $FFF4 - COP(C02)
+00:FFF4  38F1              :                 .word   UnusedVector            ; $FFF4 - COP(C02)
 00:FFF6  0000              :                 .space  2                       ; $Reserved
-00:FFF8  41F1              :                 .word   UnusedVector            ; $FFF8 - ABORT(C02)
-00:FFFA  41F1              :                 .word   UnusedVector            ; $FFFA - NMI(C02)
+00:FFF8  38F1              :                 .word   UnusedVector            ; $FFF8 - ABORT(C02)
+00:FFFA  38F1              :                 .word   UnusedVector            ; $FFFA - NMI(C02)
 00:FFFC  08F0              :                 .word   RESET                   ; $FFFC - RESET(C02)
-00:FFFE  C1F0              :                 .word   IRQBRK                  ; $FFFE - IRQBRK(C02)
+00:FFFE  BAF0              :                 .word   IRQBRK                  ; $FFFE - IRQBRK(C02)
 
                                              .page
 
@@ -796,9 +652,142 @@ Portable 65xx Assembler [19.05]
                              ; emulated address space and the ability to download, inspect, change and run
                              ; machine language programs. It uses the interrupt driven I/O routines in the
                              ; boot ROM accessed by JSLs to $F000 and $F003.
-                             ;;
+                             ;
                              ; If the monitor is not in use workspace page is never accessed and could be
                              ; used by another application.
+
+                             ;===============================================================================
+                             ; Opcodes & Addressing Modes
+                             ;-------------------------------------------------------------------------------
+
+         00000000          = OP_ADC          .equ    0<<1
+         00000002          = OP_AND          .equ    1<<1
+         00000004          = OP_ASL          .equ    2<<1
+         00000006          = OP_BCC          .equ    3<<1
+         00000008          = OP_BCS          .equ    4<<1
+         0000000A          = OP_BEQ          .equ    5<<1
+         0000000C          = OP_BIT          .equ    6<<1
+         0000000E          = OP_BMI          .equ    7<<1
+         00000010          = OP_BNE          .equ    8<<1
+         00000012          = OP_BPL          .equ    9<<1
+         00000014          = OP_BRA          .equ    10<<1
+         00000016          = OP_BRK          .equ    11<<1
+         00000018          = OP_BRL          .equ    12<<1
+         0000001A          = OP_BVC          .equ    13<<1
+         0000001C          = OP_BVS          .equ    14<<1
+         0000001E          = OP_CLC          .equ    15<<1
+         00000020          = OP_CLD          .equ    16<<1
+         00000022          = OP_CLI          .equ    17<<1
+         00000024          = OP_CLV          .equ    18<<1
+         00000026          = OP_CMP          .equ    19<<1
+         00000028          = OP_COP          .equ    20<<1
+         0000002A          = OP_CPX          .equ    21<<1
+         0000002C          = OP_CPY          .equ    22<<1
+         0000002E          = OP_DEC          .equ    23<<1
+         00000030          = OP_DEX          .equ    24<<1
+         00000032          = OP_DEY          .equ    25<<1
+         00000034          = OP_EOR          .equ    26<<1
+         00000036          = OP_INC          .equ    27<<1
+         00000038          = OP_INX          .equ    28<<1
+         0000003A          = OP_INY          .equ    29<<1
+         0000003C          = OP_JML          .equ    30<<1
+         0000003E          = OP_JMP          .equ    31<<1
+         00000040          = OP_JSL          .equ    32<<1
+         00000042          = OP_JSR          .equ    33<<1
+         00000044          = OP_LDA          .equ    34<<1
+         00000046          = OP_LDX          .equ    35<<1
+         00000048          = OP_LDY          .equ    36<<1
+         0000004A          = OP_LSR          .equ    37<<1
+         0000004C          = OP_MVN          .equ    38<<1
+
+Portable 65xx Assembler [19.05]
+
+         0000004E          = OP_MVP          .equ    39<<1
+         00000050          = OP_NOP          .equ    40<<1
+         00000052          = OP_ORA          .equ    41<<1
+         00000054          = OP_PEA          .equ    42<<1
+         00000056          = OP_PEI          .equ    43<<1
+         00000058          = OP_PER          .equ    44<<1
+         0000005A          = OP_PHA          .equ    45<<1
+         0000005C          = OP_PHB          .equ    46<<1
+         0000005E          = OP_PHD          .equ    47<<1
+         00000060          = OP_PHK          .equ    48<<1
+         00000062          = OP_PHP          .equ    49<<1
+         00000064          = OP_PHX          .equ    50<<1
+         00000066          = OP_PHY          .equ    51<<1
+         00000068          = OP_PLA          .equ    52<<1
+         0000006A          = OP_PLB          .equ    53<<1
+         0000006C          = OP_PLD          .equ    54<<1
+         0000006E          = OP_PLP          .equ    55<<1
+         00000070          = OP_PLX          .equ    56<<1
+         00000072          = OP_PLY          .equ    57<<1
+         00000074          = OP_REP          .equ    58<<1
+         00000076          = OP_ROL          .equ    59<<1
+         00000078          = OP_ROR          .equ    60<<1
+         0000007A          = OP_RTI          .equ    61<<1
+         0000007C          = OP_RTL          .equ    62<<1
+         0000007E          = OP_RTS          .equ    63<<1
+         00000080          = OP_SBC          .equ    64<<1
+         00000082          = OP_SEC          .equ    65<<1
+         00000084          = OP_SED          .equ    66<<1
+         00000086          = OP_SEI          .equ    67<<1
+         00000088          = OP_SEP          .equ    68<<1
+         0000008A          = OP_STA          .equ    69<<1
+         0000008C          = OP_STP          .equ    70<<1
+         0000008E          = OP_STX          .equ    71<<1
+         00000090          = OP_STY          .equ    72<<1
+         00000092          = OP_STZ          .equ    73<<1
+         00000094          = OP_TAX          .equ    74<<1
+         00000096          = OP_TAY          .equ    75<<1
+         00000098          = OP_TCD          .equ    76<<1
+         0000009A          = OP_TCS          .equ    77<<1
+         0000009C          = OP_TDC          .equ    78<<1
+         0000009E          = OP_TRB          .equ    79<<1
+         000000A0          = OP_TSB          .equ    80<<1
+         000000A2          = OP_TSC          .equ    81<<1
+         000000A4          = OP_TSX          .equ    82<<1
+         000000A6          = OP_TXA          .equ    83<<1
+         000000A8          = OP_TXS          .equ    84<<1
+         000000AA          = OP_TXY          .equ    85<<1
+         000000AC          = OP_TYA          .equ    86<<1
+         000000AE          = OP_TYX          .equ    87<<1
+         000000B0          = OP_WAI          .equ    88<<1
+         000000B2          = OP_WDM          .equ    89<<1
+         000000B4          = OP_XBA          .equ    90<<1
+         000000B6          = OP_XCE          .equ    91<<1
+
+
+Portable 65xx Assembler [19.05]
+
+         00000000          = MD_ABS          .equ    0<<1                    ; a
+         00000002          = MD_ACC          .equ    1<<1                    ; A
+         00000004          = MD_ABX          .equ    2<<1                    ; a,x
+         00000006          = MD_ABY          .equ    3<<1                    ; a,y
+         00000008          = MD_ALG          .equ    4<<1                    ; al
+         0000000A          = MD_ALX          .equ    5<<1                    ; al,x
+         0000000C          = MD_AIN          .equ    6<<1                    ; (a)
+         0000000E          = MD_AIX          .equ    7<<1                    ; (a,x)
+         00000010          = MD_DPG          .equ    8<<1                    ; d
+         00000012          = MD_STK          .equ    9<<1                    ; d,s
+         00000014          = MD_DPX          .equ    10<<1                   ; d,x
+         00000016          = MD_DPY          .equ    11<<1                   ; d,x
+         00000018          = MD_DIN          .equ    12<<1                   ; (d)
+         0000001A          = MD_DLI          .equ    13<<1                   ; [d]
+         0000001C          = MD_SKY          .equ    14<<1                   ; (d,s),y
+         0000001E          = MD_DIX          .equ    15<<1                   ; (d,x)
+         00000020          = MD_DIY          .equ    16<<1                   ; (d),y
+         00000022          = MD_DLY          .equ    17<<1                   ; [d],y
+         00000024          = MD_IMP          .equ    18<<1                   ;
+         00000026          = MD_REL          .equ    19<<1                   ; r
+         00000028          = MD_RLG          .equ    20<<1                   ; rl
+         0000002A          = MD_MOV          .equ    21<<1                   ; xyc
+         0000002C          = MD_IMM          .equ    22<<1                   ; # (A or M)
+         0000002E          = MD_INT          .equ    23<<1                   ; # (BRK/COP/WDM)
+         00000030          = MD_IMX          .equ    24<<1                   ; # (X or Y)
+
+                             ;===============================================================================
+                             ; Private Data Area
+                             ;-------------------------------------------------------------------------------
 
                                              .bss
                                              .org    $00ee00
@@ -817,196 +806,204 @@ Portable 65xx Assembler [19.05]
 00:EE0F  00                : REG_DBR         .space  1
 
 00:EE10  00                : CMD_LEN         .space  1                       ; Command buffer length
-00:EE11  00                : BANK            .space  1
-00:EE12  000000            : ADDRS           .space  3
-00:EE15  000000            : ADDRL           .space  3
+00:EE11  00                : DEFAULT         .space  1                       ; Default bank (DBR on entry)
+00:EE12  000000            : VALUE           .space  3
 
-00:EE18  0000000000000000> :                 .align  128                     ; Gap used for stack
+00:EE15  000000            : ADDR_S          .space  3
+00:EE18  000000            : ADDR_E          .space  3
+
+00:EE1B  0000000000000000> :                 .align  128                     ; Gap used for stack
+
+Portable 65xx Assembler [19.05]
+
 00:EE80  0000000000000000> : CMD_BUF         .space  128                     ; Command buffer
 
                              ;-------------------------------------------------------------------------------
 
                              ; The entry point is called from the boot ROM when a BRK instruction is executed
-                             ; in either emulation or native mode. A/M has been set to 8-bits as part of the
-                             ; interrupt handling.
+                             ; in either emulation or native mode.
 
                                              .code
-                                             .longa  off
+                                             .longa  ?
                                              .longi  ?
                                              .dpage  REG_E
                              Monitor:
-04:0000  0B                :                 phd                             ; Push users DP
-04:0001  F400EE            :                 pea     #REG_E                  ; Move to monitor's direct page
-04:0004  2B                :                 pld
-04:0005  8502              :                 sta     REG_C+0                 ; Save C
-04:0007  EB                :                 xba
-04:0008  8503              :                 sta     REG_C+1
-04:000A  68                :                 pla                             ; Save DP
-04:000B  850A              :                 sta     REG_DP+0
+                                             short_a                         ; Ensure A/M 8-bits
+04:0000  E220              +                 sep     #M_FLAG
+                           +                 .longa  off
+04:0002  0B                :                 phd                             ; Push users DP
+04:0003  F400EE            :                 pea     #REG_E                  ; Move to monitor's direct page
+04:0006  2B                :                 pld
+04:0007  8502              :                 sta     REG_C+0                 ; Save C
+04:0009  EB                :                 xba
+04:000A  8503              :                 sta     REG_C+1
+04:000C  68                :                 pla                             ; Save DP
+04:000D  850A              :                 sta     REG_DP+0
+04:000F  68                :                 pla
+04:0010  850B              :                 sta     REG_DP+1
+04:0012  68                :                 pla                             ; Save P
+04:0013  8501              :                 sta     REG_P
+04:0015  38                :                 sec                             ; Save PC (adjusting for BRK)
+04:0016  68                :                 pla
+04:0017  E902              :                 sbc     #2
+04:0019  850C              :                 sta     REG_PC+0
+04:001B  68                :                 pla
+04:001C  E900              :                 sbc     #0
+04:001E  850D              :                 sta     REG_PC+1
+04:0020  18                :                 clc                             ; Switch to native mode
+04:0021  FB                :                 xce
+04:0022  640E              :                 stz     REG_PBR
+04:0024  B003              :                 if cc
+04:0026  68                :                  pla
+04:0027  850E              :                  sta    REG_PBR                 ; Save PBR
+                                             endif
+04:0029  6600              :                 ror     REG_E                   ; Save E
+04:002B  8B                :                 phb                             ; Save DBR
+04:002C  68                :                 pla
+04:002D  850F              :                 sta     REG_DBR
+04:002F  8511              :                 sta     DEFAULT
+                                             long_i
+04:0031  C210              +                 rep     #X_FLAG
+                           +                 .longi  on
+04:0033  8604              :                 stx     REG_X                   ; Save X
+04:0035  8406              :                 sty     REG_Y                   ; Save Y
+04:0037  BA                :                 tsx
+04:0038  8608              :                 stx     REG_SP                  ; Save SP
+04:003A  A27FEE            :                 ldx     #CMD_BUF-1              ; .. then load ours
 
 Portable 65xx Assembler [19.05]
 
-04:000D  68                :                 pla
-04:000E  850B              :                 sta     REG_DP+1
-04:0010  68                :                 pla                             ; Save P
-04:0011  8501              :                 sta     REG_P
-04:0013  38                :                 sec                             ; Save PC (adjusting for BRK)
-04:0014  68                :                 pla
-                                             ;sbc    #2
-04:0015  850C              :                 sta     REG_PC+0
-04:0017  68                :                 pla
-                                             ;sbc    #0
-04:0018  850D              :                 sta     REG_PC+1
-04:001A  18                :                 clc                             ; Switch to native mode
-04:001B  FB                :                 xce
-04:001C  640E              :                 stz     REG_PBR
-04:001E  B003              :                 if cc
-04:0020  68                :                  pla
-04:0021  850E              :                  sta    REG_PBR                 ; Save PBR
-                                             endif
-04:0023  6600              :                 ror     REG_E                   ; Save E
-04:0025  8B                :                 phb                             ; Save DBR
-04:0026  68                :                 pla
-04:0027  850F              :                 sta     REG_DBR
-                                             long_i
-04:0029  C210              +                 rep     #X_FLAG
-                           +                 .longi  on
-04:002B  8604              :                 stx     REG_X                   ; Save X
-04:002D  8406              :                 sty     REG_Y                   ; Save Y
-04:002F  BA                :                 tsx
-04:0030  8608              :                 stx     REG_SP                  ; Save SP
-04:0032  A27FEE            :                 ldx     #CMD_BUF-1              ; .. then load ours
-04:0035  9A                :                 txs
+04:003D  9A                :                 txs
 
-04:0036  4B                :                 phk                             ; Set DBR to this bank (to
-04:0037  AB                :                 plb                             ; .. access data and strings)
-04:0038  58                :                 cli                             ; And allow interrupts
+04:003E  4B                :                 phk                             ; Set DBR to this bank (to
+04:003F  AB                :                 plb                             ; .. access data and strings)
+04:0040  58                :                 cli                             ; And allow interrupts
 
                              ;-------------------------------------------------------------------------------
 
                              ; Show the state of the users registers when the BRK was executed.
 
                              .ShowRegisters:
-04:0039  20D801            :                 jsr     .NewLine
+04:0041  20B103            :                 jsr     .NewLine
 
-04:003C  A22A02            :                 ldx     #.StrPC
-04:003F  20CC01            :                 jsr     .Print
-04:0042  A50E              :                 lda     REG_PBR                 ; Show PBR and PC
-04:0044  20F601            :                 jsr     .Hex2
-04:0047  A93A              :                 lda     #':'
-04:0049  200802            :                 jsr     .UartTx
-04:004C  A50D              :                 lda     REG_PC+1
-04:004E  EB                :                 xba
-04:004F  A50C              :                 lda     REG_PC+0
-04:0051  20F101            :                 jsr     .Hex4
+04:0044  A20904            :                 ldx     #.StrPC
+04:0047  20A503            :                 jsr     .Print
+04:004A  A50E              :                 lda     REG_PBR                 ; Show PBR and PC
+04:004C  20CF03            :                 jsr     .Hex2
+04:004F  A93A              :                 lda     #':'
+04:0051  20E703            :                 jsr     .UartTx
+04:0054  A50D              :                 lda     REG_PC+1
+04:0056  EB                :                 xba
+04:0057  A50C              :                 lda     REG_PC+0
+04:0059  20CA03            :                 jsr     .Hex4
 
-
-Portable 65xx Assembler [19.05]
-
-04:0054  A22E02            :                 ldx     #.StrE                  ; Show E bit
-04:0057  20CC01            :                 jsr     .Print
-04:005A  A930              :                 lda     #'0'
-04:005C  2400              :                 bit     REG_E
-04:005E  1001              :                 if mi
-04:0060  1A                :                  inc    a
+04:005C  A20D04            :                 ldx     #.StrE                  ; Show E bit
+04:005F  20A503            :                 jsr     .Print
+04:0062  A930              :                 lda     #'0'
+04:0064  2400              :                 bit     REG_E
+04:0066  1001              :                 if mi
+04:0068  1A                :                  inc    a
                                              endif
-04:0061  200802            :                 jsr     .UartTx
+04:0069  20E703            :                 jsr     .UartTx
 
-04:0064  A23202            :                 ldx     #.StrP                  ; Show P
-04:0067  20CC01            :                 jsr     .Print
-04:006A  A20700            :                 ldx     #7
+04:006C  A21104            :                 ldx     #.StrP                  ; Show P
+04:006F  20A503            :                 jsr     .Print
+04:0072  A20700            :                 ldx     #7
                                              repeat
-04:006D  BD2202            :                  lda    .Mask,x                 ; .. as individual flags
-04:0070  2501              :                  and    REG_P
-04:0072  08                :                  php
-04:0073  BD1A02            :                  lda    .Flag,x
-04:0076  28                :                  plp
-04:0077  D002              :                  if eq
-04:0079  A92E              :                   lda   #'.'
+04:0075  BD0104            :                  lda    .Mask,x                 ; .. as individual flags
+04:0078  2501              :                  and    REG_P
+04:007A  08                :                  php
+04:007B  BDF903            :                  lda    .Flag,x
+04:007E  28                :                  plp
+04:007F  D002              :                  if eq
+04:0081  A92E              :                   lda   #'.'
                                               endif
-04:007B  200802            :                  jsr    .UartTx
-04:007E  CA                :                  dex
-04:007F  10EC              :                 until mi
+04:0083  20E703            :                  jsr    .UartTx
+04:0086  CA                :                  dex
+04:0087  10EC              :                 until mi
 
-04:0081  A23602            :                 ldx     #.StrC                  ; Show C
-04:0084  20CC01            :                 jsr     .Print
-04:0087  2400              :                 bit     REG_E
-04:0089  300E              :                 bmi     .ShortA
-04:008B  A920              :                 lda     #M_FLAG
-04:008D  2401              :                 bit     REG_P
-04:008F  D008              :                 if eq
-04:0091  200D02            :                  jsr    .OpenBracket
-04:0094  20E101            :                  jsr    .HexCHi
-04:0097  8006              :                 else
-04:0099  20E101            : .ShortA:         jsr    .HexCHi
-04:009C  200D02            :                  jsr    .OpenBracket
-                                             endif
-04:009F  A502              :                 lda     REG_C+0
-04:00A1  20F601            :                 jsr     .Hex2
-04:00A4  201102            :                 jsr     .CloseBracket
-
-04:00A7  A23A02            :                 ldx     #.StrX                  ; Show X
-04:00AA  20CC01            :                 jsr     .Print
-04:00AD  2400              :                 bit     REG_E
-04:00AF  300E              :                 bmi     .ShortX
-04:00B1  A910              :                 lda     #X_FLAG
-04:00B3  2401              :                 bit     REG_P
-04:00B5  D008              :                 if eq
-04:00B7  200D02            :                  jsr    .OpenBracket
-04:00BA  20E501            :                  jsr    .HexXHi
-04:00BD  8006              :                 else
-04:00BF  20E501            : .ShortX:         jsr    .HexXHi
-04:00C2  200D02            :                  jsr    .OpenBracket
+04:0089  A21504            :                 ldx     #.StrC                  ; Show C
+04:008C  20A503            :                 jsr     .Print
+04:008F  2400              :                 bit     REG_E
+04:0091  300E              :                 bmi     .ShortA
+04:0093  A920              :                 lda     #M_FLAG
 
 Portable 65xx Assembler [19.05]
 
+04:0095  2401              :                 bit     REG_P
+04:0097  D008              :                 if eq
+04:0099  20EC03            :                  jsr    .OpenBracket
+04:009C  20BA03            :                  jsr    .HexCHi
+04:009F  8006              :                 else
+04:00A1  20BA03            : .ShortA:         jsr    .HexCHi
+04:00A4  20EC03            :                  jsr    .OpenBracket
                                              endif
-04:00C5  A504              :                 lda     REG_X+0
-04:00C7  20F601            :                 jsr     .Hex2
-04:00CA  201102            :                 jsr     .CloseBracket
+04:00A7  A502              :                 lda     REG_C+0
+04:00A9  20CF03            :                 jsr     .Hex2
+04:00AC  20F003            :                 jsr     .CloseBracket
 
-04:00CD  A23E02            :                 ldx     #.StrY                  ; Show Y
-04:00D0  20CC01            :                 jsr     .Print
-04:00D3  2400              :                 bit     REG_E
-04:00D5  300E              :                 bmi     .ShortY
-04:00D7  A910              :                 lda     #X_FLAG
-04:00D9  2401              :                 bit     REG_P
-04:00DB  D008              :                 if eq
-04:00DD  200D02            :                  jsr    .OpenBracket
-04:00E0  20E901            :                  jsr    .HexYHi
-04:00E3  8006              :                 else
-04:00E5  20E901            : .ShortY:         jsr    .HexYHi
-04:00E8  200D02            :                  jsr    .OpenBracket
+04:00AF  A21904            :                 ldx     #.StrX                  ; Show X
+04:00B2  20A503            :                 jsr     .Print
+04:00B5  2400              :                 bit     REG_E
+04:00B7  300E              :                 bmi     .ShortX
+04:00B9  A910              :                 lda     #X_FLAG
+04:00BB  2401              :                 bit     REG_P
+04:00BD  D008              :                 if eq
+04:00BF  20EC03            :                  jsr    .OpenBracket
+04:00C2  20BE03            :                  jsr    .HexXHi
+04:00C5  8006              :                 else
+04:00C7  20BE03            : .ShortX:         jsr    .HexXHi
+04:00CA  20EC03            :                  jsr    .OpenBracket
                                              endif
-04:00EB  A506              :                 lda     REG_Y+0
-04:00ED  20F601            :                 jsr     .Hex2
-04:00F0  201102            :                 jsr     .CloseBracket
+04:00CD  A504              :                 lda     REG_X+0
+04:00CF  20CF03            :                 jsr     .Hex2
+04:00D2  20F003            :                 jsr     .CloseBracket
 
-04:00F3  A24202            :                 ldx     #.StrDP                 ; Show DP
-04:00F6  20CC01            :                 jsr     .Print
-04:00F9  A50B              :                 lda     REG_DP+1
-04:00FB  EB                :                 xba
-04:00FC  A50A              :                 lda     REG_DP+0
-04:00FE  20F101            :                 jsr     .Hex4
-
-04:0101  A24702            :                 ldx     #.StrSP                 ; Show SP
-04:0104  20CC01            :                 jsr     .Print
-04:0107  2400              :                 bit     REG_E
-04:0109  1008              :                 if mi
-04:010B  20ED01            :                  jsr    .HexSPHi
-04:010E  200D02            :                  jsr    .OpenBracket
-04:0111  8006              :                 else
-04:0113  200D02            :                  jsr    .OpenBracket
-04:0116  20ED01            :                  jsr    .HexSPHi
+04:00D5  A21D04            :                 ldx     #.StrY                  ; Show Y
+04:00D8  20A503            :                 jsr     .Print
+04:00DB  2400              :                 bit     REG_E
+04:00DD  300E              :                 bmi     .ShortY
+04:00DF  A910              :                 lda     #X_FLAG
+04:00E1  2401              :                 bit     REG_P
+04:00E3  D008              :                 if eq
+04:00E5  20EC03            :                  jsr    .OpenBracket
+04:00E8  20C203            :                  jsr    .HexYHi
+04:00EB  8006              :                 else
+04:00ED  20C203            : .ShortY:         jsr    .HexYHi
+04:00F0  20EC03            :                  jsr    .OpenBracket
                                              endif
-04:0119  A508              :                 lda     REG_SP+0
-04:011B  20F601            :                 jsr     .Hex2
-04:011E  201102            :                 jsr     .CloseBracket
+04:00F3  A506              :                 lda     REG_Y+0
+04:00F5  20CF03            :                 jsr     .Hex2
+04:00F8  20F003            :                 jsr     .CloseBracket
 
-04:0121  A24C02            :                 ldx     #.StrDBR                ; Show DBR
-04:0124  20CC01            :                 jsr     .Print
-04:0127  A50F              :                 lda     REG_DBR
-04:0129  20F601            :                 jsr     .Hex2
+04:00FB  A22104            :                 ldx     #.StrDP                 ; Show DP
+04:00FE  20A503            :                 jsr     .Print
+04:0101  A50B              :                 lda     REG_DP+1
+04:0103  EB                :                 xba
+04:0104  A50A              :                 lda     REG_DP+0
+04:0106  20CA03            :                 jsr     .Hex4
+
+04:0109  A22604            :                 ldx     #.StrSP                 ; Show SP
+
+Portable 65xx Assembler [19.05]
+
+04:010C  20A503            :                 jsr     .Print
+04:010F  2400              :                 bit     REG_E
+04:0111  1008              :                 if mi
+04:0113  20C603            :                  jsr    .HexSPHi
+04:0116  20EC03            :                  jsr    .OpenBracket
+04:0119  8006              :                 else
+04:011B  20EC03            :                  jsr    .OpenBracket
+04:011E  20C603            :                  jsr    .HexSPHi
+                                             endif
+04:0121  A508              :                 lda     REG_SP+0
+04:0123  20CF03            :                 jsr     .Hex2
+04:0126  20F003            :                 jsr     .CloseBracket
+
+04:0129  A22B04            :                 ldx     #.StrDBR                ; Show DBR
+04:012C  20A503            :                 jsr     .Print
+04:012F  A50F              :                 lda     REG_DBR
+04:0131  20CF03            :                 jsr     .Hex2
 
                              ;-------------------------------------------------------------------------------
 
@@ -1014,157 +1011,472 @@ Portable 65xx Assembler [19.05]
                              ; erases the last character.
 
                              .NewCommand:
+04:0134  6410              :                 stz     CMD_LEN                 ; Clear command buffer
+                             .OldCommand:
+04:0136  20B103            :                 jsr     .NewLine                ; Print the entry prompt
+04:0139  A92E              :                 lda     #'.'
+04:013B  20E703            :                 jsr     .UartTx
+
+04:013E  A20000            :                 ldx     #0
+                                             repeat
+04:0141  8A                :                  txa
+04:0142  C510              :                  cmp    CMD_LEN                 ; Any forced characters?
+04:0144  F008              :                  break  eq
+04:0146  B580              :                  lda    CMD_BUF,x               ; Yes, print one
+04:0148  20E703            :                  jsr    .UartTx
+04:014B  E8                :                  inx
+04:014C  80F3              :                 forever
+
+                                             repeat
+04:014E  20F403            :                  jsr    .UartRx                 ; Read a real character
+04:0151  9580              :                  sta    CMD_BUF,x               ; .. and save it
+
+04:0153  C908              :                  cmp    #BS                     ; Map BS to DEL
+04:0155  F00C              :                  beq    .BackSpace
+04:0157  C90D              :                  cmp    #CR                     ; End of input?
+04:0159  F024              :                  break  eq
+
+04:015B  C920              :                  cmp    #' '                    ; Printable?
+04:015D  9019              :                  if cs
+04:015F  C97F              :                   cmp   #DEL                    ; Delete?
+04:0161  9012              :                   if cs
+04:0163  8A                : .BackSpace:        txa                          ; Is buffer empty?
 
 Portable 65xx Assembler [19.05]
 
-04:012C  6410              :                 stz     CMD_LEN                 ; Clear command buffer
-04:012E  20D801            :                 jsr     .NewLine                ; Print the entry prompt
-04:0131  A92E              :                 lda     #'.'
-04:0133  200802            :                 jsr     .UartTx
+04:0164  F012              :                    beq  .Beep                   ; Yes, make a noise
 
-04:0136  A20000            :                 ldx     #0
-                                             repeat
-04:0139  8A                :                  txa
-04:013A  C510              :                  cmp    CMD_LEN                 ; Any forced characters?
-04:013C  F008              :                  break  eq
-04:013E  B580              :                  lda    CMD_BUF,x               ; Yes, print one
-04:0140  200802            :                  jsr    .UartTx
-04:0143  E8                :                  inx
-04:0144  80F3              :                 forever
-
-                                             repeat
-04:0146  201502            :                  jsr    .UartRx                 ; Read a real character
-04:0149  9580              :                  sta    CMD_BUF,x               ; .. and save it
-
-04:014B  C908              :                  cmp    #BS                     ; Map BS to DEL
-04:014D  F00C              :                  beq    .BackSpace
-04:014F  C90D              :                  cmp    #CR                     ; End of input?
-04:0151  F024              :                  break  eq
-
-04:0153  C920              :                  cmp    #' '                    ; Printable?
-04:0155  9019              :                  if cs
-04:0157  C97F              :                   cmp   #DEL                    ; Delete?
-04:0159  9012              :                   if cs
-04:015B  8A                : .BackSpace:        txa                          ; Is buffer empty?
-04:015C  F012              :                    beq  .Beep                   ; Yes, make a noise
-
-04:015E  A908              :                    lda  #BS                     ; Erase the last character
-04:0160  200802            :                    jsr  .UartTx
-04:0163  A920              :                    lda  #' '
-04:0165  200802            :                    jsr  .UartTx
-04:0168  A908              :                    lda  #BS
-04:016A  CA                :                    dex
-04:016B  8001              :                   else
-04:016D  E8                :                    inx                          ; Keep the last character
+04:0166  A908              :                    lda  #BS                     ; Erase the last character
+04:0168  20E703            :                    jsr  .UartTx
+04:016B  A920              :                    lda  #' '
+04:016D  20E703            :                    jsr  .UartTx
+04:0170  A908              :                    lda  #BS
+04:0172  CA                :                    dex
+04:0173  8001              :                   else
+04:0175  E8                :                    inx                          ; Keep the last character
                                                endif
-04:016E  8002              :                  else
-04:0170  A907              : .Beep:            lda   #BEL
+04:0176  8002              :                  else
+04:0178  A907              : .Beep:            lda   #BEL
                                               endif
-04:0172  200802            :                  jsr    .UartTx                 ; And echo char, BEL or BS
-04:0175  80CF              :                 forever
+04:017A  20E703            :                  jsr    .UartTx                 ; And echo char, BEL or BS
+04:017D  80CF              :                 forever
 
-04:0177  8A                :                 txa                             ; Save the buffer length
-04:0178  8510              :                 sta     CMD_LEN
+04:017F  8A                :                 txa                             ; Save the buffer length
+04:0180  8510              :                 sta     CMD_LEN
 
-04:017A  A900              :                 lda     #0                      ; Start processing at the
-04:017C  AA                :                 tax                             ; .. start of the line
-04:017D  20B901            :                 jsr     .SkipSpaces
-04:0180  20C101            :                 jsr     .ToUpper
+04:0182  A20000            :                 ldx     #0                      ; Set character index
+04:0185  205103            :                 jsr     .SkipSpaces             ; And get command
 
+04:0188  C90D              :                 cmp     #CR
+04:018A  F0A8              :                 beq     .NewCommand
+
+                             ;-------------------------------------------------------------------------------
+
+04:018C  C93F              :                 cmp     #'?'
+04:018E  D008              :                 if eq
+04:0190  A24B04            :                  ldx    #.StrHelp
+04:0193  20A503            :                  jsr    .Print
+04:0196  809C              :                  bra    .NewCommand
+                                             endif
+
+                             ;-------------------------------------------------------------------------------
+
+04:0198  C944              :                 cmp     #'D'
+04:019A  D003              :                 if eq
+
+04:019C  4C3401            :                  jmp    .NewCommand
+                                             endif
+
+                             ;-------------------------------------------------------------------------------
+
+04:019F  C947              :                 cmp     #'G'
+04:01A1  D041              :                 if eq
+04:01A3  20B302            :                  jsr    .GetValue               ; Try to get address
+04:01A6  9014              :                  if cs
+04:01A8  6600              :                   ror   <REG_E                  ; None, perform reset
+04:01AA  AFFCFF00          :                   lda   >$00fffc
+04:01AE  8512              :                   sta   <VALUE+0
+04:01B0  AFFDFF00          :                   lda   >$00fffd
+04:01B4  8513              :                   sta   <VALUE+1
 
 Portable 65xx Assembler [19.05]
 
-04:0183  C90D              :                 cmp     #CR
-04:0185  F0A5              :                 beq     .NewCommand
+04:01B6  6414              :                   stz   <VALUE+2
+04:01B8  640A              :                   stz   <REG_DP+0               ; Clear DP
+04:01BA  640B              :                   stz   <REG_DP+1
+                                              endif
 
-                             ;-------------------------------------------------------------------------------
+04:01BC  78                :                  sei
+04:01BD  A608              :                  ldx    <REG_SP                 ; Restore user stack
+04:01BF  9A                :                  txs
 
-04:0187  C93F              :                 cmp     #'?'
-04:0189  D008              :                 if eq
-04:018B  A26C02            :                  ldx    #.StrHelp
-04:018E  20CC01            :                  jsr    .Print
-04:0191  8099              :                  bra    .NewCommand
+04:01C0  2400              :                  bit    <REG_E                  ; Push PBR if native mode
+04:01C2  3003              :                  if pl
+04:01C4  A514              :                   lda   <VALUE+2
+04:01C6  48                :                   pha
+                                              endif
+04:01C7  A513              :                  lda    <VALUE+1                ; Then PC
+04:01C9  48                :                  pha
+04:01CA  A512              :                  lda    <VALUE+0
+04:01CC  48                :                  pha
+04:01CD  A501              :                  lda    <REG_P                  ; And flags
+04:01CF  48                :                  pha
+04:01D0  A50B              :                  lda    <REG_DP+1               ; Push DP
+04:01D2  48                :                  pha
+04:01D3  A50A              :                  lda    <REG_DP+0
+04:01D5  48                :                  pha
+04:01D6  A604              :                  ldx    <REG_X                  ; Restore X, Y and C
+04:01D8  A406              :                  ldy    <REG_Y
+04:01DA  A503              :                  lda    <REG_C+1
+04:01DC  EB                :                  xba
+04:01DD  A502              :                  lda    <REG_C+0
+04:01DF  2600              :                  rol    <REG_E                  ; Restore CPU mode
+04:01E1  FB                :                  xce
+04:01E2  2B                :                  pld                            ; Pull DP
+04:01E3  40                :                  rti                            ; And start execution
                                              endif
 
                              ;-------------------------------------------------------------------------------
 
-04:0193  C944              :                 cmp     #'D'
-04:0195  D003              :                 if eq
+04:01E4  C94D              :                 cmp     #'M'
+04:01E6  F003828500        :                 if eq
+04:01EB  20B302            :                  jsr    .GetValue               ; Get start address
+04:01EE  B07D              :                  if cc
+04:01F0  203703            :                   jsr   .CopyToStart
+04:01F3  20B302            :                   jsr   .GetValue
+04:01F6  204403            :                   jsr   .CopyToEnd
 
-04:0197  4C2C01            :                  jmp    .NewCommand
+                                               repeat
+04:01F9  20B103            :                    jsr  .NewLine                ; Print the address
+04:01FC  A517              :                    lda  <ADDR_S+2
+04:01FE  20CF03            :                    jsr  .Hex2
+04:0201  A93A              :                    lda  #':'
+04:0203  20E703            :                    jsr  .UartTx
+04:0206  A516              :                    lda  <ADDR_S+1
+04:0208  EB                :                    xba
+04:0209  A515              :                    lda  <ADDR_S+0
+
+Portable 65xx Assembler [19.05]
+
+04:020B  20CA03            :                    jsr  .Hex4
+
+04:020E  A00000            :                    ldy  #0
+                                                repeat                       ; Then 16 bytes of data
+04:0211  A920              :                     lda #' '
+04:0213  20E703            :                     jsr .UartTx
+04:0216  B715              :                     lda [ADDR_S],y
+04:0218  20CF03            :                     jsr .Hex2
+04:021B  C8                :                     iny
+04:021C  C01000            :                     cpy #16
+04:021F  D0F0              :                    until eq
+
+04:0221  A920              :                    lda  #' '                    ; Show as ASCII
+04:0223  20E703            :                    jsr  .UartTx
+04:0226  A97C              :                    lda  #'|'
+04:0228  20E703            :                    jsr  .UartTx
+
+04:022B  A00000            :                    ldy  #0
+                                                repeat
+04:022E  B715              :                     lda [ADDR_S],y
+04:0230  C920              :                     cmp #' '
+04:0232  B002              :                     if cc
+04:0234  A92E              :                      lda #'.'
+                                                 endif
+04:0236  C97F              :                     cmp #DEL
+04:0238  9002              :                     if cs
+04:023A  A92E              :                      lda #'.'
+                                                 endif
+04:023C  20E703            :                     jsr .UartTx
+04:023F  C8                :                     iny
+04:0240  C01000            :                     cpy #16
+04:0243  D0E9              :                    until eq
+04:0245  A97C              :                    lda  #'|'
+04:0247  20E703            :                    jsr  .UartTx
+
+04:024A  18                :                    clc                          ; Update the address
+04:024B  98                :                    tya
+04:024C  6515              :                    adc  <ADDR_S+0
+04:024E  8515              :                    sta  <ADDR_S+0
+04:0250  9006              :                    if cs
+04:0252  E616              :                     inc <ADDR_S+1
+04:0254  D002              :                     if eq
+04:0256  E617              :                      inc <ADDR_S+2
+                                                 endif
+                                                endif
+
+04:0258  A517              :                    lda  <ADDR_S+2               ; Until the target address
+04:025A  C51A              :                    cmp  <ADDR_E+2
+04:025C  900A              :                    if cs
+04:025E  A516              :                     lda <ADDR_S+1
+04:0260  C519              :                     cmp <ADDR_E+1
+04:0262  9004              :                     if cs
+04:0264  A515              :                      lda <ADDR_S+0
+04:0266  C518              :                      cmp <ADDR_E+0
+
+Portable 65xx Assembler [19.05]
+
+                                                 endif
+                                                endif
+04:0268  908F              :                   until cs
+
+04:026A  4C3401            :                   jmp   .NewCommand
+                                              endif
+04:026D  4CAA02            :                  jmp    .ShowError
                                              endif
 
                              ;-------------------------------------------------------------------------------
 
-04:019A  C94D              :                 cmp     #'M'
-04:019C  D003              :                 if eq
-
-04:019E  4C2C01            :                  jmp    .NewCommand
+04:0270  C951              :                 cmp     #'Q'
+04:0272  D001              :                 if eq
+04:0274  DB                :                  stp
                                              endif
 
                              ;-------------------------------------------------------------------------------
 
-04:01A1  C951              :                 cmp     #'Q'
-04:01A3  D004              :                 if eq
-04:01A5  20D801            :                  jsr    .NewLine
-04:01A8  DB                :                  stp
+04:0275  C952              :                 cmp     #'R'
+04:0277  D003              :                 if eq
+04:0279  4C4100            :                  jmp    .ShowRegisters
                                              endif
 
                              ;-------------------------------------------------------------------------------
 
-04:01A9  C952              :                 cmp     #'R'
-04:01AB  D003              :                 if eq
+04:027C  C953              :                 cmp     #'S'
+04:027E  D000              :                 if eq
 
-04:01AD  4C3900            :                  jmp    .ShowRegisters
+                                             endif
+
+                             ;-------------------------------------------------------------------------------
+
+04:0280  C957              :                 cmp     #'W'
+04:0282  D026              :                 if eq
+04:0284  20B302            :                  jsr    .GetValue               ; Get start address
+04:0287  B01E              :                  if cc
+04:0289  203703            :                   jsr   .CopyToStart
+04:028C  20B302            :                   jsr   .GetValue
+04:028F  B013              :                   if cc
+04:0291  A512              :                    lda  <VALUE+0
+04:0293  8715              :                    sta  [ADDR_S]
+
+04:0295  E615              :                    inc  <ADDR_S+0
+04:0297  D006              :                    if eq
+04:0299  E616              :                     inc <ADDR_S+1
+04:029B  D002              :                     if eq
+04:029D  E616              :                      inc <ADDR_S+1
+                                                 endif
+                                                endif
+
+04:029F  A957              :                    lda  #'W'
+04:02A1  4C6B03            :                    jmp  .BuildCommand
+                                               endif
+04:02A4  4C3401            :                   jmp   .NewCommand
+
+Portable 65xx Assembler [19.05]
+
+                                              endif
+04:02A7  4CAA02            :                  jmp    .ShowError
                                              endif
 
                              ;-------------------------------------------------------------------------------
 
                              .ShowError
-04:01B0  A25202            :                 ldx     #.StrError              ; Print the error string
-04:01B3  20CC01            :                 jsr     .Print
-04:01B6  4C2C01            :                 jmp     .NewCommand
+04:02AA  A23104            :                 ldx     #.StrError              ; Print the error string
+04:02AD  20A503            :                 jsr     .Print
+04:02B0  4C3401            :                 jmp     .NewCommand
 
                              ;-------------------------------------------------------------------------------
 
+                             ; Parse a value in for [x[x]:]x[x][x][x] from the command line. if no bank is
+                             ; given use the current default bank.
+
                                              .longa  off
+                                             .longi  on
+                             .GetValue:
+04:02B3  6412              :                 stz     <VALUE+0                ; Clear result area
+04:02B5  6413              :                 stz     <VALUE+1
+04:02B7  A511              :                 lda     <DEFAULT                ; Assume default bank
+04:02B9  8514              :                 sta     <VALUE+2
+
+04:02BB  205103            :                 jsr     .SkipSpaces             ; Find first digit
+04:02BE  20FE02            :                 jsr     .AddHexDigit
+04:02C1  9001              :                 if cs
+04:02C3  60                :                  rts                            ; None, syntax error
+                                             endif
+04:02C4  205903            :                 jsr     .NextChar               ; Try for a second
+04:02C7  C93A              :                 cmp     #':'
+04:02C9  F00C              :                 beq     .FoundBank              ; End of bank
+04:02CB  20FE02            :                 jsr     .AddHexDigit
+04:02CE  B02C              :                 bcs     .ReturnValue
+04:02D0  205903            :                 jsr     .NextChar               ; Try for a third
+04:02D3  C93A              :                 cmp     #':'
+04:02D5  D01A              :                 if eq
+                             .FoundBank:
+04:02D7  A512              :                  lda    <VALUE+0                ; Set the bank
+04:02D9  8514              :                  sta    <VALUE+2
+04:02DB  6412              :                  stz    <VALUE+0
+04:02DD  205903            :                  jsr    .NextChar               ; Must be followed by digit
+04:02E0  20FE02            :                  jsr    .AddHexDigit
+04:02E3  9001              :                  if cs
+04:02E5  60                :                   rts
+                                              endif
+04:02E6  205903            :                  jsr    .NextChar
+04:02E9  20FE02            :                  jsr    .AddHexDigit
+04:02EC  B00E              :                  bcs    .ReturnValue
+04:02EE  205903            :                  jsr    .NextChar
+                                             endif
+04:02F1  20FE02            :                 jsr     .AddHexDigit            ; Must be offset within bank
+04:02F4  B006              :                 bcs     .ReturnValue
+04:02F6  205903            :                 jsr     .NextChar
 
 Portable 65xx Assembler [19.05]
 
-                                             .longi  on
-                             .GetAddr:
+04:02F9  20FE02            :                 jsr     .AddHexDigit
+04:02FC  18                : .ReturnValue:   clc
+04:02FD  60                :                 rts
+
+                             ; If the character in A is a hex digit then work it into the value being
+                             ; parsed from the line.
 
                                              .longa  off
-                                             .longi  on
-                             .GetWord:
+                             .AddHexDigit:
+04:02FE  201E03            :                 jsr     .HexDigit
+04:0301  B01A              :                 if cc
+04:0303  0612              :                  asl    <VALUE+0                ; Shift up the value
+04:0305  2613              :                  rol    <VALUE+1
+04:0307  0612              :                  asl    <VALUE+0
+04:0309  2613              :                  rol    <VALUE+1
+04:030B  0612              :                  asl    <VALUE+0
+04:030D  2613              :                  rol    <VALUE+1
+04:030F  0612              :                  asl    <VALUE+0
+04:0311  2613              :                  rol    <VALUE+1
+04:0313  18                :                  clc
+04:0314  6512              :                  adc    <VALUE+0
+04:0316  8512              :                  sta    <VALUE+0
+04:0318  9002              :                  if cs
+04:031A  E613              :                   inc   <VALUE+1
+                                              endif
+04:031C  18                :                  clc
+                                             endif
+04:031D  60                :                 rts
+
+                             ; Returns with the carry clear if the character in A on entry was a hexidecimal
+                             ; digit and replaces it with its value.
 
                                              .longa  off
-                                             .longi  on
-                             .GetByte:
+                             .HexDigit:
+04:031E  C930              :                 cmp     #'0'                    ; Numeric digit?
+04:0320  9013              :                 if cs
+04:0322  C93A              :                  cmp    #'9'+1
+04:0324  B003              :                  if cc
+04:0326  290F              :                   and   #$0f                    ; Yes, strip out low nybble
+04:0328  60                :                   rts
+                                              endif
+
+04:0329  C941              :                  cmp    #'A'                    ; Letter A thru F?
+04:032B  9008              :                  if cs
+04:032D  C947              :                   cmp   #'F'+1
+04:032F  B004              :                   if cc
+04:0331  E936              :                    sbc  #'A'-11                 ; Yes.
+04:0333  18                :                    clc
+04:0334  60                :                    rts
+                                               endif
+                                              endif
+                                             endif
+04:0335  38                :                 sec                             ; No.
+04:0336  60                :                 rts
+
+Portable 65xx Assembler [19.05]
+
+
+                                             .longa off
+                             .CopyToStart:
+04:0337  A512              :                 lda     <VALUE+0
+04:0339  8515              :                 sta     <ADDR_S+0
+04:033B  A513              :                 lda     <VALUE+1
+04:033D  8516              :                 sta     <ADDR_S+1
+04:033F  A514              :                 lda     <VALUE+2
+04:0341  8517              :                 sta     <ADDR_S+2
+04:0343  60                :                 rts
+
+                                             .longa off
+                             .CopyToEnd:
+04:0344  A512              :                 lda     <VALUE+0
+04:0346  8518              :                 sta     <ADDR_E+0
+04:0348  A513              :                 lda     <VALUE+1
+04:034A  8519              :                 sta     <ADDR_E+1
+04:034C  A514              :                 lda     <VALUE+2
+04:034E  851A              :                 sta     <ADDR_E+2
+04:0350  60                :                 rts
 
                              ;-------------------------------------------------------------------------------
+
+                             ; Return the next character on the command line line that is not a space.
 
                                              .longa  off
                                              .longi  on
                              .SkipSpaces:
                                              repeat
-04:01B9  B580              :                  lda    CMD_BUF,x               ; Fetch characters
-04:01BB  E8                :                  inx
-04:01BC  C920              :                  cmp #' '                       ; .. until a non-space
-04:01BE  F0F9              :                 until ne
-04:01C0  60                :                 rts                             ; Done
+04:0351  205903            :                  jsr    .NextChar
+04:0354  C920              :                  cmp #' '                       ; .. until a non-space
+04:0356  F0F9              :                 until ne
+04:0358  60                :                 rts                             ; Done
+
+                             ; Return the next character from the command line converting it to UPPER case.
 
                                              .longa  off
+                             .NextChar:
+04:0359  B580              :                 lda     <CMD_BUF,x              ; Fetch a character
+04:035B  C90D              :                 cmp     #CR
+04:035D  F001              :                 if ne
+04:035F  E8                :                  inx
+                                             endif
                              .ToUpper:
-04:01C1  C961              :                 cmp     #'a'                    ; If A is 'a'..'z'
-04:01C3  9006              :                 if cs
-04:01C5  C97B              :                  cmp    #'z'+1
-04:01C7  B002              :                  if cc
-04:01C9  E91F              :                   sbc   #31                     ; .. then capitalise
+04:0360  C961              :                 cmp     #'a'                    ; If A is 'a'..'z'
+04:0362  9006              :                 if cs
+04:0364  C97B              :                  cmp    #'z'+1
+04:0366  B002              :                  if cc
+04:0368  E91F              :                   sbc   #31                     ; .. then capitalise
                                               endif
                                              endif
-04:01CB  60                :                 rts
+04:036A  60                :                 rts
 
+                             ;-------------------------------------------------------------------------------
+
+Portable 65xx Assembler [19.05]
+
+
+                             .BuildCommand:
+04:036B  A20000            :                 ldx     #0
+04:036E  20A103            :                 jsr     .AddChar
+04:0371  A920              :                 lda     #' '
+04:0373  20A103            :                 jsr     .AddChar
+04:0376  A514              :                 lda     <VALUE+2
+04:0378  209503            :                 jsr     .AddHex2
+04:037B  A93A              :                 lda     #':'
+04:037D  20A103            :                 jsr     .AddChar
+04:0380  A513              :                 lda     <VALUE+1
+04:0382  209503            :                 jsr     .AddHex2
+04:0385  A512              :                 lda     <VALUE+0
+04:0387  209503            :                 jsr     .AddHex2
+04:038A  A920              :                 lda     #' '
+04:038C  20A103            :                 jsr     .AddChar
+04:038F  8A                :                 txa
+04:0390  8510              :                 sta     CMD_LEN
+04:0392  4C3601            :                 jmp     .OldCommand
+
+                             .AddHex2:
+04:0395  48                :                 pha
+04:0396  4A                :                 lsr     a
+04:0397  4A                :                 lsr     a
+04:0398  4A                :                 lsr     a
+04:0399  4A                :                 lsr     a
+04:039A  209E03            :                 jsr     .AddHex
+04:039D  68                :                 pla
+                             .AddHex:
+04:039E  20DD03            :                 jsr     .ToHex
+                             .AddChar:
+04:03A1  9580              :                 sta     <CMD_BUF,x
+04:03A3  E8                :                 inx
+04:03A4  60                :                 rts
 
                              ;-------------------------------------------------------------------------------
 
@@ -1175,13 +1487,13 @@ Portable 65xx Assembler [19.05]
                                              .longi  on
                              .Print:
                                              repeat
-04:01CC  BD0000            :                  lda    !0,x
-04:01CF  D001              :                  if eq
-04:01D1  60                :                   rts
+04:03A5  BD0000            :                  lda    !0,x
+04:03A8  D001              :                  if eq
+04:03AA  60                :                   rts
                                               endif
-04:01D2  200802            :                  jsr    .UartTx
-04:01D5  E8                :                  inx
-04:01D6  80F4              :                 forever
+04:03AB  20E703            :                  jsr    .UartTx
+04:03AE  E8                :                  inx
+04:03AF  80F4              :                 forever
 
                              ; Output a CR+LF character sequence to move the cursor to the next line.
 
@@ -1190,10 +1502,10 @@ Portable 65xx Assembler [19.05]
 
                                              .longa  off
                              .NewLine:
-04:01D8  A90D              :                 lda     #CR
-04:01DA  200802            :                 jsr     .UartTx
-04:01DD  A90A              :                 lda     #LF
-04:01DF  8027              :                 bra     .UartTx
+04:03B1  A90D              :                 lda     #CR
+04:03B3  20E703            :                 jsr     .UartTx
+04:03B6  A90A              :                 lda     #LF
+04:03B8  802D              :                 bra     .UartTx
 
                              ;-------------------------------------------------------------------------------
 
@@ -1201,63 +1513,69 @@ Portable 65xx Assembler [19.05]
 
                                              .longa  off
                              .HexCHi:
-04:01E1  A503              :                 lda     REG_C+1
-04:01E3  8011              :                 bra     .Hex2
+04:03BA  A503              :                 lda     <REG_C+1
+04:03BC  8011              :                 bra     .Hex2
 
                              ; Output the high byte of the X register in hex.
 
                                              .longa  off
                              .HexXHi:
-04:01E5  A505              :                 lda     REG_X+1
-04:01E7  800D              :                 bra     .Hex2
+04:03BE  A505              :                 lda     <REG_X+1
+04:03C0  800D              :                 bra     .Hex2
 
                              ; Output the high byte of the Y register in hex.
 
                                              .longa  off
                              .HexYHi:
-04:01E9  A507              :                 lda     REG_Y+1
-04:01EB  8009              :                 bra     .Hex2
+04:03C2  A507              :                 lda     <REG_Y+1
+04:03C4  8009              :                 bra     .Hex2
 
                              ; Output the high byte of the SP register in hex.
 
                                              .longa  off
                              .HexSPHi:
-04:01ED  A509              :                 lda     REG_SP+1
-04:01EF  8005              :                 bra     .Hex2
+04:03C6  A509              :                 lda     <REG_SP+1
+04:03C8  8005              :                 bra     .Hex2
 
                              ; Print the value in the C register in hex.
 
                                              .longa  off
                              .Hex4:
-04:01F1  EB                :                 xba                             ; Swap the high and low bytes
-04:01F2  20F601            :                 jsr     .Hex2                   ; Print the high byte
-04:01F5  EB                :                 xba                             ; Swap back then ..
+04:03CA  EB                :                 xba                             ; Swap the high and low bytes
+04:03CB  20CF03            :                 jsr     .Hex2                   ; Print the high byte
+04:03CE  EB                :                 xba                             ; Swap back then ..
 
                              ; Print the value in the A registers in hex.
 
                                              .longa  off
                              .Hex2:
-04:01F6  48                :                 pha                             ; Save the byte
-04:01F7  4A                :                 lsr     a                       ; Shift down the high nybble
-04:01F8  4A                :                 lsr     a
-04:01F9  4A                :                 lsr     a
-04:01FA  4A                :                 lsr     a
+04:03CF  48                :                 pha                             ; Save the byte
+04:03D0  4A                :                 lsr     a                       ; Shift down the high nybble
+04:03D1  4A                :                 lsr     a
+04:03D2  4A                :                 lsr     a
+04:03D3  4A                :                 lsr     a
 
 Portable 65xx Assembler [19.05]
 
-04:01FB  20FF01            :                 jsr     .Hex                    ; Print it
-04:01FE  68                :                 pla                             ; Recover the byte then ..
+04:03D4  20D803            :                 jsr     .Hex                    ; Print it
+04:03D7  68                :                 pla                             ; Recover the byte then ..
 
                              ; Print the value in the low nybble of A in hex.
 
                                              .longa  off
                              .Hex:
-04:01FF  290F              :                 and     #$0f                    ; Strip out the low nybble
-04:0201  F8                :                 sed                             ; And make printable
-04:0202  18                :                 clc
-04:0203  6990              :                 adc     #$90
-04:0205  6940              :                 adc     #$40
-04:0207  D8                :                 cld                             ; Then drop into ..
+04:03D8  20DD03            :                 jsr     .ToHex
+04:03DB  800A              :                 bra     .UartTx
+
+
+                             .ToHex
+04:03DD  290F              :                 and     #$0f                    ; Strip out the low nybble
+04:03DF  F8                :                 sed
+04:03E0  18                :                 clc                             ; And convert using BCD
+04:03E1  6990              :                 adc     #$90
+04:03E3  6940              :                 adc     #$40
+04:03E5  D8                :                 cld
+04:03E6  60                :                 rts
 
                              ;-------------------------------------------------------------------------------
 
@@ -1266,395 +1584,401 @@ Portable 65xx Assembler [19.05]
 
                                              .longa  ?
                              .UartTx:
-04:0208  2200F000          :                 jsl     $00f000
-04:020C  60                :                 rts
+04:03E7  2200F000          :                 jsl     $00f000
+04:03EB  60                :                 rts
 
                              ; Output an openning bracket character.
 
                                              .longa  off
                              .OpenBracket:
-04:020D  A95B              :                 lda     #'['
-04:020F  80F7              :                 bra     .UartTx
+04:03EC  A95B              :                 lda     #'['
+04:03EE  80F7              :                 bra     .UartTx
 
                              ; Output a closing bracket character.
 
                                              .longa  off
                              .CloseBracket:
-04:0211  A95D              :                 lda     #']'
-04:0213  80F3              :                 bra     .UartTx
+04:03F0  A95D              :                 lda     #']'
+04:03F2  80F3              :                 bra     .UartTx
 
                              ; Receive a character from UART performing a polled wait for data to arrive.
 
                                              .longa  ?
                              .UartRx:
-04:0215  2203F000          :                 jsl     >$00f003
-04:0219  60                :                 rts
+04:03F4  2203F000          :                 jsl     >$00f003
+04:03F8  60                :                 rts
 
                              ;-------------------------------------------------------------------------------
 
                              ; 65xx Flags Bits
-
-04:021A  435A4944584D564E  : .Flag:          .byte   'C','Z','I','D','X','M','V','N'
-04:0222  0102040810204080  : .Mask:          .byte   $01,$02,$04,$08,$10,$20,$40,$80
-
-                             ; Various Strings
-
 
 Portable 65xx Assembler [19.05]
 
-04:022A  50433D00          : .StrPC:         .byte   "PC=",0
-04:022E  20453D00          : .StrE:          .byte   " E=",0
-04:0232  20503D00          : .StrP:          .byte   " P=",0
-04:0236  20433D00          : .StrC:          .byte   " C=",0
-04:023A  20583D00          : .StrX:          .byte   " X=",0
-04:023E  20593D00          : .StrY:          .byte   " Y=",0
-04:0242  2044503D00        : .StrDP:         .byte   " DP=",0
-04:0247  2053503D00        : .StrSP:         .byte   " SP=",0
-04:024C  204442523D00      : .StrDBR:        .byte   " DBR=",0
 
-04:0252  0D0A4572726F7220> : .StrError:      .byte   CR,LF,"Error - Type ? for help",0
+04:03F9  435A4944584D564E  : .Flag:          .byte   'C','Z','I','D','X','M','V','N'
+04:0401  0102040810204080  : .Mask:          .byte   $01,$02,$04,$08,$10,$20,$40,$80
+
+                             ; Various Strings
+
+04:0409  50433D00          : .StrPC:         .byte   "PC=",0
+04:040D  20453D00          : .StrE:          .byte   " E=",0
+04:0411  20503D00          : .StrP:          .byte   " P=",0
+04:0415  20433D00          : .StrC:          .byte   " C=",0
+04:0419  20583D00          : .StrX:          .byte   " X=",0
+04:041D  20593D00          : .StrY:          .byte   " Y=",0
+04:0421  2044503D00        : .StrDP:         .byte   " DP=",0
+04:0426  2053503D00        : .StrSP:         .byte   " SP=",0
+04:042B  204442523D00      : .StrDBR:        .byte   " DBR=",0
+
+04:0431  0D0A4572726F7220> : .StrError:      .byte   CR,LF,"Error - Type ? for help",0
 
                              .StrHelp:
-04:026C  0D0A3F202D204469> :                 .byte   CR,LF,"? - Display this help"
-04:0283  00                :                 .byte   0
+04:044B  0D0A436F6D6D616E> :                 .byte   CR,LF,"Commands:"
+04:0456  0D0A47205B5B7878> :                 .byte   CR,LF,"G [[xx:]xxxx]            - Execute or RESET"
+04:0483  0D0A4D205B73733A> :                 .byte   CR,LF,"M [ss:]ssss [[ee:]eeee]  - Display memory"
+04:04AE  0D0A512020202020> :                 .byte   CR,LF,"Q                        - Stop emulator"
+04:04D8  0D0A522020202020> :                 .byte   CR,LF,"R                        - Show registers"
+04:0503  0D0A532E2E2E2020> :                 .byte   CR,LF,"S...                     - Load S28 record"
+04:052F  0D0A57205B73733A> :                 .byte   CR,LF,"W [ss:]ssss bb           - Write memory byte"
+04:055D  00                :                 .byte   0
 
                              ;-------------------------------------------------------------------------------
 
                              OPCODES:
-04:0284  16522852          :                 .byte   OP_BRK,OP_ORA,OP_COP,OP_ORA     ; 00
-04:0288  A0520452          :                 .byte   OP_TSB,OP_ORA,OP_ASL,OP_ORA
-04:028C  6252045E          :                 .byte   OP_PHP,OP_ORA,OP_ASL,OP_PHD
-04:0290  A0520452          :                 .byte   OP_TSB,OP_ORA,OP_ASL,OP_ORA
-04:0294  12525252          :                 .byte   OP_BPL,OP_ORA,OP_ORA,OP_ORA     ; 10
-04:0298  9E520452          :                 .byte   OP_TRB,OP_ORA,OP_ASL,OP_ORA
-04:029C  1E52369A          :                 .byte   OP_CLC,OP_ORA,OP_INC,OP_TCS
-04:02A0  9E520452          :                 .byte   OP_TRB,OP_ORA,OP_ASL,OP_ORA
-04:02A4  42024002          :                 .byte   OP_JSR,OP_AND,OP_JSL,OP_AND     ; 20
-04:02A8  0C027602          :                 .byte   OP_BIT,OP_AND,OP_ROL,OP_AND
-04:02AC  6E02766C          :                 .byte   OP_PLP,OP_AND,OP_ROL,OP_PLD
-04:02B0  0C027602          :                 .byte   OP_BIT,OP_AND,OP_ROL,OP_AND
-04:02B4  0E020202          :                 .byte   OP_BMI,OP_AND,OP_AND,OP_AND     ; 30
-04:02B8  0C027602          :                 .byte   OP_BIT,OP_AND,OP_ROL,OP_AND
-04:02BC  82022EA2          :                 .byte   OP_SEC,OP_AND,OP_DEC,OP_TSC
-04:02C0  0C027602          :                 .byte   OP_BIT,OP_AND,OP_ROL,OP_AND
-04:02C4  7A34B234          :                 .byte   OP_RTI,OP_EOR,OP_WDM,OP_EOR     ; 40
-04:02C8  4E344A34          :                 .byte   OP_MVP,OP_EOR,OP_LSR,OP_EOR
-04:02CC  5A344A60          :                 .byte   OP_PHA,OP_EOR,OP_LSR,OP_PHK
-04:02D0  3E344A34          :                 .byte   OP_JMP,OP_EOR,OP_LSR,OP_EOR
-04:02D4  1A343434          :                 .byte   OP_BVC,OP_EOR,OP_EOR,OP_EOR     ; 50
-04:02D8  4C344A34          :                 .byte   OP_MVN,OP_EOR,OP_LSR,OP_EOR
-04:02DC  22346698          :                 .byte   OP_CLI,OP_EOR,OP_PHY,OP_TCD
-04:02E0  3E344A34          :                 .byte   OP_JMP,OP_EOR,OP_LSR,OP_EOR
-04:02E4  7E005800          :                 .byte   OP_RTS,OP_ADC,OP_PER,OP_ADC     ; 60
-04:02E8  92007800          :                 .byte   OP_STZ,OP_ADC,OP_ROR,OP_ADC
-04:02EC  6800787C          :                 .byte   OP_PLA,OP_ADC,OP_ROR,OP_RTL
-04:02F0  3E007800          :                 .byte   OP_JMP,OP_ADC,OP_ROR,OP_ADC
-04:02F4  1C000000          :                 .byte   OP_BVS,OP_ADC,OP_ADC,OP_ADC     ; 70
-04:02F8  92007800          :                 .byte   OP_STZ,OP_ADC,OP_ROR,OP_ADC
-04:02FC  8600729C          :                 .byte   OP_SEI,OP_ADC,OP_PLY,OP_TDC
-04:0300  3E007800          :                 .byte   OP_JMP,OP_ADC,OP_ROR,OP_ADC
-04:0304  148A188A          :                 .byte   OP_BRA,OP_STA,OP_BRL,OP_STA     ; 80
-04:0308  908A8E8A          :                 .byte   OP_STY,OP_STA,OP_STX,OP_STA
-04:030C  320CA65C          :                 .byte   OP_DEY,OP_BIT,OP_TXA,OP_PHB
+04:055E  16522852          :                 .byte   OP_BRK,OP_ORA,OP_COP,OP_ORA     ; 00
+04:0562  A0520452          :                 .byte   OP_TSB,OP_ORA,OP_ASL,OP_ORA
+04:0566  6252045E          :                 .byte   OP_PHP,OP_ORA,OP_ASL,OP_PHD
+04:056A  A0520452          :                 .byte   OP_TSB,OP_ORA,OP_ASL,OP_ORA
+04:056E  12525252          :                 .byte   OP_BPL,OP_ORA,OP_ORA,OP_ORA     ; 10
+04:0572  9E520452          :                 .byte   OP_TRB,OP_ORA,OP_ASL,OP_ORA
+04:0576  1E52369A          :                 .byte   OP_CLC,OP_ORA,OP_INC,OP_TCS
+04:057A  9E520452          :                 .byte   OP_TRB,OP_ORA,OP_ASL,OP_ORA
+04:057E  42024002          :                 .byte   OP_JSR,OP_AND,OP_JSL,OP_AND     ; 20
+04:0582  0C027602          :                 .byte   OP_BIT,OP_AND,OP_ROL,OP_AND
+04:0586  6E02766C          :                 .byte   OP_PLP,OP_AND,OP_ROL,OP_PLD
+04:058A  0C027602          :                 .byte   OP_BIT,OP_AND,OP_ROL,OP_AND
+04:058E  0E020202          :                 .byte   OP_BMI,OP_AND,OP_AND,OP_AND     ; 30
+04:0592  0C027602          :                 .byte   OP_BIT,OP_AND,OP_ROL,OP_AND
+04:0596  82022EA2          :                 .byte   OP_SEC,OP_AND,OP_DEC,OP_TSC
+04:059A  0C027602          :                 .byte   OP_BIT,OP_AND,OP_ROL,OP_AND
+04:059E  7A34B234          :                 .byte   OP_RTI,OP_EOR,OP_WDM,OP_EOR     ; 40
+04:05A2  4E344A34          :                 .byte   OP_MVP,OP_EOR,OP_LSR,OP_EOR
+04:05A6  5A344A60          :                 .byte   OP_PHA,OP_EOR,OP_LSR,OP_PHK
+04:05AA  3E344A34          :                 .byte   OP_JMP,OP_EOR,OP_LSR,OP_EOR
+04:05AE  1A343434          :                 .byte   OP_BVC,OP_EOR,OP_EOR,OP_EOR     ; 50
+04:05B2  4C344A34          :                 .byte   OP_MVN,OP_EOR,OP_LSR,OP_EOR
+04:05B6  22346698          :                 .byte   OP_CLI,OP_EOR,OP_PHY,OP_TCD
 
 Portable 65xx Assembler [19.05]
 
-04:0310  908A8E8A          :                 .byte   OP_STY,OP_STA,OP_STX,OP_STA
-04:0314  068A8A8A          :                 .byte   OP_BCC,OP_STA,OP_STA,OP_STA     ; 90
-04:0318  908A8E8A          :                 .byte   OP_STY,OP_STA,OP_STX,OP_STA
-04:031C  AC8AA8AA          :                 .byte   OP_TYA,OP_STA,OP_TXS,OP_TXY
-04:0320  928A928A          :                 .byte   OP_STZ,OP_STA,OP_STZ,OP_STA
-04:0324  48444644          :                 .byte   OP_LDY,OP_LDA,OP_LDX,OP_LDA     ; A0
-04:0328  48444644          :                 .byte   OP_LDY,OP_LDA,OP_LDX,OP_LDA
-04:032C  9644946A          :                 .byte   OP_TAY,OP_LDA,OP_TAX,OP_PLB
-04:0330  48444644          :                 .byte   OP_LDY,OP_LDA,OP_LDX,OP_LDA
-04:0334  08444444          :                 .byte   OP_BCS,OP_LDA,OP_LDA,OP_LDA     ; B0
-04:0338  44484644          :                 .byte   OP_LDA,OP_LDY,OP_LDX,OP_LDA
-04:033C  2444A4AE          :                 .byte   OP_CLV,OP_LDA,OP_TSX,OP_TYX
-04:0340  48444644          :                 .byte   OP_LDY,OP_LDA,OP_LDX,OP_LDA
-04:0344  2C267426          :                 .byte   OP_CPY,OP_CMP,OP_REP,OP_CMP     ; C0
-04:0348  2C262E26          :                 .byte   OP_CPY,OP_CMP,OP_DEC,OP_CMP
-04:034C  3A2630B0          :                 .byte   OP_INY,OP_CMP,OP_DEX,OP_WAI
-04:0350  2C262E26          :                 .byte   OP_CPY,OP_CMP,OP_DEC,OP_CMP
-04:0354  10262626          :                 .byte   OP_BNE,OP_CMP,OP_CMP,OP_CMP     ; D0
-04:0358  56262E26          :                 .byte   OP_PEI,OP_CMP,OP_DEC,OP_CMP
-04:035C  2026648C          :                 .byte   OP_CLD,OP_CMP,OP_PHX,OP_STP
-04:0360  3C262E26          :                 .byte   OP_JML,OP_CMP,OP_DEC,OP_CMP
-04:0364  2A808880          :                 .byte   OP_CPX,OP_SBC,OP_SEP,OP_SBC     ; E0
-04:0368  2A803680          :                 .byte   OP_CPX,OP_SBC,OP_INC,OP_SBC
-04:036C  388050B4          :                 .byte   OP_INX,OP_SBC,OP_NOP,OP_XBA
-04:0370  2A803680          :                 .byte   OP_CPX,OP_SBC,OP_INC,OP_SBC
-04:0374  0A808080          :                 .byte   OP_BEQ,OP_SBC,OP_SBC,OP_SBC     ; F0
-04:0378  54803680          :                 .byte   OP_PEA,OP_SBC,OP_INC,OP_SBC
-04:037C  848070B6          :                 .byte   OP_SED,OP_SBC,OP_PLX,OP_XCE
-04:0380  42803680          :                 .byte   OP_JSR,OP_SBC,OP_INC,OP_SBC
+04:05BA  3E344A34          :                 .byte   OP_JMP,OP_EOR,OP_LSR,OP_EOR
+04:05BE  7E005800          :                 .byte   OP_RTS,OP_ADC,OP_PER,OP_ADC     ; 60
+04:05C2  92007800          :                 .byte   OP_STZ,OP_ADC,OP_ROR,OP_ADC
+04:05C6  6800787C          :                 .byte   OP_PLA,OP_ADC,OP_ROR,OP_RTL
+04:05CA  3E007800          :                 .byte   OP_JMP,OP_ADC,OP_ROR,OP_ADC
+04:05CE  1C000000          :                 .byte   OP_BVS,OP_ADC,OP_ADC,OP_ADC     ; 70
+04:05D2  92007800          :                 .byte   OP_STZ,OP_ADC,OP_ROR,OP_ADC
+04:05D6  8600729C          :                 .byte   OP_SEI,OP_ADC,OP_PLY,OP_TDC
+04:05DA  3E007800          :                 .byte   OP_JMP,OP_ADC,OP_ROR,OP_ADC
+04:05DE  148A188A          :                 .byte   OP_BRA,OP_STA,OP_BRL,OP_STA     ; 80
+04:05E2  908A8E8A          :                 .byte   OP_STY,OP_STA,OP_STX,OP_STA
+04:05E6  320CA65C          :                 .byte   OP_DEY,OP_BIT,OP_TXA,OP_PHB
+04:05EA  908A8E8A          :                 .byte   OP_STY,OP_STA,OP_STX,OP_STA
+04:05EE  068A8A8A          :                 .byte   OP_BCC,OP_STA,OP_STA,OP_STA     ; 90
+04:05F2  908A8E8A          :                 .byte   OP_STY,OP_STA,OP_STX,OP_STA
+04:05F6  AC8AA8AA          :                 .byte   OP_TYA,OP_STA,OP_TXS,OP_TXY
+04:05FA  928A928A          :                 .byte   OP_STZ,OP_STA,OP_STZ,OP_STA
+04:05FE  48444644          :                 .byte   OP_LDY,OP_LDA,OP_LDX,OP_LDA     ; A0
+04:0602  48444644          :                 .byte   OP_LDY,OP_LDA,OP_LDX,OP_LDA
+04:0606  9644946A          :                 .byte   OP_TAY,OP_LDA,OP_TAX,OP_PLB
+04:060A  48444644          :                 .byte   OP_LDY,OP_LDA,OP_LDX,OP_LDA
+04:060E  08444444          :                 .byte   OP_BCS,OP_LDA,OP_LDA,OP_LDA     ; B0
+04:0612  44484644          :                 .byte   OP_LDA,OP_LDY,OP_LDX,OP_LDA
+04:0616  2444A4AE          :                 .byte   OP_CLV,OP_LDA,OP_TSX,OP_TYX
+04:061A  48444644          :                 .byte   OP_LDY,OP_LDA,OP_LDX,OP_LDA
+04:061E  2C267426          :                 .byte   OP_CPY,OP_CMP,OP_REP,OP_CMP     ; C0
+04:0622  2C262E26          :                 .byte   OP_CPY,OP_CMP,OP_DEC,OP_CMP
+04:0626  3A2630B0          :                 .byte   OP_INY,OP_CMP,OP_DEX,OP_WAI
+04:062A  2C262E26          :                 .byte   OP_CPY,OP_CMP,OP_DEC,OP_CMP
+04:062E  10262626          :                 .byte   OP_BNE,OP_CMP,OP_CMP,OP_CMP     ; D0
+04:0632  56262E26          :                 .byte   OP_PEI,OP_CMP,OP_DEC,OP_CMP
+04:0636  2026648C          :                 .byte   OP_CLD,OP_CMP,OP_PHX,OP_STP
+04:063A  3C262E26          :                 .byte   OP_JML,OP_CMP,OP_DEC,OP_CMP
+04:063E  2A808880          :                 .byte   OP_CPX,OP_SBC,OP_SEP,OP_SBC     ; E0
+04:0642  2A803680          :                 .byte   OP_CPX,OP_SBC,OP_INC,OP_SBC
+04:0646  388050B4          :                 .byte   OP_INX,OP_SBC,OP_NOP,OP_XBA
+04:064A  2A803680          :                 .byte   OP_CPX,OP_SBC,OP_INC,OP_SBC
+04:064E  0A808080          :                 .byte   OP_BEQ,OP_SBC,OP_SBC,OP_SBC     ; F0
+04:0652  54803680          :                 .byte   OP_PEA,OP_SBC,OP_INC,OP_SBC
+04:0656  848070B6          :                 .byte   OP_SED,OP_SBC,OP_PLX,OP_XCE
+04:065A  42803680          :                 .byte   OP_JSR,OP_SBC,OP_INC,OP_SBC
 
                              MODES:
-04:0384  2E1E2E12          :                 .byte   MD_INT,MD_DIX,MD_INT,MD_STK     ; 00
-04:0388  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
-04:038C  242C0224          :                 .byte   MD_IMP,MD_IMM,MD_ACC,MD_IMP
-04:0390  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
-04:0394  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 10
-04:0398  10141422          :                 .byte   MD_DPG,MD_DPX,MD_DPX,MD_DLY
-04:039C  24060224          :                 .byte   MD_IMP,MD_ABY,MD_ACC,MD_IMP
-04:03A0  0004040A          :                 .byte   MD_ABS,MD_ABX,MD_ABX,MD_ALX
-04:03A4  001E0812          :                 .byte   MD_ABS,MD_DIX,MD_ALG,MD_STK     ; 20
-04:03A8  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
-04:03AC  242C0224          :                 .byte   MD_IMP,MD_IMM,MD_ACC,MD_IMP
-04:03B0  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
-04:03B4  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 30
-04:03B8  14141422          :                 .byte   MD_DPX,MD_DPX,MD_DPX,MD_DLY
-04:03BC  24060224          :                 .byte   MD_IMP,MD_ABY,MD_ACC,MD_IMP
-04:03C0  0404040A          :                 .byte   MD_ABX,MD_ABX,MD_ABX,MD_ALX
-04:03C4  241E2E12          :                 .byte   MD_IMP,MD_DIX,MD_INT,MD_STK     ; 40
-04:03C8  2A10101A          :                 .byte   MD_MOV,MD_DPG,MD_DPG,MD_DLI
-04:03CC  242C0224          :                 .byte   MD_IMP,MD_IMM,MD_ACC,MD_IMP
-04:03D0  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
-04:03D4  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 50
-04:03D8  2A141422          :                 .byte   MD_MOV,MD_DPX,MD_DPX,MD_DLY
-04:03DC  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
+04:065E  2E1E2E12          :                 .byte   MD_INT,MD_DIX,MD_INT,MD_STK     ; 00
+04:0662  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
+04:0666  242C0224          :                 .byte   MD_IMP,MD_IMM,MD_ACC,MD_IMP
+04:066A  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
+04:066E  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 10
+04:0672  10141422          :                 .byte   MD_DPG,MD_DPX,MD_DPX,MD_DLY
+04:0676  24060224          :                 .byte   MD_IMP,MD_ABY,MD_ACC,MD_IMP
+04:067A  0004040A          :                 .byte   MD_ABS,MD_ABX,MD_ABX,MD_ALX
+04:067E  001E0812          :                 .byte   MD_ABS,MD_DIX,MD_ALG,MD_STK     ; 20
+04:0682  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
+04:0686  242C0224          :                 .byte   MD_IMP,MD_IMM,MD_ACC,MD_IMP
 
 Portable 65xx Assembler [19.05]
 
-04:03E0  0804040A          :                 .byte   MD_ALG,MD_ABX,MD_ABX,MD_ALX
-04:03E4  241E2412          :                 .byte   MD_IMP,MD_DIX,MD_IMP,MD_STK     ; 60
-04:03E8  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
-04:03EC  242C0224          :                 .byte   MD_IMP,MD_IMM,MD_ACC,MD_IMP
-04:03F0  0C000008          :                 .byte   MD_AIN,MD_ABS,MD_ABS,MD_ALG
-04:03F4  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 70
-04:03F8  14141422          :                 .byte   MD_DPX,MD_DPX,MD_DPX,MD_DLY
-04:03FC  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
-04:0400  0E04040A          :                 .byte   MD_AIX,MD_ABX,MD_ABX,MD_ALX
-04:0404  261E2812          :                 .byte   MD_REL,MD_DIX,MD_RLG,MD_STK     ; 80
-04:0408  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
-04:040C  242C2424          :                 .byte   MD_IMP,MD_IMM,MD_IMP,MD_IMP
-04:0410  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
-04:0414  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 90
-04:0418  14141622          :                 .byte   MD_DPX,MD_DPX,MD_DPY,MD_DLY
-04:041C  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
-04:0420  0004040A          :                 .byte   MD_ABS,MD_ABX,MD_ABX,MD_ALX
-04:0424  301E3012          :                 .byte   MD_IMX,MD_DIX,MD_IMX,MD_STK     ; A0
-04:0428  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
-04:042C  242C2424          :                 .byte   MD_IMP,MD_IMM,MD_IMP,MD_IMP
-04:0430  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
-04:0434  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; B0
-04:0438  14141622          :                 .byte   MD_DPX,MD_DPX,MD_DPY,MD_DLY
-04:043C  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
-04:0440  0404060A          :                 .byte   MD_ABX,MD_ABX,MD_ABY,MD_ALX
-04:0444  301E2E12          :                 .byte   MD_IMX,MD_DIX,MD_INT,MD_STK     ; C0
-04:0448  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
-04:044C  242C2424          :                 .byte   MD_IMP,MD_IMM,MD_IMP,MD_IMP
-04:0450  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
-04:0454  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; D0
-04:0458  24141422          :                 .byte   MD_IMP,MD_DPX,MD_DPX,MD_DLY
-04:045C  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
-04:0460  0C04040A          :                 .byte   MD_AIN,MD_ABX,MD_ABX,MD_ALX
-04:0464  301E2E12          :                 .byte   MD_IMX,MD_DIX,MD_INT,MD_STK     ; E0
-04:0468  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
-04:046C  242C2424          :                 .byte   MD_IMP,MD_IMM,MD_IMP,MD_IMP
-04:0470  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
-04:0474  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; F0
-04:0478  24141422          :                 .byte   MD_IMP,MD_DPX,MD_DPX,MD_DLY
-04:047C  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
-04:0480  0E04040A          :                 .byte   MD_AIX,MD_ABX,MD_ABX,MD_ALX
+04:068A  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
+04:068E  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 30
+04:0692  14141422          :                 .byte   MD_DPX,MD_DPX,MD_DPX,MD_DLY
+04:0696  24060224          :                 .byte   MD_IMP,MD_ABY,MD_ACC,MD_IMP
+04:069A  0404040A          :                 .byte   MD_ABX,MD_ABX,MD_ABX,MD_ALX
+04:069E  241E2E12          :                 .byte   MD_IMP,MD_DIX,MD_INT,MD_STK     ; 40
+04:06A2  2A10101A          :                 .byte   MD_MOV,MD_DPG,MD_DPG,MD_DLI
+04:06A6  242C0224          :                 .byte   MD_IMP,MD_IMM,MD_ACC,MD_IMP
+04:06AA  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
+04:06AE  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 50
+04:06B2  2A141422          :                 .byte   MD_MOV,MD_DPX,MD_DPX,MD_DLY
+04:06B6  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
+04:06BA  0804040A          :                 .byte   MD_ALG,MD_ABX,MD_ABX,MD_ALX
+04:06BE  241E2412          :                 .byte   MD_IMP,MD_DIX,MD_IMP,MD_STK     ; 60
+04:06C2  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
+04:06C6  242C0224          :                 .byte   MD_IMP,MD_IMM,MD_ACC,MD_IMP
+04:06CA  0C000008          :                 .byte   MD_AIN,MD_ABS,MD_ABS,MD_ALG
+04:06CE  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 70
+04:06D2  14141422          :                 .byte   MD_DPX,MD_DPX,MD_DPX,MD_DLY
+04:06D6  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
+04:06DA  0E04040A          :                 .byte   MD_AIX,MD_ABX,MD_ABX,MD_ALX
+04:06DE  261E2812          :                 .byte   MD_REL,MD_DIX,MD_RLG,MD_STK     ; 80
+04:06E2  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
+04:06E6  242C2424          :                 .byte   MD_IMP,MD_IMM,MD_IMP,MD_IMP
+04:06EA  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
+04:06EE  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; 90
+04:06F2  14141622          :                 .byte   MD_DPX,MD_DPX,MD_DPY,MD_DLY
+04:06F6  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
+04:06FA  0004040A          :                 .byte   MD_ABS,MD_ABX,MD_ABX,MD_ALX
+04:06FE  301E3012          :                 .byte   MD_IMX,MD_DIX,MD_IMX,MD_STK     ; A0
+04:0702  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
+04:0706  242C2424          :                 .byte   MD_IMP,MD_IMM,MD_IMP,MD_IMP
+04:070A  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
+04:070E  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; B0
+04:0712  14141622          :                 .byte   MD_DPX,MD_DPX,MD_DPY,MD_DLY
+04:0716  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
+04:071A  0404060A          :                 .byte   MD_ABX,MD_ABX,MD_ABY,MD_ALX
+04:071E  301E2E12          :                 .byte   MD_IMX,MD_DIX,MD_INT,MD_STK     ; C0
+04:0722  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
+04:0726  242C2424          :                 .byte   MD_IMP,MD_IMM,MD_IMP,MD_IMP
+04:072A  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
+04:072E  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; D0
+04:0732  24141422          :                 .byte   MD_IMP,MD_DPX,MD_DPX,MD_DLY
+04:0736  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
+04:073A  0C04040A          :                 .byte   MD_AIN,MD_ABX,MD_ABX,MD_ALX
+04:073E  301E2E12          :                 .byte   MD_IMX,MD_DIX,MD_INT,MD_STK     ; E0
+04:0742  1010101A          :                 .byte   MD_DPG,MD_DPG,MD_DPG,MD_DLI
+04:0746  242C2424          :                 .byte   MD_IMP,MD_IMM,MD_IMP,MD_IMP
+04:074A  00000008          :                 .byte   MD_ABS,MD_ABS,MD_ABS,MD_ALG
+04:074E  2620181C          :                 .byte   MD_REL,MD_DIY,MD_DIN,MD_SKY     ; F0
+04:0752  24141422          :                 .byte   MD_IMP,MD_DPX,MD_DPX,MD_DLY
+04:0756  24062424          :                 .byte   MD_IMP,MD_ABY,MD_IMP,MD_IMP
+04:075A  0E04040A          :                 .byte   MD_AIX,MD_ABX,MD_ABX,MD_ALX
+
+
+Portable 65xx Assembler [19.05]
 
                              MNEMONICS:
                                              MNEM    'A','D','C'
-04:0484  8304              +                 .word   (('A'-'@')<<10)|(('D'-'@')<<5)|(('C'-'@')<<0)
+04:075E  8304              +                 .word   (('A'-'@')<<10)|(('D'-'@')<<5)|(('C'-'@')<<0)
                                              MNEM    'A','N','D'
-04:0486  C405              +                 .word   (('A'-'@')<<10)|(('N'-'@')<<5)|(('D'-'@')<<0)
+04:0760  C405              +                 .word   (('A'-'@')<<10)|(('N'-'@')<<5)|(('D'-'@')<<0)
                                              MNEM    'A','S','L'
-04:0488  6C06              +                 .word   (('A'-'@')<<10)|(('S'-'@')<<5)|(('L'-'@')<<0)
+04:0762  6C06              +                 .word   (('A'-'@')<<10)|(('S'-'@')<<5)|(('L'-'@')<<0)
                                              MNEM    'B','C','C'
-04:048A  6308              +                 .word   (('B'-'@')<<10)|(('C'-'@')<<5)|(('C'-'@')<<0)
+04:0764  6308              +                 .word   (('B'-'@')<<10)|(('C'-'@')<<5)|(('C'-'@')<<0)
                                              MNEM    'B','C','S'
-04:048C  7308              +                 .word   (('B'-'@')<<10)|(('C'-'@')<<5)|(('S'-'@')<<0)
+04:0766  7308              +                 .word   (('B'-'@')<<10)|(('C'-'@')<<5)|(('S'-'@')<<0)
                                              MNEM    'B','E','Q'
-
-Portable 65xx Assembler [19.05]
-
-04:048E  B108              +                 .word   (('B'-'@')<<10)|(('E'-'@')<<5)|(('Q'-'@')<<0)
+04:0768  B108              +                 .word   (('B'-'@')<<10)|(('E'-'@')<<5)|(('Q'-'@')<<0)
                                              MNEM    'B','I','T'
-04:0490  3409              +                 .word   (('B'-'@')<<10)|(('I'-'@')<<5)|(('T'-'@')<<0)
+04:076A  3409              +                 .word   (('B'-'@')<<10)|(('I'-'@')<<5)|(('T'-'@')<<0)
                                              MNEM    'B','M','I'
-04:0492  A909              +                 .word   (('B'-'@')<<10)|(('M'-'@')<<5)|(('I'-'@')<<0)
+04:076C  A909              +                 .word   (('B'-'@')<<10)|(('M'-'@')<<5)|(('I'-'@')<<0)
                                              MNEM    'B','N','E'
-04:0494  C509              +                 .word   (('B'-'@')<<10)|(('N'-'@')<<5)|(('E'-'@')<<0)
+04:076E  C509              +                 .word   (('B'-'@')<<10)|(('N'-'@')<<5)|(('E'-'@')<<0)
                                              MNEM    'B','P','L'
-04:0496  0C0A              +                 .word   (('B'-'@')<<10)|(('P'-'@')<<5)|(('L'-'@')<<0)
+04:0770  0C0A              +                 .word   (('B'-'@')<<10)|(('P'-'@')<<5)|(('L'-'@')<<0)
                                              MNEM    'B','R','A'
-04:0498  410A              +                 .word   (('B'-'@')<<10)|(('R'-'@')<<5)|(('A'-'@')<<0)
+04:0772  410A              +                 .word   (('B'-'@')<<10)|(('R'-'@')<<5)|(('A'-'@')<<0)
                                              MNEM    'B','R','K'
-04:049A  4B0A              +                 .word   (('B'-'@')<<10)|(('R'-'@')<<5)|(('K'-'@')<<0)
+04:0774  4B0A              +                 .word   (('B'-'@')<<10)|(('R'-'@')<<5)|(('K'-'@')<<0)
                                              MNEM    'B','R','L'
-04:049C  4C0A              +                 .word   (('B'-'@')<<10)|(('R'-'@')<<5)|(('L'-'@')<<0)
+04:0776  4C0A              +                 .word   (('B'-'@')<<10)|(('R'-'@')<<5)|(('L'-'@')<<0)
                                              MNEM    'B','V','C'
-04:049E  C30A              +                 .word   (('B'-'@')<<10)|(('V'-'@')<<5)|(('C'-'@')<<0)
+04:0778  C30A              +                 .word   (('B'-'@')<<10)|(('V'-'@')<<5)|(('C'-'@')<<0)
                                              MNEM    'B','V','S'
-04:04A0  D30A              +                 .word   (('B'-'@')<<10)|(('V'-'@')<<5)|(('S'-'@')<<0)
+04:077A  D30A              +                 .word   (('B'-'@')<<10)|(('V'-'@')<<5)|(('S'-'@')<<0)
                                              MNEM    'C','L','C'
-04:04A2  830D              +                 .word   (('C'-'@')<<10)|(('L'-'@')<<5)|(('C'-'@')<<0)
+04:077C  830D              +                 .word   (('C'-'@')<<10)|(('L'-'@')<<5)|(('C'-'@')<<0)
                                              MNEM    'C','L','D'
-04:04A4  840D              +                 .word   (('C'-'@')<<10)|(('L'-'@')<<5)|(('D'-'@')<<0)
+04:077E  840D              +                 .word   (('C'-'@')<<10)|(('L'-'@')<<5)|(('D'-'@')<<0)
                                              MNEM    'C','L','I'
-04:04A6  890D              +                 .word   (('C'-'@')<<10)|(('L'-'@')<<5)|(('I'-'@')<<0)
+04:0780  890D              +                 .word   (('C'-'@')<<10)|(('L'-'@')<<5)|(('I'-'@')<<0)
                                              MNEM    'C','L','V'
-04:04A8  960D              +                 .word   (('C'-'@')<<10)|(('L'-'@')<<5)|(('V'-'@')<<0)
+04:0782  960D              +                 .word   (('C'-'@')<<10)|(('L'-'@')<<5)|(('V'-'@')<<0)
                                              MNEM    'C','M','P'
-04:04AA  B00D              +                 .word   (('C'-'@')<<10)|(('M'-'@')<<5)|(('P'-'@')<<0)
+04:0784  B00D              +                 .word   (('C'-'@')<<10)|(('M'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'C','O','P'
-04:04AC  F00D              +                 .word   (('C'-'@')<<10)|(('O'-'@')<<5)|(('P'-'@')<<0)
+04:0786  F00D              +                 .word   (('C'-'@')<<10)|(('O'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'C','P','X'
-04:04AE  180E              +                 .word   (('C'-'@')<<10)|(('P'-'@')<<5)|(('X'-'@')<<0)
+04:0788  180E              +                 .word   (('C'-'@')<<10)|(('P'-'@')<<5)|(('X'-'@')<<0)
                                              MNEM    'C','P','Y'
-04:04B0  190E              +                 .word   (('C'-'@')<<10)|(('P'-'@')<<5)|(('Y'-'@')<<0)
+04:078A  190E              +                 .word   (('C'-'@')<<10)|(('P'-'@')<<5)|(('Y'-'@')<<0)
                                              MNEM    'D','E','C'
-04:04B2  A310              +                 .word   (('D'-'@')<<10)|(('E'-'@')<<5)|(('C'-'@')<<0)
+04:078C  A310              +                 .word   (('D'-'@')<<10)|(('E'-'@')<<5)|(('C'-'@')<<0)
                                              MNEM    'D','E','X'
-04:04B4  B810              +                 .word   (('D'-'@')<<10)|(('E'-'@')<<5)|(('X'-'@')<<0)
+04:078E  B810              +                 .word   (('D'-'@')<<10)|(('E'-'@')<<5)|(('X'-'@')<<0)
                                              MNEM    'D','E','Y'
-04:04B6  B910              +                 .word   (('D'-'@')<<10)|(('E'-'@')<<5)|(('Y'-'@')<<0)
+04:0790  B910              +                 .word   (('D'-'@')<<10)|(('E'-'@')<<5)|(('Y'-'@')<<0)
                                              MNEM    'E','O','R'
-04:04B8  F215              +                 .word   (('E'-'@')<<10)|(('O'-'@')<<5)|(('R'-'@')<<0)
+
+Portable 65xx Assembler [19.05]
+
+04:0792  F215              +                 .word   (('E'-'@')<<10)|(('O'-'@')<<5)|(('R'-'@')<<0)
                                              MNEM    'I','N','C'
-04:04BA  C325              +                 .word   (('I'-'@')<<10)|(('N'-'@')<<5)|(('C'-'@')<<0)
+04:0794  C325              +                 .word   (('I'-'@')<<10)|(('N'-'@')<<5)|(('C'-'@')<<0)
                                              MNEM    'I','N','X'
-04:04BC  D825              +                 .word   (('I'-'@')<<10)|(('N'-'@')<<5)|(('X'-'@')<<0)
+04:0796  D825              +                 .word   (('I'-'@')<<10)|(('N'-'@')<<5)|(('X'-'@')<<0)
                                              MNEM    'I','N','Y'
-04:04BE  D925              +                 .word   (('I'-'@')<<10)|(('N'-'@')<<5)|(('Y'-'@')<<0)
+04:0798  D925              +                 .word   (('I'-'@')<<10)|(('N'-'@')<<5)|(('Y'-'@')<<0)
                                              MNEM    'J','M','L'
-04:04C0  AC29              +                 .word   (('J'-'@')<<10)|(('M'-'@')<<5)|(('L'-'@')<<0)
+04:079A  AC29              +                 .word   (('J'-'@')<<10)|(('M'-'@')<<5)|(('L'-'@')<<0)
                                              MNEM    'J','M','P'
-04:04C2  B029              +                 .word   (('J'-'@')<<10)|(('M'-'@')<<5)|(('P'-'@')<<0)
+04:079C  B029              +                 .word   (('J'-'@')<<10)|(('M'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'J','S','L'
-
-Portable 65xx Assembler [19.05]
-
-04:04C4  6C2A              +                 .word   (('J'-'@')<<10)|(('S'-'@')<<5)|(('L'-'@')<<0)
+04:079E  6C2A              +                 .word   (('J'-'@')<<10)|(('S'-'@')<<5)|(('L'-'@')<<0)
                                              MNEM    'J','S','R'
-04:04C6  722A              +                 .word   (('J'-'@')<<10)|(('S'-'@')<<5)|(('R'-'@')<<0)
+04:07A0  722A              +                 .word   (('J'-'@')<<10)|(('S'-'@')<<5)|(('R'-'@')<<0)
                                              MNEM    'L','D','A'
-04:04C8  8130              +                 .word   (('L'-'@')<<10)|(('D'-'@')<<5)|(('A'-'@')<<0)
+04:07A2  8130              +                 .word   (('L'-'@')<<10)|(('D'-'@')<<5)|(('A'-'@')<<0)
                                              MNEM    'L','D','X'
-04:04CA  9830              +                 .word   (('L'-'@')<<10)|(('D'-'@')<<5)|(('X'-'@')<<0)
+04:07A4  9830              +                 .word   (('L'-'@')<<10)|(('D'-'@')<<5)|(('X'-'@')<<0)
                                              MNEM    'L','D','Y'
-04:04CC  9930              +                 .word   (('L'-'@')<<10)|(('D'-'@')<<5)|(('Y'-'@')<<0)
+04:07A6  9930              +                 .word   (('L'-'@')<<10)|(('D'-'@')<<5)|(('Y'-'@')<<0)
                                              MNEM    'L','S','R'
-04:04CE  7232              +                 .word   (('L'-'@')<<10)|(('S'-'@')<<5)|(('R'-'@')<<0)
+04:07A8  7232              +                 .word   (('L'-'@')<<10)|(('S'-'@')<<5)|(('R'-'@')<<0)
                                              MNEM    'M','V','N'
-04:04D0  CE36              +                 .word   (('M'-'@')<<10)|(('V'-'@')<<5)|(('N'-'@')<<0)
+04:07AA  CE36              +                 .word   (('M'-'@')<<10)|(('V'-'@')<<5)|(('N'-'@')<<0)
                                              MNEM    'M','V','P'
-04:04D2  D036              +                 .word   (('M'-'@')<<10)|(('V'-'@')<<5)|(('P'-'@')<<0)
+04:07AC  D036              +                 .word   (('M'-'@')<<10)|(('V'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'N','O','P'
-04:04D4  F039              +                 .word   (('N'-'@')<<10)|(('O'-'@')<<5)|(('P'-'@')<<0)
+04:07AE  F039              +                 .word   (('N'-'@')<<10)|(('O'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'O','R','A'
-04:04D6  413E              +                 .word   (('O'-'@')<<10)|(('R'-'@')<<5)|(('A'-'@')<<0)
+04:07B0  413E              +                 .word   (('O'-'@')<<10)|(('R'-'@')<<5)|(('A'-'@')<<0)
                                              MNEM    'P','E','A'
-04:04D8  A140              +                 .word   (('P'-'@')<<10)|(('E'-'@')<<5)|(('A'-'@')<<0)
+04:07B2  A140              +                 .word   (('P'-'@')<<10)|(('E'-'@')<<5)|(('A'-'@')<<0)
                                              MNEM    'P','E','I'
-04:04DA  A940              +                 .word   (('P'-'@')<<10)|(('E'-'@')<<5)|(('I'-'@')<<0)
+04:07B4  A940              +                 .word   (('P'-'@')<<10)|(('E'-'@')<<5)|(('I'-'@')<<0)
                                              MNEM    'P','E','R'
-04:04DC  B240              +                 .word   (('P'-'@')<<10)|(('E'-'@')<<5)|(('R'-'@')<<0)
+04:07B6  B240              +                 .word   (('P'-'@')<<10)|(('E'-'@')<<5)|(('R'-'@')<<0)
                                              MNEM    'P','H','A'
-04:04DE  0141              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('A'-'@')<<0)
+04:07B8  0141              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('A'-'@')<<0)
                                              MNEM    'P','H','B'
-04:04E0  0241              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('B'-'@')<<0)
+04:07BA  0241              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('B'-'@')<<0)
                                              MNEM    'P','H','D'
-04:04E2  0441              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('D'-'@')<<0)
+04:07BC  0441              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('D'-'@')<<0)
                                              MNEM    'P','H','K'
-04:04E4  0B41              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('K'-'@')<<0)
+04:07BE  0B41              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('K'-'@')<<0)
                                              MNEM    'P','H','P'
-04:04E6  1041              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('P'-'@')<<0)
+04:07C0  1041              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'P','H','X'
-04:04E8  1841              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('X'-'@')<<0)
+04:07C2  1841              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('X'-'@')<<0)
                                              MNEM    'P','H','Y'
-04:04EA  1941              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('Y'-'@')<<0)
+04:07C4  1941              +                 .word   (('P'-'@')<<10)|(('H'-'@')<<5)|(('Y'-'@')<<0)
                                              MNEM    'P','L','A'
-04:04EC  8141              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('A'-'@')<<0)
+04:07C6  8141              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('A'-'@')<<0)
                                              MNEM    'P','L','B'
-04:04EE  8241              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('B'-'@')<<0)
+
+Portable 65xx Assembler [19.05]
+
+04:07C8  8241              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('B'-'@')<<0)
                                              MNEM    'P','L','D'
-04:04F0  8441              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('D'-'@')<<0)
+04:07CA  8441              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('D'-'@')<<0)
                                              MNEM    'P','L','P'
-04:04F2  9041              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('P'-'@')<<0)
+04:07CC  9041              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'P','L','X'
-04:04F4  9841              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('X'-'@')<<0)
+04:07CE  9841              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('X'-'@')<<0)
                                              MNEM    'P','L','Y'
-04:04F6  9941              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('Y'-'@')<<0)
+04:07D0  9941              +                 .word   (('P'-'@')<<10)|(('L'-'@')<<5)|(('Y'-'@')<<0)
                                              MNEM    'R','E','P'
-04:04F8  B048              +                 .word   (('R'-'@')<<10)|(('E'-'@')<<5)|(('P'-'@')<<0)
+04:07D2  B048              +                 .word   (('R'-'@')<<10)|(('E'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'R','O','L'
-
-Portable 65xx Assembler [19.05]
-
-04:04FA  EC49              +                 .word   (('R'-'@')<<10)|(('O'-'@')<<5)|(('L'-'@')<<0)
+04:07D4  EC49              +                 .word   (('R'-'@')<<10)|(('O'-'@')<<5)|(('L'-'@')<<0)
                                              MNEM    'R','O','R'
-04:04FC  F249              +                 .word   (('R'-'@')<<10)|(('O'-'@')<<5)|(('R'-'@')<<0)
+04:07D6  F249              +                 .word   (('R'-'@')<<10)|(('O'-'@')<<5)|(('R'-'@')<<0)
                                              MNEM    'R','T','I'
-04:04FE  894A              +                 .word   (('R'-'@')<<10)|(('T'-'@')<<5)|(('I'-'@')<<0)
+04:07D8  894A              +                 .word   (('R'-'@')<<10)|(('T'-'@')<<5)|(('I'-'@')<<0)
                                              MNEM    'R','T','L'
-04:0500  8C4A              +                 .word   (('R'-'@')<<10)|(('T'-'@')<<5)|(('L'-'@')<<0)
+04:07DA  8C4A              +                 .word   (('R'-'@')<<10)|(('T'-'@')<<5)|(('L'-'@')<<0)
                                              MNEM    'R','T','S'
-04:0502  934A              +                 .word   (('R'-'@')<<10)|(('T'-'@')<<5)|(('S'-'@')<<0)
+04:07DC  934A              +                 .word   (('R'-'@')<<10)|(('T'-'@')<<5)|(('S'-'@')<<0)
                                              MNEM    'S','B','C'
-04:0504  434C              +                 .word   (('S'-'@')<<10)|(('B'-'@')<<5)|(('C'-'@')<<0)
+04:07DE  434C              +                 .word   (('S'-'@')<<10)|(('B'-'@')<<5)|(('C'-'@')<<0)
                                              MNEM    'S','E','C'
-04:0506  A34C              +                 .word   (('S'-'@')<<10)|(('E'-'@')<<5)|(('C'-'@')<<0)
+04:07E0  A34C              +                 .word   (('S'-'@')<<10)|(('E'-'@')<<5)|(('C'-'@')<<0)
                                              MNEM    'S','E','D'
-04:0508  A44C              +                 .word   (('S'-'@')<<10)|(('E'-'@')<<5)|(('D'-'@')<<0)
+04:07E2  A44C              +                 .word   (('S'-'@')<<10)|(('E'-'@')<<5)|(('D'-'@')<<0)
                                              MNEM    'S','E','I'
-04:050A  A94C              +                 .word   (('S'-'@')<<10)|(('E'-'@')<<5)|(('I'-'@')<<0)
+04:07E4  A94C              +                 .word   (('S'-'@')<<10)|(('E'-'@')<<5)|(('I'-'@')<<0)
                                              MNEM    'S','E','P'
-04:050C  B04C              +                 .word   (('S'-'@')<<10)|(('E'-'@')<<5)|(('P'-'@')<<0)
+04:07E6  B04C              +                 .word   (('S'-'@')<<10)|(('E'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'S','T','A'
-04:050E  814E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('A'-'@')<<0)
+04:07E8  814E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('A'-'@')<<0)
                                              MNEM    'S','T','P'
-04:0510  904E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('P'-'@')<<0)
+04:07EA  904E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('P'-'@')<<0)
                                              MNEM    'S','T','X'
-04:0512  984E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('X'-'@')<<0)
+04:07EC  984E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('X'-'@')<<0)
                                              MNEM    'S','T','Y'
-04:0514  994E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('Y'-'@')<<0)
+04:07EE  994E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('Y'-'@')<<0)
                                              MNEM    'S','T','Z'
-04:0516  9A4E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('Z'-'@')<<0)
+04:07F0  9A4E              +                 .word   (('S'-'@')<<10)|(('T'-'@')<<5)|(('Z'-'@')<<0)
                                              MNEM    'T','A','X'
-04:0518  3850              +                 .word   (('T'-'@')<<10)|(('A'-'@')<<5)|(('X'-'@')<<0)
+04:07F2  3850              +                 .word   (('T'-'@')<<10)|(('A'-'@')<<5)|(('X'-'@')<<0)
                                              MNEM    'T','A','Y'
-04:051A  3950              +                 .word   (('T'-'@')<<10)|(('A'-'@')<<5)|(('Y'-'@')<<0)
+04:07F4  3950              +                 .word   (('T'-'@')<<10)|(('A'-'@')<<5)|(('Y'-'@')<<0)
                                              MNEM    'T','C','D'
-04:051C  6450              +                 .word   (('T'-'@')<<10)|(('C'-'@')<<5)|(('D'-'@')<<0)
+04:07F6  6450              +                 .word   (('T'-'@')<<10)|(('C'-'@')<<5)|(('D'-'@')<<0)
                                              MNEM    'T','C','S'
-04:051E  7350              +                 .word   (('T'-'@')<<10)|(('C'-'@')<<5)|(('S'-'@')<<0)
+04:07F8  7350              +                 .word   (('T'-'@')<<10)|(('C'-'@')<<5)|(('S'-'@')<<0)
                                              MNEM    'T','D','C'
-04:0520  8350              +                 .word   (('T'-'@')<<10)|(('D'-'@')<<5)|(('C'-'@')<<0)
+04:07FA  8350              +                 .word   (('T'-'@')<<10)|(('D'-'@')<<5)|(('C'-'@')<<0)
                                              MNEM    'T','R','B'
-04:0522  4252              +                 .word   (('T'-'@')<<10)|(('R'-'@')<<5)|(('B'-'@')<<0)
+04:07FC  4252              +                 .word   (('T'-'@')<<10)|(('R'-'@')<<5)|(('B'-'@')<<0)
                                              MNEM    'T','S','B'
-04:0524  6252              +                 .word   (('T'-'@')<<10)|(('S'-'@')<<5)|(('B'-'@')<<0)
-                                             MNEM    'T','S','C'
-04:0526  6352              +                 .word   (('T'-'@')<<10)|(('S'-'@')<<5)|(('C'-'@')<<0)
-                                             MNEM    'T','S','X'
-04:0528  7852              +                 .word   (('T'-'@')<<10)|(('S'-'@')<<5)|(('X'-'@')<<0)
-                                             MNEM    'T','X','A'
-04:052A  0153              +                 .word   (('T'-'@')<<10)|(('X'-'@')<<5)|(('A'-'@')<<0)
-                                             MNEM    'T','X','S'
-04:052C  1353              +                 .word   (('T'-'@')<<10)|(('X'-'@')<<5)|(('S'-'@')<<0)
-                                             MNEM    'T','X','Y'
-04:052E  1953              +                 .word   (('T'-'@')<<10)|(('X'-'@')<<5)|(('Y'-'@')<<0)
-                                             MNEM    'T','Y','A'
 
 Portable 65xx Assembler [19.05]
 
-04:0530  2153              +                 .word   (('T'-'@')<<10)|(('Y'-'@')<<5)|(('A'-'@')<<0)
+04:07FE  6252              +                 .word   (('T'-'@')<<10)|(('S'-'@')<<5)|(('B'-'@')<<0)
+                                             MNEM    'T','S','C'
+04:0800  6352              +                 .word   (('T'-'@')<<10)|(('S'-'@')<<5)|(('C'-'@')<<0)
+                                             MNEM    'T','S','X'
+04:0802  7852              +                 .word   (('T'-'@')<<10)|(('S'-'@')<<5)|(('X'-'@')<<0)
+                                             MNEM    'T','X','A'
+04:0804  0153              +                 .word   (('T'-'@')<<10)|(('X'-'@')<<5)|(('A'-'@')<<0)
+                                             MNEM    'T','X','S'
+04:0806  1353              +                 .word   (('T'-'@')<<10)|(('X'-'@')<<5)|(('S'-'@')<<0)
+                                             MNEM    'T','X','Y'
+04:0808  1953              +                 .word   (('T'-'@')<<10)|(('X'-'@')<<5)|(('Y'-'@')<<0)
+                                             MNEM    'T','Y','A'
+04:080A  2153              +                 .word   (('T'-'@')<<10)|(('Y'-'@')<<5)|(('A'-'@')<<0)
                                              MNEM    'T','Y','X'
-04:0532  3853              +                 .word   (('T'-'@')<<10)|(('Y'-'@')<<5)|(('X'-'@')<<0)
+04:080C  3853              +                 .word   (('T'-'@')<<10)|(('Y'-'@')<<5)|(('X'-'@')<<0)
                                              MNEM    'W','A','I'
-04:0534  295C              +                 .word   (('W'-'@')<<10)|(('A'-'@')<<5)|(('I'-'@')<<0)
+04:080E  295C              +                 .word   (('W'-'@')<<10)|(('A'-'@')<<5)|(('I'-'@')<<0)
                                              MNEM    'W','D','M'
-04:0536  8D5C              +                 .word   (('W'-'@')<<10)|(('D'-'@')<<5)|(('M'-'@')<<0)
+04:0810  8D5C              +                 .word   (('W'-'@')<<10)|(('D'-'@')<<5)|(('M'-'@')<<0)
                                              MNEM    'X','B','A'
-04:0538  4160              +                 .word   (('X'-'@')<<10)|(('B'-'@')<<5)|(('A'-'@')<<0)
+04:0812  4160              +                 .word   (('X'-'@')<<10)|(('B'-'@')<<5)|(('A'-'@')<<0)
                                              MNEM    'X','C','E'
-04:053A  6560              +                 .word   (('X'-'@')<<10)|(('C'-'@')<<5)|(('E'-'@')<<0)
+04:0814  6560              +                 .word   (('X'-'@')<<10)|(('C'-'@')<<5)|(('E'-'@')<<0)
 
                                              .end
 
@@ -1663,30 +1987,30 @@ Portable 65xx Assembler [19.05]
 
 Symbol Table
 
-ADDRL                            0000EE15  | MD_ABS                           00000000
-ADDRS                            0000EE12  | OP_ADC                           00000000
-BANK                             0000EE11  | WDM_IER_RD                       00000000
-BEL                              00000007  | __6501__                         00000000
-BOOT_MESSAGE                     0000F034  | __6502__                         00000000
-BRKN                             0000F0C9  | __65832__                        00000000
-BS                               00000008  | __65C02__                        00000000
-BYTES_PER_LINE                   00000064  | __65SC02__                       00000000
-B_FLAG                           00000010  | C_FLAG                           00000001
-CMD_BUF                          0000EE80  | INT_CLK                          00000001
-CMD_LEN                          0000EE10  | WDM_IER_WR                       00000001
-COPE                             0000F006  | __65816__                        00000001
-COPN                             0000F007  | INT_U1RX                         00000002
-CR                               0000000D  | MD_ACC                           00000002
-C_FLAG                           00000001  | OP_AND                           00000002
+ADDR_E                           0000EE18  | MD_ABS                           00000000
+ADDR_S                           0000EE15  | OP_ADC                           00000000
+BEL                              00000007  | WDM_IER_RD                       00000000
+BOOT_MESSAGE                     0000F034  | __6501__                         00000000
+BRKN                             0000F0C2  | __6502__                         00000000
+BS                               00000008  | __65832__                        00000000
+BYTES_PER_LINE                   00000064  | __65C02__                        00000000
+B_FLAG                           00000010  | __65SC02__                       00000000
+CMD_BUF                          0000EE80  | C_FLAG                           00000001
+CMD_LEN                          0000EE10  | INT_CLK                          00000001
+COPE                             0000F006  | WDM_IER_WR                       00000001
+COPN                             0000F007  | __65816__                        00000001
+CR                               0000000D  | INT_U1RX                         00000002
+C_FLAG                           00000001  | MD_ACC                           00000002
+DEFAULT                          0000EE11  | OP_AND                           00000002
 DEL                              0000007F  | WDM_IER_SET                      00000002
 D_FLAG                           00000008  | Z_FLAG                           00000002
 INT_CLK                          00000001  | WDM_IER_CLR                      00000003
 INT_U1RX                         00000002  | INT_U1TX                         00000004
 INT_U1TX                         00000004  | I_FLAG                           00000004
 IO_PAGE                          0000EF00  | MD_ABX                           00000004
-IRQBRK                           0000F0C1  | OP_ASL                           00000004
-IRQHandler                       0000F0E8  | WDM_IFR_RD                       00000004
-IRQN                             0000F0DA  | WDM_IFR_WR                       00000005
+IRQBRK                           0000F0BA  | OP_ASL                           00000004
+IRQHandler                       0000F0DF  | WDM_IFR_RD                       00000004
+IRQN                             0000F0D1  | WDM_IFR_WR                       00000005
 I_FLAG                           00000004  | MD_ABY                           00000006
 LF                               0000000A  | OP_BCC                           00000006
 MD_ABS                           00000000  | WDM_IFR_SET                      00000006
@@ -1714,201 +2038,213 @@ MD_REL                           00000026  | X_FLAG                           00
 MD_RLG                           00000028  | WDM_U1RX                         00000011
 MD_SKY                           0000001C  | MD_STK                           00000012
 MD_STK                           00000012  | OP_BPL                           00000012
-MNEMONICS                        00040484  | MD_DPX                           00000014
+MNEMONICS                        0004075E  | MD_DPX                           00000014
 
 Portable 65xx Assembler [19.05]
 
-MODES                            00040384  | OP_BRA                           00000014
+MODES                            0004065E  | OP_BRA                           00000014
 MON_PAGE                         0000EE00  | MD_DPY                           00000016
 M_FLAG                           00000020  | OP_BRK                           00000016
 Monitor                          00040000  | MD_DIN                           00000018
-Monitor.BackSpace                0004015B  | OP_BRL                           00000018
-Monitor.Beep                     00040170  | MD_DLI                           0000001A
-Monitor.CloseBracket             00040211  | OP_BVC                           0000001A
-Monitor.Flag                     0004021A  | MD_SKY                           0000001C
-Monitor.GetAddr                  000401B9  | OP_BVS                           0000001C
-Monitor.GetByte                  000401B9  | MD_DIX                           0000001E
-Monitor.GetWord                  000401B9  | OP_CLC                           0000001E
-Monitor.Hex                      000401FF  | MD_DIY                           00000020
-Monitor.Hex2                     000401F6  | M_FLAG                           00000020
-Monitor.Hex4                     000401F1  | OP_CLD                           00000020
-Monitor.HexCHi                   000401E1  | MD_DLY                           00000022
-Monitor.HexSPHi                  000401ED  | OP_CLI                           00000022
-Monitor.HexXHi                   000401E5  | MD_IMP                           00000024
-Monitor.HexYHi                   000401E9  | OP_CLV                           00000024
-Monitor.Mask                     00040222  | MD_REL                           00000026
-Monitor.NewCommand               0004012C  | OP_CMP                           00000026
-Monitor.NewLine                  000401D8  | MD_RLG                           00000028
-Monitor.OpenBracket              0004020D  | OP_COP                           00000028
-Monitor.Print                    000401CC  | MD_MOV                           0000002A
-Monitor.ShortA                   00040099  | OP_CPX                           0000002A
-Monitor.ShortX                   000400BF  | MD_IMM                           0000002C
-Monitor.ShortY                   000400E5  | OP_CPY                           0000002C
-Monitor.ShowError                000401B0  | MD_INT                           0000002E
-Monitor.ShowRegisters            00040039  | OP_DEC                           0000002E
-Monitor.SkipSpaces               000401B9  | MD_IMX                           00000030
-Monitor.StrC                     00040236  | OP_DEX                           00000030
-Monitor.StrDBR                   0004024C  | OP_DEY                           00000032
-Monitor.StrDP                    00040242  | OP_EOR                           00000034
-Monitor.StrE                     0004022E  | OP_INC                           00000036
-Monitor.StrError                 00040252  | OP_INX                           00000038
-Monitor.StrHelp                  0004026C  | OP_INY                           0000003A
-Monitor.StrP                     00040232  | OP_JML                           0000003C
-Monitor.StrPC                    0004022A  | OP_JMP                           0000003E
-Monitor.StrSP                    00040247  | OP_JSL                           00000040
-Monitor.StrX                     0004023A  | UART_BUFSIZ                      00000040
-Monitor.StrY                     0004023E  | V_FLAG                           00000040
-Monitor.ToUpper                  000401C1  | OP_JSR                           00000042
-Monitor.UartRx                   00040215  | OP_LDA                           00000044
-Monitor.UartTx                   00040208  | OP_LDX                           00000046
-N_FLAG                           00000080  | OP_LDY                           00000048
-OPCODES                          00040284  | OP_LSR                           0000004A
-OP_ADC                           00000000  | OP_MVN                           0000004C
-OP_AND                           00000002  | OP_MVP                           0000004E
-OP_ASL                           00000004  | OP_NOP                           00000050
-OP_BCC                           00000006  | OP_ORA                           00000052
-OP_BCS                           00000008  | OP_PEA                           00000054
-OP_BEQ                           0000000A  | OP_PEI                           00000056
-OP_BIT                           0000000C  | OP_PER                           00000058
-OP_BMI                           0000000E  | OP_PHA                           0000005A
-OP_BNE                           00000010  | OP_PHB                           0000005C
+Monitor.AddChar                  000403A1  | OP_BRL                           00000018
+Monitor.AddHex                   0004039E  | MD_DLI                           0000001A
+Monitor.AddHex2                  00040395  | OP_BVC                           0000001A
+Monitor.AddHexDigit              000402FE  | MD_SKY                           0000001C
+Monitor.BackSpace                00040163  | OP_BVS                           0000001C
+Monitor.Beep                     00040178  | MD_DIX                           0000001E
+Monitor.BuildCommand             0004036B  | OP_CLC                           0000001E
+Monitor.CloseBracket             000403F0  | MD_DIY                           00000020
+Monitor.CopyToEnd                00040344  | M_FLAG                           00000020
+Monitor.CopyToStart              00040337  | OP_CLD                           00000020
+Monitor.Flag                     000403F9  | MD_DLY                           00000022
+Monitor.FoundBank                000402D7  | OP_CLI                           00000022
+Monitor.GetValue                 000402B3  | MD_IMP                           00000024
+Monitor.Hex                      000403D8  | OP_CLV                           00000024
+Monitor.Hex2                     000403CF  | MD_REL                           00000026
+Monitor.Hex4                     000403CA  | OP_CMP                           00000026
+Monitor.HexCHi                   000403BA  | MD_RLG                           00000028
+Monitor.HexDigit                 0004031E  | OP_COP                           00000028
+Monitor.HexSPHi                  000403C6  | MD_MOV                           0000002A
+Monitor.HexXHi                   000403BE  | OP_CPX                           0000002A
+Monitor.HexYHi                   000403C2  | MD_IMM                           0000002C
+Monitor.Mask                     00040401  | OP_CPY                           0000002C
+Monitor.NewCommand               00040134  | MD_INT                           0000002E
+Monitor.NewLine                  000403B1  | OP_DEC                           0000002E
+Monitor.NextChar                 00040359  | MD_IMX                           00000030
+Monitor.OldCommand               00040136  | OP_DEX                           00000030
+Monitor.OpenBracket              000403EC  | OP_DEY                           00000032
+Monitor.Print                    000403A5  | OP_EOR                           00000034
+Monitor.ReturnValue              000402FC  | OP_INC                           00000036
+Monitor.ShortA                   000400A1  | OP_INX                           00000038
+Monitor.ShortX                   000400C7  | OP_INY                           0000003A
+Monitor.ShortY                   000400ED  | OP_JML                           0000003C
+Monitor.ShowError                000402AA  | OP_JMP                           0000003E
+Monitor.ShowRegisters            00040041  | OP_JSL                           00000040
+Monitor.SkipSpaces               00040351  | UART_BUFSIZ                      00000040
+Monitor.StrC                     00040415  | V_FLAG                           00000040
+Monitor.StrDBR                   0004042B  | OP_JSR                           00000042
+Monitor.StrDP                    00040421  | OP_LDA                           00000044
+Monitor.StrE                     0004040D  | OP_LDX                           00000046
+Monitor.StrError                 00040431  | OP_LDY                           00000048
+Monitor.StrHelp                  0004044B  | OP_LSR                           0000004A
+Monitor.StrP                     00040411  | OP_MVN                           0000004C
+Monitor.StrPC                    00040409  | OP_MVP                           0000004E
+Monitor.StrSP                    00040426  | OP_NOP                           00000050
+Monitor.StrX                     00040419  | OP_ORA                           00000052
+Monitor.StrY                     0004041D  | OP_PEA                           00000054
+Monitor.ToHex                    000403DD  | OP_PEI                           00000056
+Monitor.ToUpper                  00040360  | OP_PER                           00000058
+Monitor.UartRx                   000403F4  | OP_PHA                           0000005A
+Monitor.UartTx                   000403E7  | OP_PHB                           0000005C
 
 Portable 65xx Assembler [19.05]
 
-OP_BPL                           00000012  | OP_PHD                           0000005E
-OP_BRA                           00000014  | OP_PHK                           00000060
-OP_BRK                           00000016  | OP_PHP                           00000062
-OP_BRL                           00000018  | BYTES_PER_LINE                   00000064
-OP_BVC                           0000001A  | OP_PHX                           00000064
-OP_BVS                           0000001C  | OP_PHY                           00000066
-OP_CLC                           0000001E  | OP_PLA                           00000068
-OP_CLD                           00000020  | OP_PLB                           0000006A
-OP_CLI                           00000022  | OP_PLD                           0000006C
-OP_CLV                           00000024  | OP_PLP                           0000006E
-OP_CMP                           00000026  | OP_PLX                           00000070
-OP_COP                           00000028  | OP_PLY                           00000072
-OP_CPX                           0000002A  | OP_REP                           00000074
-OP_CPY                           0000002C  | OP_ROL                           00000076
-OP_DEC                           0000002E  | OP_ROR                           00000078
-OP_DEX                           00000030  | OP_RTI                           0000007A
-OP_DEY                           00000032  | OP_RTL                           0000007C
-OP_EOR                           00000034  | OP_RTS                           0000007E
-OP_INC                           00000036  | DEL                              0000007F
-OP_INX                           00000038  | N_FLAG                           00000080
-OP_INY                           0000003A  | OP_SBC                           00000080
-OP_JML                           0000003C  | OP_SEC                           00000082
-OP_JMP                           0000003E  | OP_SED                           00000084
-OP_JSL                           00000040  | OP_SEI                           00000086
-OP_JSR                           00000042  | OP_SEP                           00000088
-OP_LDA                           00000044  | OP_STA                           0000008A
-OP_LDX                           00000046  | OP_STP                           0000008C
-OP_LDY                           00000048  | OP_STX                           0000008E
-OP_LSR                           0000004A  | OP_STY                           00000090
-OP_MVN                           0000004C  | OP_STZ                           00000092
-OP_MVP                           0000004E  | OP_TAX                           00000094
-OP_NOP                           00000050  | OP_TAY                           00000096
-OP_ORA                           00000052  | OP_TCD                           00000098
-OP_PEA                           00000054  | OP_TCS                           0000009A
-OP_PEI                           00000056  | OP_TDC                           0000009C
-OP_PER                           00000058  | OP_TRB                           0000009E
-OP_PHA                           0000005A  | OP_TSB                           000000A0
-OP_PHB                           0000005C  | OP_TSC                           000000A2
-OP_PHD                           0000005E  | OP_TSX                           000000A4
-OP_PHK                           00000060  | OP_TXA                           000000A6
-OP_PHP                           00000062  | OP_TXS                           000000A8
-OP_PHX                           00000064  | OP_TXY                           000000AA
-OP_PHY                           00000066  | OP_TYA                           000000AC
-OP_PLA                           00000068  | OP_TYX                           000000AE
-OP_PLB                           0000006A  | OP_WAI                           000000B0
-OP_PLD                           0000006C  | OP_WDM                           000000B2
-OP_PLP                           0000006E  | OP_XBA                           000000B4
-OP_PLX                           00000070  | OP_XCE                           000000B6
-OP_PLY                           00000072  | SVGA_HEIGHT                      00000258
-OP_REP                           00000074  | SVGA_WIDTH                       00000320
-OP_ROL                           00000076  | MON_PAGE                         0000EE00
-OP_ROR                           00000078  | REG_E                            0000EE00
-OP_RTI                           0000007A  | REG_P                            0000EE01
-OP_RTL                           0000007C  | REG_C                            0000EE02
+N_FLAG                           00000080  | OP_PHD                           0000005E
+OPCODES                          0004055E  | OP_PHK                           00000060
+OP_ADC                           00000000  | OP_PHP                           00000062
+OP_AND                           00000002  | BYTES_PER_LINE                   00000064
+OP_ASL                           00000004  | OP_PHX                           00000064
+OP_BCC                           00000006  | OP_PHY                           00000066
+OP_BCS                           00000008  | OP_PLA                           00000068
+OP_BEQ                           0000000A  | OP_PLB                           0000006A
+OP_BIT                           0000000C  | OP_PLD                           0000006C
+OP_BMI                           0000000E  | OP_PLP                           0000006E
+OP_BNE                           00000010  | OP_PLX                           00000070
+OP_BPL                           00000012  | OP_PLY                           00000072
+OP_BRA                           00000014  | OP_REP                           00000074
+OP_BRK                           00000016  | OP_ROL                           00000076
+OP_BRL                           00000018  | OP_ROR                           00000078
+OP_BVC                           0000001A  | OP_RTI                           0000007A
+OP_BVS                           0000001C  | OP_RTL                           0000007C
+OP_CLC                           0000001E  | OP_RTS                           0000007E
+OP_CLD                           00000020  | DEL                              0000007F
+OP_CLI                           00000022  | N_FLAG                           00000080
+OP_CLV                           00000024  | OP_SBC                           00000080
+OP_CMP                           00000026  | OP_SEC                           00000082
+OP_COP                           00000028  | OP_SED                           00000084
+OP_CPX                           0000002A  | OP_SEI                           00000086
+OP_CPY                           0000002C  | OP_SEP                           00000088
+OP_DEC                           0000002E  | OP_STA                           0000008A
+OP_DEX                           00000030  | OP_STP                           0000008C
+OP_DEY                           00000032  | OP_STX                           0000008E
+OP_EOR                           00000034  | OP_STY                           00000090
+OP_INC                           00000036  | OP_STZ                           00000092
+OP_INX                           00000038  | OP_TAX                           00000094
+OP_INY                           0000003A  | OP_TAY                           00000096
+OP_JML                           0000003C  | OP_TCD                           00000098
+OP_JMP                           0000003E  | OP_TCS                           0000009A
+OP_JSL                           00000040  | OP_TDC                           0000009C
+OP_JSR                           00000042  | OP_TRB                           0000009E
+OP_LDA                           00000044  | OP_TSB                           000000A0
+OP_LDX                           00000046  | OP_TSC                           000000A2
+OP_LDY                           00000048  | OP_TSX                           000000A4
+OP_LSR                           0000004A  | OP_TXA                           000000A6
+OP_MVN                           0000004C  | OP_TXS                           000000A8
+OP_MVP                           0000004E  | OP_TXY                           000000AA
+OP_NOP                           00000050  | OP_TYA                           000000AC
+OP_ORA                           00000052  | OP_TYX                           000000AE
+OP_PEA                           00000054  | OP_WAI                           000000B0
+OP_PEI                           00000056  | OP_WDM                           000000B2
+OP_PER                           00000058  | OP_XBA                           000000B4
+OP_PHA                           0000005A  | OP_XCE                           000000B6
+OP_PHB                           0000005C  | SVGA_HEIGHT                      00000258
+OP_PHD                           0000005E  | SVGA_WIDTH                       00000320
+OP_PHK                           00000060  | MON_PAGE                         0000EE00
+OP_PHP                           00000062  | REG_E                            0000EE00
+OP_PHX                           00000064  | REG_P                            0000EE01
+OP_PHY                           00000066  | REG_C                            0000EE02
 
 Portable 65xx Assembler [19.05]
 
-OP_RTS                           0000007E  | REG_X                            0000EE04
-OP_SBC                           00000080  | REG_Y                            0000EE06
-OP_SEC                           00000082  | REG_SP                           0000EE08
-OP_SED                           00000084  | REG_DP                           0000EE0A
-OP_SEI                           00000086  | REG_PC                           0000EE0C
-OP_SEP                           00000088  | REG_PBR                          0000EE0E
-OP_STA                           0000008A  | REG_DBR                          0000EE0F
-OP_STP                           0000008C  | CMD_LEN                          0000EE10
-OP_STX                           0000008E  | BANK                             0000EE11
-OP_STY                           00000090  | ADDRS                            0000EE12
-OP_STZ                           00000092  | ADDRL                            0000EE15
-OP_TAX                           00000094  | CMD_BUF                          0000EE80
-OP_TAY                           00000096  | IO_PAGE                          0000EF00
-OP_TCD                           00000098  | TX_HEAD                          0000EF00
-OP_TCS                           0000009A  | TX_TAIL                          0000EF01
-OP_TDC                           0000009C  | RX_HEAD                          0000EF02
-OP_TRB                           0000009E  | RX_TAIL                          0000EF03
-OP_TSB                           000000A0  | TICK                             0000EF04
-OP_TSC                           000000A2  | TX_DATA                          0000EF08
-OP_TSX                           000000A4  | RX_DATA                          0000EF48
-OP_TXA                           000000A6  | COPE                             0000F006
-OP_TXS                           000000A8  | COPN                             0000F007
-OP_TXY                           000000AA  | RESET                            0000F008
-OP_TYA                           000000AC  | BOOT_MESSAGE                     0000F034
-OP_TYX                           000000AE  | Uart1Tx                          0000F06C
-OP_WAI                           000000B0  | Uart1Rx                          0000F09E
-OP_WDM                           000000B2  | IRQBRK                           0000F0C1
-OP_XBA                           000000B4  | BRKN                             0000F0C9
-OP_XCE                           000000B6  | IRQN                             0000F0DA
-PIXELS_PER_BYTE                  00000008  | IRQHandler                       0000F0E8
-REG_C                            0000EE02  | UnusedVector                     0000F141
-REG_DBR                          0000EE0F  | VLINES                           00010000
-REG_DP                           0000EE0A  | VDATA                            000104B0
-REG_E                            0000EE00  | VEND                             0001EF10
-REG_P                            0000EE01  | Monitor                          00040000
-REG_PBR                          0000EE0E  | Monitor.ShowRegisters            00040039
-REG_PC                           0000EE0C  | Monitor.ShortA                   00040099
-REG_SP                           0000EE08  | Monitor.ShortX                   000400BF
-REG_X                            0000EE04  | Monitor.ShortY                   000400E5
-REG_Y                            0000EE06  | Monitor.NewCommand               0004012C
-RESET                            0000F008  | Monitor.BackSpace                0004015B
-RX_DATA                          0000EF48  | Monitor.Beep                     00040170
-RX_HEAD                          0000EF02  | Monitor.ShowError                000401B0
-RX_TAIL                          0000EF03  | Monitor.GetAddr                  000401B9
-SVGA_HEIGHT                      00000258  | Monitor.GetByte                  000401B9
-SVGA_WIDTH                       00000320  | Monitor.GetWord                  000401B9
-TICK                             0000EF04  | Monitor.SkipSpaces               000401B9
-TX_DATA                          0000EF08  | Monitor.ToUpper                  000401C1
-TX_HEAD                          0000EF00  | Monitor.Print                    000401CC
-TX_TAIL                          0000EF01  | Monitor.NewLine                  000401D8
-UART_BUFSIZ                      00000040  | Monitor.HexCHi                   000401E1
-Uart1Rx                          0000F09E  | Monitor.HexXHi                   000401E5
-Uart1Tx                          0000F06C  | Monitor.HexYHi                   000401E9
-UnusedVector                     0000F141  | Monitor.HexSPHi                  000401ED
+OP_PLA                           00000068  | REG_X                            0000EE04
+OP_PLB                           0000006A  | REG_Y                            0000EE06
+OP_PLD                           0000006C  | REG_SP                           0000EE08
+OP_PLP                           0000006E  | REG_DP                           0000EE0A
+OP_PLX                           00000070  | REG_PC                           0000EE0C
+OP_PLY                           00000072  | REG_PBR                          0000EE0E
+OP_REP                           00000074  | REG_DBR                          0000EE0F
+OP_ROL                           00000076  | CMD_LEN                          0000EE10
+OP_ROR                           00000078  | DEFAULT                          0000EE11
+OP_RTI                           0000007A  | VALUE                            0000EE12
+OP_RTL                           0000007C  | ADDR_S                           0000EE15
+OP_RTS                           0000007E  | ADDR_E                           0000EE18
+OP_SBC                           00000080  | CMD_BUF                          0000EE80
+OP_SEC                           00000082  | IO_PAGE                          0000EF00
+OP_SED                           00000084  | TX_HEAD                          0000EF00
+OP_SEI                           00000086  | TX_TAIL                          0000EF01
+OP_SEP                           00000088  | RX_HEAD                          0000EF02
+OP_STA                           0000008A  | RX_TAIL                          0000EF03
+OP_STP                           0000008C  | TICK                             0000EF04
+OP_STX                           0000008E  | TX_DATA                          0000EF08
+OP_STY                           00000090  | RX_DATA                          0000EF48
+OP_STZ                           00000092  | COPE                             0000F006
+OP_TAX                           00000094  | COPN                             0000F007
+OP_TAY                           00000096  | RESET                            0000F008
+OP_TCD                           00000098  | BOOT_MESSAGE                     0000F034
+OP_TCS                           0000009A  | Uart1Tx                          0000F06C
+OP_TDC                           0000009C  | Uart1Rx                          0000F09A
+OP_TRB                           0000009E  | IRQBRK                           0000F0BA
+OP_TSB                           000000A0  | BRKN                             0000F0C2
+OP_TSC                           000000A2  | IRQN                             0000F0D1
+OP_TSX                           000000A4  | IRQHandler                       0000F0DF
+OP_TXA                           000000A6  | UnusedVector                     0000F138
+OP_TXS                           000000A8  | VLINES                           00010000
+OP_TXY                           000000AA  | VDATA                            000104B0
+OP_TYA                           000000AC  | VEND                             0001EF10
+OP_TYX                           000000AE  | Monitor                          00040000
+OP_WAI                           000000B0  | Monitor.ShowRegisters            00040041
+OP_WDM                           000000B2  | Monitor.ShortA                   000400A1
+OP_XBA                           000000B4  | Monitor.ShortX                   000400C7
+OP_XCE                           000000B6  | Monitor.ShortY                   000400ED
+PIXELS_PER_BYTE                  00000008  | Monitor.NewCommand               00040134
+REG_C                            0000EE02  | Monitor.OldCommand               00040136
+REG_DBR                          0000EE0F  | Monitor.BackSpace                00040163
+REG_DP                           0000EE0A  | Monitor.Beep                     00040178
+REG_E                            0000EE00  | Monitor.ShowError                000402AA
+REG_P                            0000EE01  | Monitor.GetValue                 000402B3
+REG_PBR                          0000EE0E  | Monitor.FoundBank                000402D7
+REG_PC                           0000EE0C  | Monitor.ReturnValue              000402FC
+REG_SP                           0000EE08  | Monitor.AddHexDigit              000402FE
+REG_X                            0000EE04  | Monitor.HexDigit                 0004031E
+REG_Y                            0000EE06  | Monitor.CopyToStart              00040337
+RESET                            0000F008  | Monitor.CopyToEnd                00040344
+RX_DATA                          0000EF48  | Monitor.SkipSpaces               00040351
+RX_HEAD                          0000EF02  | Monitor.NextChar                 00040359
 
 Portable 65xx Assembler [19.05]
 
-VDATA                            000104B0  | Monitor.Hex4                     000401F1
-VEND                             0001EF10  | Monitor.Hex2                     000401F6
-VLINES                           00010000  | Monitor.Hex                      000401FF
-V_FLAG                           00000040  | Monitor.UartTx                   00040208
-WDM_IER_CLR                      00000003  | Monitor.OpenBracket              0004020D
-WDM_IER_RD                       00000000  | Monitor.CloseBracket             00040211
-WDM_IER_SET                      00000002  | Monitor.UartRx                   00040215
-WDM_IER_WR                       00000001  | Monitor.Flag                     0004021A
-WDM_IFLAGS                       00000008  | Monitor.Mask                     00040222
-WDM_IFR_CLR                      00000007  | Monitor.StrPC                    0004022A
-WDM_IFR_RD                       00000004  | Monitor.StrE                     0004022E
-WDM_IFR_SET                      00000006  | Monitor.StrP                     00040232
-WDM_IFR_WR                       00000005  | Monitor.StrC                     00040236
-WDM_U1RX                         00000011  | Monitor.StrX                     0004023A
-WDM_U1TX                         00000010  | Monitor.StrY                     0004023E
-X_FLAG                           00000010  | Monitor.StrDP                    00040242
-Z_FLAG                           00000002  | Monitor.StrSP                    00040247
-__6501__                         00000000  | Monitor.StrDBR                   0004024C
-__6502__                         00000000  | Monitor.StrError                 00040252
-__65816__                        00000001  | Monitor.StrHelp                  0004026C
-__65832__                        00000000  | OPCODES                          00040284
-__65C02__                        00000000  | MODES                            00040384
-__65SC02__                       00000000  | MNEMONICS                        00040484
+RX_TAIL                          0000EF03  | Monitor.ToUpper                  00040360
+SVGA_HEIGHT                      00000258  | Monitor.BuildCommand             0004036B
+SVGA_WIDTH                       00000320  | Monitor.AddHex2                  00040395
+TICK                             0000EF04  | Monitor.AddHex                   0004039E
+TX_DATA                          0000EF08  | Monitor.AddChar                  000403A1
+TX_HEAD                          0000EF00  | Monitor.Print                    000403A5
+TX_TAIL                          0000EF01  | Monitor.NewLine                  000403B1
+UART_BUFSIZ                      00000040  | Monitor.HexCHi                   000403BA
+Uart1Rx                          0000F09A  | Monitor.HexXHi                   000403BE
+Uart1Tx                          0000F06C  | Monitor.HexYHi                   000403C2
+UnusedVector                     0000F138  | Monitor.HexSPHi                  000403C6
+VALUE                            0000EE12  | Monitor.Hex4                     000403CA
+VDATA                            000104B0  | Monitor.Hex2                     000403CF
+VEND                             0001EF10  | Monitor.Hex                      000403D8
+VLINES                           00010000  | Monitor.ToHex                    000403DD
+V_FLAG                           00000040  | Monitor.UartTx                   000403E7
+WDM_IER_CLR                      00000003  | Monitor.OpenBracket              000403EC
+WDM_IER_RD                       00000000  | Monitor.CloseBracket             000403F0
+WDM_IER_SET                      00000002  | Monitor.UartRx                   000403F4
+WDM_IER_WR                       00000001  | Monitor.Flag                     000403F9
+WDM_IFLAGS                       00000008  | Monitor.Mask                     00040401
+WDM_IFR_CLR                      00000007  | Monitor.StrPC                    00040409
+WDM_IFR_RD                       00000004  | Monitor.StrE                     0004040D
+WDM_IFR_SET                      00000006  | Monitor.StrP                     00040411
+WDM_IFR_WR                       00000005  | Monitor.StrC                     00040415
+WDM_U1RX                         00000011  | Monitor.StrX                     00040419
+WDM_U1TX                         00000010  | Monitor.StrY                     0004041D
+X_FLAG                           00000010  | Monitor.StrDP                    00040421
+Z_FLAG                           00000002  | Monitor.StrSP                    00040426
+__6501__                         00000000  | Monitor.StrDBR                   0004042B
+__6502__                         00000000  | Monitor.StrError                 00040431
+__65816__                        00000001  | Monitor.StrHelp                  0004044B
+__65832__                        00000000  | OPCODES                          0004055E
+__65C02__                        00000000  | MODES                            0004065E
+__65SC02__                       00000000  | MNEMONICS                        0004075E
