@@ -110,9 +110,9 @@ void setup (void)
     Serial.printf (">> Remaining Heap: %d\n", ESP.getFreeHeap ());
     Serial.println (">> Booting");
 
-    xTaskCreate (doTimerTask, "Timer", 1024, NULL, 1, &timerTask);
-    xTaskCreate (doU1rxTask, "U1RX", 1024, NULL, 1, &u1rxTask);
-    xTaskCreate (doU1txTask, "U1TX", 1024, NULL, 1, &u1txTask);
+    xTaskCreatePinnedToCore (doTimerTask, "Timer", 1024, NULL, 1, &timerTask, 0);
+    xTaskCreatePinnedToCore (doU1rxTask, "U1RX", 1024, NULL, 1, &u1rxTask, 0);
+    xTaskCreatePinnedToCore (doU1txTask, "U1TX", 1024, NULL, 1, &u1txTask, 0);
 
     Emulator::reset ();
 
@@ -122,7 +122,7 @@ void setup (void)
 
 void loop (void)
 {
-    register int        count = 1500;
+    register int        count = 1024;
 
     do {
        if (Emulator::isStopped ()) {
@@ -142,8 +142,8 @@ void loop (void)
             for (;;) delay (1000);
        }
        else {
-            Emulator::ifr.u1rx = (!u1rx.isEmpty ()) ? 1 : 0;
-            Emulator::ifr.u1tx = (!u1tx.isFull ()) ? 1 : 0; 
+            Emulator::ifr.u1rx = !u1rx.isEmpty ();
+            Emulator::ifr.u1tx = !u1tx.isFull (); 
 
             cycles += Emulator::step ();
        }

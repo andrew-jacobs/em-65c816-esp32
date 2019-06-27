@@ -828,6 +828,7 @@ Monitor:
 		beq	.NewCommand
 		
 ;-------------------------------------------------------------------------------
+; Print Help
 
 		cmp	#'?'
 		if eq
@@ -837,6 +838,7 @@ Monitor:
 		endif
 
 ;-------------------------------------------------------------------------------
+; Disassemble
 
 		cmp	#'D'
 		if eq
@@ -845,6 +847,7 @@ Monitor:
 		endif
 
 ;-------------------------------------------------------------------------------
+; Go
 
 		cmp	#'G'
 		if eq
@@ -891,6 +894,7 @@ Monitor:
 		endif
 
 ;-------------------------------------------------------------------------------
+; Memory
 
 		cmp	#'M'
 		if eq
@@ -944,28 +948,11 @@ Monitor:
 		   lda	#'|'
 		   jsr	.UartTx
 		   
-		   clc				; Update the address
-		   tya
-		   adc	<ADDR_S+0
-		   sta  <ADDR_S+0
-		   if cs
-		    inc	<ADDR_S+1
-		    if eq
-		     inc <ADDR_S+2
-		    endif
-		   endif
-		   
-		   lda	<ADDR_S+2		; Until the target address
-		   cmp	<ADDR_E+2
-		   if cs
-		    lda	<ADDR_S+1
-		    cmp <ADDR_E+1
-		    if cs
-		     lda <ADDR_S+0
-		     cmp <ADDR_E+0
-		    endif
-		   endif
-		  until cs
+		   tya				; Update the address
+		   jsr	.BumpAddress
+		   break cs
+		   jsr	.CompareAddr
+		  until cc
 
 		  jmp	.NewCommand
 		 endif
@@ -973,6 +960,7 @@ Monitor:
 		endif
 
 ;-------------------------------------------------------------------------------
+; Quit
 
 		cmp	#'Q'
 		if eq
@@ -980,6 +968,7 @@ Monitor:
 		endif
 
 ;-------------------------------------------------------------------------------
+; Registers
 
 		cmp	#'R'
 		if eq
@@ -987,10 +976,46 @@ Monitor:
 		endif
 		
 ;-------------------------------------------------------------------------------
+; S28 SRECORD loader
 
 		cmp	#'S'
 		if eq
-		
+		 jsr	.NextChar
+		 cmp	#'2'			; Only process type '2'
+		 if eq
+		  jsr	.GetByte		; Get the byte count
+		  bcs 	.InvalidRecord
+		  dec	a			; Ignore address and checksum
+		  dec	a
+		  dec	a
+		  dec	a
+		  beq	.InvalidRecord
+		  bmi	.InvalidRecord
+		  sta	<VALUE+2
+		  jsr	.GetByte		; Get target address
+		  bcs 	.InvalidRecord
+		  sta	<ADDR_S+2
+		  jsr	.GetByte
+		  bcs 	.InvalidRecord
+		  sta	<ADDR_S+1
+		  jsr	.GetByte
+		  bcs 	.InvalidRecord
+		  sta	<ADDR_S+0
+		 
+		  repeat
+		   jsr	.GetByte		; Get a data byte
+		   bcs	.InvalidRecord
+		   sta	[ADDR_S]		; .. and write to memory
+		   lda	#1
+		   jsr	.BumpAddress
+		   dec	<VALUE+2
+		  until eq
+		 endif
+		 jmp	.NewCommand
+.InvalidRecord:
+		 ldx	#.StrInvalid		; Print the error string
+		 jsr	.Print
+		 jmp	.NewCommand
 		endif
 		
 ;-------------------------------------------------------------------------------
@@ -1005,13 +1030,8 @@ Monitor:
 		   lda	<VALUE+0
 		   sta 	[ADDR_S]
 		   
-		   inc	<ADDR_S+0
-		   if eq
-		    inc	<ADDR_S+1
-		    if eq
-		     inc <ADDR_S+1
-		    endif
-		   endif
+		   lda	#1
+		   jsr	.BumpAddress
 		   
 		   lda	#'W'
 		   jmp	.BuildCommand
@@ -1074,6 +1094,27 @@ Monitor:
 		jsr	.AddHexDigit
 .ReturnValue:	clc
 		rts
+		
+; Parse a byte	from the command line and return it in A. Set the carry if a
+; non-hex digit is found.
+
+.GetByte:
+		stz	<VALUE+0
+		jsr	.NextChar
+		jsr	.HexDigit
+		if cc
+		 asl	a
+		 asl	a
+		 asl	a
+		 asl	a
+		 sta	<VALUE
+		 jsr	.NextChar
+		 jsr	.HexDigit
+		 if cc
+		  ora	<VALUE+0
+		 endif
+		endif
+		rts
 		  
 ; If the character in A is a hex digit then work it into the value being
 ; parsed from the line.
@@ -1126,6 +1167,10 @@ Monitor:
 		sec				; No.
 		rts
 		
+;-------------------------------------------------------------------------------
+		
+; Copy the last parsed value into the start address.
+
 		.longa off
 .CopyToStart:
 		lda	<VALUE+0
@@ -1135,6 +1180,8 @@ Monitor:
 		lda	<VALUE+2
 		sta	<ADDR_S+2
 		rts
+		
+; Copy the last parsed value into the end address.
 
 		.longa off
 .CopyToEnd:
@@ -1144,6 +1191,34 @@ Monitor:
 		sta	<ADDR_E+1
 		lda	<VALUE+2
 		sta	<ADDR_E+2
+		rts
+
+; Add the value in A to the current start address. On return if the carry
+; is set then the address wrapped around.
+
+.BumpAddress:
+		clc
+		adc	<ADDR_S+0
+		sta  	<ADDR_S+0
+		lda	#0
+		adc	<ADDR_S+1
+		sta	<ADDR_S+1
+		lda	#0
+		adc	<ADDR_S+2
+		sta	<ADDR_S+2
+		rts
+
+; Compare the start and end addresses. Return with carry clear when the start
+; is bigger than the end.
+
+.CompareAddr:
+		sec
+		lda	<ADDR_E+0
+		sbc	<ADDR_S+0
+		lda	<ADDR_E+1
+		sbc	<ADDR_S+1
+		lda	<ADDR_E+2
+		sbc	<ADDR_S+2
 		rts
 
 ;-------------------------------------------------------------------------------
@@ -1358,6 +1433,7 @@ Monitor:
 .StrDBR:	.byte	" DBR=",0
 
 .StrError:	.byte	CR,LF,"Error - Type ? for help",0
+.StrInvalid:	.byte	CR,LF,"Invalid S28 record",0
 
 .StrHelp:
 		.byte	CR,LF,"Commands:"
