@@ -82,6 +82,7 @@ BEL		.equ	$07
 BS		.equ	$08
 LF		.equ	$0a
 CR		.equ	$0d
+ESC		.equ	$1b
 DEL		.equ	$7f
 
 ;-------------------------------------------------------------------------------
@@ -121,6 +122,7 @@ RX_DATA:	.space	UART_BUFSIZ		; Uart receive buffer
 
 		brl	Uart1Tx			; JSL $f000 - UART1 Transmit
 		brl	Uart1Rx			; JSL $f003 - UART1 Receive
+		brl	Uart1RxCount		; JSL $f006 - UART1 RX Count
 
 ;===============================================================================
 ; API Entry
@@ -165,7 +167,7 @@ RESET:
 		 jsl	Uart1Tx
 		 inx
 		forever
-		
+
 		brk	#0			; Then enter the monitor
 		stp
 
@@ -240,6 +242,22 @@ Uart1Rx:
 		plp
 		rtl
 
+; Return the number of characters in the RX buffer in A.
+
+		.longa	?
+		.longi	?
+Uart1RxCount:
+		php				; Save MX bits
+		short_a				; Make A/M 8-bit
+		sec
+		lda	>RX_TAIL		; Work out index difference
+		sbc	>RX_HEAD
+		if mi
+		 adc	#UART_BUFSIZ		; Correct if negative
+		endif
+		plp				; Restore callers state
+		rtl
+		
 ;===============================================================================
 ; Interrupt Handlers
 ;-------------------------------------------------------------------------------
@@ -566,7 +584,7 @@ MD_IMX		.equ	24<<1			; # (X or Y)
 ;-------------------------------------------------------------------------------
 
 		.bss
-		.org	$00ee00
+		.org	MON_PAGE
 
 ; User Registers
 
@@ -582,11 +600,12 @@ REG_PBR		.space	1
 REG_DBR		.space	1
 
 CMD_LEN		.space	1			; Command buffer length
+VALUE		.space	3			; Value parsing area
 DEFAULT		.space	1			; Default bank (DBR on entry)
-VALUE		.space	3
+FLAGS		.space	1			; Flag bits during disassembly
 
-ADDR_S		.space	3
-ADDR_E		.space	3
+ADDR_S		.space	3			; Memory start address
+ADDR_E		.space	3			; Memory end adddress
 
 		.align	128			; Gap used for stack
 CMD_BUF		.space	128			; Command buffer
@@ -632,7 +651,7 @@ Monitor:
 		phb				; Save DBR
 		pla
 		sta	REG_DBR
-		sta 	DEFAULT
+		sta	DEFAULT
 		long_i
 		stx	REG_X			; Save X
 		sty	REG_Y			; Save Y
@@ -805,8 +824,7 @@ Monitor:
 
 		   lda	#BS			; Erase the last character
 		   jsr	.UartTx
-		   lda	#' '
-		   jsr	.UartTx
+		   jsr	.Space
 		   lda	#BS
 		   dex
 		  else
@@ -826,7 +844,7 @@ Monitor:
 
 		cmp	#CR
 		beq	.NewCommand
-		
+
 ;-------------------------------------------------------------------------------
 ; Print Help
 
@@ -836,16 +854,119 @@ Monitor:
 		 jsr	.Print
 		 bra	.NewCommand
 		endif
+		
+;-------------------------------------------------------------------------------
+; Set Default Bank
+
+		cmp	#'B'
+		if eq
+		 jsr	.GetValue
+		 if cc
+		  lda	<VALUE+0
+		  sta	<DEFAULT
+		  jmp	.NewCommand
+		 endif
+		 jmp	.ShowError
+		endif
 
 ;-------------------------------------------------------------------------------
 ; Disassemble
 
 		cmp	#'D'
 		if eq
+		 lda	<REG_PC+0		; Default to current PC
+		 sta	<ADDR_S+0
+		 lda	<REG_PC+1
+		 sta	<ADDR_S+1
+		 lda	<REG_PBR
+		 sta	<ADDR_S+2
+		 jsr	.GetValue
+		 if cc
+		  jsr	.CopyToStart
+		  jsr	.GetValue
+		  if cc
+		   jsr	.CopyToEnd
+		  endif
+		 endif
+
+		 lda	<REG_P
+		 sta	<FLAGS
+
+		 repeat
+		  jsr	.ShowAddress
+		  jsr	.ShowBytes
+		  jsr	.ShowSymbolic
+
+		  lda	[ADDR_S]
+		  pha
+		  ldy	#1
+		  
+		  cmp	#$18			; CLC?
+		  if eq
+		   lda	#C_FLAG
+		   bra	.DoREP
+		  endif
+		  
+		  cmp	#$38			; SEC?
+		  if eq
+		   lda	#C_FLAG
+		   bra	.DoSEP
+		  endif
+
+		  cmp	#$c2			; REP?
+		  if eq
+		   lda	[ADDR_S],Y
+.DoREP:		   trb	<FLAGS
+		   bra	.NextOpcode
+		  endif
+
+		  cmp	#$e2			; SEP?
+		  if eq
+		   lda	[ADDR_S],Y
+.DoSEP:		   tsb	<FLAGS
+		  endif
+
+.NextOpcode:
+		  pla
+		  jsr	.OpcodeSize
+		  jsr	.BumpAddress
+		  break cs
+		  jsr	.Escape
+		  break	cs
+		  jsr	.CompareAddr
+		 until cc
 
 		 jmp	.NewCommand
 		endif
 
+;-------------------------------------------------------------------------------
+; Fill
+
+		cmp 	#'F'
+		if eq
+		 jsr	.GetValue
+		 if cc
+		  jsr	.CopyToStart
+		  jsr	.GetValue
+		  if cc
+		   jsr	.CopyToEnd
+		   jsr	.GetValue
+		   if cc
+		    repeat
+		     lda <VALUE+0
+		     sta [ADDR_S]
+		     lda #1
+		     jsr .BumpAddress
+		     break cs
+		     jsr .CompareAddr
+		    until cc
+		    jmp .NewCommand
+		   endif
+		  endif
+		 endif
+		 jmp	.ShowError
+		endif
+		   
 ;-------------------------------------------------------------------------------
 ; Go
 
@@ -854,7 +975,7 @@ Monitor:
 		 jsr	.GetValue		; Try to get address
 		 if cs
 		  ror	<REG_E			; None, perform reset
-		  lda	>$00fffc		
+		  lda	>$00fffc
 		  sta	<VALUE+0
 		  lda	>$00fffd
 		  sta	<VALUE+1
@@ -862,17 +983,17 @@ Monitor:
 		  stz	<REG_DP+0		; Clear DP
 		  stz	<REG_DP+1
 		 endif
-		 
+
 		 sei
 		 ldx	<REG_SP			; Restore user stack
 		 txs
-		 
+
 		 bit	<REG_E			; Push PBR if native mode
 		 if pl
 		  lda	<VALUE+2
 		  pha
 		 endif
-		 lda 	<VALUE+1		; Then PC
+		 lda	<VALUE+1		; Then PC
 		 pha
 		 lda	<VALUE+0
 		 pha
@@ -903,33 +1024,22 @@ Monitor:
 		  jsr	.CopyToStart
 		  jsr	.GetValue
 		  jsr	.CopyToEnd
-		  
+
 		  repeat
-		   jsr	.NewLine		; Print the address
-		   lda	<ADDR_S+2
-		   jsr	.Hex2
-		   lda	#':'
-		   jsr	.UartTx
-		   lda	<ADDR_S+1
-		   xba
-		   lda	<ADDR_S+0
-		   jsr	.Hex4
-		  
+		   jsr	.ShowAddress		; Display address
 		   ldy	#0
 		   repeat			; Then 16 bytes of data
-		    lda #' '
-		    jsr	.UartTx
+		    jsr	.Space
 		    lda	[ADDR_S],y
 		    jsr	.Hex2
 		    iny
 		    cpy	#16
 		   until eq
-		  
-		   lda	#' '			; Show as ASCII
-		   jsr	.UartTx
+
+		   jsr	.Space			; Show as ASCII
 		   lda	#'|'
 		   jsr	.UartTx
-		   
+
 		   ldy	#0
 		   repeat
 		    lda	[ADDR_S],y
@@ -947,9 +1057,11 @@ Monitor:
 		   until eq
 		   lda	#'|'
 		   jsr	.UartTx
-		   
+
 		   tya				; Update the address
 		   jsr	.BumpAddress
+		   break cs
+		   jsr	.Escape
 		   break cs
 		   jsr	.CompareAddr
 		  until cc
@@ -972,9 +1084,93 @@ Monitor:
 
 		cmp	#'R'
 		if eq
-		 jmp	.ShowRegisters
+.SetRegister:
+		 jsr	.SkipSpaces		; Search for next code
+		 cmp	#CR			; End of line
+		 if eq
+		  jmp	.ShowRegisters		; Yes, show new state
+		 endif
+		  
+		 cmp 	#'A'			; Set A?
+		 if eq
+		  ldy	#REG_C-MON_PAGE
+		  bra	.SetByte
+		 endif
+		 cmp 	#'B'			; Set DBR?
+		 if eq
+		  ldy	#REG_DBR-MON_PAGE
+		  bra	.SetByte
+		 endif
+		 cmp 	#'C'			; Set C?
+		 if eq
+		  ldy	#REG_C-MON_PAGE
+		  bra	.SetWord
+		 endif
+		 cmp 	#'D'			; Set DP?
+		 if eq
+		  ldy	#REG_DP-MON_PAGE
+		  bra	.SetWord
+		 endif
+		 cmp	#'E'			; Set E?
+		 if eq
+		  jsr	.GetValue
+		  if cc
+		   ror	<VALUE
+		   if cs
+		    stz <REG_SP+1
+		    inc <REG_SP+1
+		   endif
+		   ror	<REG_E
+		   bra  .SetRegister
+		  endif
+		  jmp	.ShowError
+		 endif
+		 cmp 	#'P'			; Set flags?
+		 if eq
+		  ldy	#REG_P-MON_PAGE+1
+.SetByte:
+		  jsr	.GetValue
+		  if cc
+		   phx
+		   tyx
+		   lda	<VALUE
+		   sta	<0,x
+		   plx
+		   bra	.SetRegister
+		  endif#
+		  jmp	.ShowError
+		 endif
+		 cmp 	#'S'			; Set SP?
+		 if eq
+		  ldy	#REG_SP-MON_PAGE
+		  bra	.SetWord
+		 endif
+		 cmp 	#'X'			; Set X?
+		 if eq
+		  ldy	#REG_X-MON_PAGE
+		  bra	.SetWord
+		 endif
+		 cmp 	#'Y'			; Set Y?
+		 if eq
+		  ldy	#REG_Y-MON_PAGE
+.SetWord:
+		  jsr	.GetValue
+		  if cc
+		   phx
+		   tyx
+		   lda 	<VALUE+0
+		   sta 	<0,x
+		   lda	<VALUE+1
+		   sta	<1,x
+		   plx
+		   brl	.SetRegister
+		  endif
+		  jmp	.ShowError
+		 endif
+		  
+		 jmp	.ShowError		; Anything else is wrong
 		endif
-		
+
 ;-------------------------------------------------------------------------------
 ; S28 SRECORD loader
 
@@ -984,7 +1180,7 @@ Monitor:
 		 cmp	#'2'			; Only process type '2'
 		 if eq
 		  jsr	.GetByte		; Get the byte count
-		  bcs 	.InvalidRecord
+		  bcs	.InvalidRecord
 		  dec	a			; Ignore address and checksum
 		  dec	a
 		  dec	a
@@ -993,15 +1189,15 @@ Monitor:
 		  bmi	.InvalidRecord
 		  sta	<VALUE+2
 		  jsr	.GetByte		; Get target address
-		  bcs 	.InvalidRecord
+		  bcs	.InvalidRecord
 		  sta	<ADDR_S+2
 		  jsr	.GetByte
-		  bcs 	.InvalidRecord
+		  bcs	.InvalidRecord
 		  sta	<ADDR_S+1
 		  jsr	.GetByte
-		  bcs 	.InvalidRecord
+		  bcs	.InvalidRecord
 		  sta	<ADDR_S+0
-		 
+
 		  repeat
 		   jsr	.GetByte		; Get a data byte
 		   bcs	.InvalidRecord
@@ -1017,7 +1213,7 @@ Monitor:
 		 jsr	.Print
 		 jmp	.NewCommand
 		endif
-		
+
 ;-------------------------------------------------------------------------------
 
 		cmp	#'W'
@@ -1028,17 +1224,17 @@ Monitor:
 		  jsr	.GetValue
 		  if cc
 		   lda	<VALUE+0
-		   sta 	[ADDR_S]
-		   
+		   sta	[ADDR_S]
+
 		   lda	#1
 		   jsr	.BumpAddress
-		   
+
 		   lda	#'W'
 		   jmp	.BuildCommand
 		  endif
 		  jmp	.NewCommand
 		 endif
-		 jmp	.ShowError			
+		 jmp	.ShowError
 		endif
 
 ;-------------------------------------------------------------------------------
@@ -1052,7 +1248,7 @@ Monitor:
 
 ; Parse a value in for [x[x]:]x[x][x][x] from the command line. if no bank is
 ; given use the current default bank.
- 
+
 		.longa	off
 		.longi	on
 .GetValue:
@@ -1060,17 +1256,17 @@ Monitor:
 		stz	<VALUE+1
 		lda	<DEFAULT		; Assume default bank
 		sta	<VALUE+2
-		
+
 		jsr	.SkipSpaces		; Find first digit
 		jsr	.AddHexDigit
 		if cs
 		 rts				; None, syntax error
 		endif
-		jsr	.NextChar 		; Try for a second
-		cmp	#':' 
+		jsr	.NextChar		; Try for a second
+		cmp	#':'
 		beq	.FoundBank		; End of bank
 		jsr	.AddHexDigit
-		bcs	.ReturnValue		
+		bcs	.ReturnValue
 		jsr	.NextChar		; Try for a third
 		cmp	#':'
 		if eq
@@ -1094,7 +1290,7 @@ Monitor:
 		jsr	.AddHexDigit
 .ReturnValue:	clc
 		rts
-		
+
 ; Parse a byte	from the command line and return it in A. Set the carry if a
 ; non-hex digit is found.
 
@@ -1115,13 +1311,13 @@ Monitor:
 		 endif
 		endif
 		rts
-		  
+
 ; If the character in A is a hex digit then work it into the value being
 ; parsed from the line.
 
 		.longa	off
 .AddHexDigit:
-		jsr 	.HexDigit
+		jsr	.HexDigit
 		if cc
 		 asl	<VALUE+0		; Shift up the value
 		 rol	<VALUE+1
@@ -1146,15 +1342,15 @@ Monitor:
 
 		.longa	off
 .HexDigit:
-		cmp 	#'0'			; Numeric digit?
+		cmp	#'0'			; Numeric digit?
 		if cs
-		 cmp 	#'9'+1
+		 cmp	#'9'+1
 		 if cc
 		  and	#$0f			; Yes, strip out low nybble
 		  rts
 		 endif
-		 
-		 cmp 	#'A'			; Letter A thru F?
+
+		 cmp	#'A'			; Letter A thru F?
 		 if cs
 		  cmp	#'F'+1
 		  if cc
@@ -1166,9 +1362,9 @@ Monitor:
 		endif
 		sec				; No.
 		rts
-		
+
 ;-------------------------------------------------------------------------------
-		
+
 ; Copy the last parsed value into the start address.
 
 		.longa off
@@ -1180,7 +1376,7 @@ Monitor:
 		lda	<VALUE+2
 		sta	<ADDR_S+2
 		rts
-		
+
 ; Copy the last parsed value into the end address.
 
 		.longa off
@@ -1193,13 +1389,26 @@ Monitor:
 		sta	<ADDR_E+2
 		rts
 
+; Print the current starting address value
+
+.ShowAddress:
+		jsr	.NewLine		; Print the bank
+		lda	<ADDR_S+2
+		jsr	.Hex2
+		lda	#':'
+		jsr	.UartTx
+		lda	<ADDR_S+1		; And address within it.
+		xba
+		lda	<ADDR_S+0
+		jmp	.Hex4
+
 ; Add the value in A to the current start address. On return if the carry
 ; is set then the address wrapped around.
 
 .BumpAddress:
 		clc
 		adc	<ADDR_S+0
-		sta  	<ADDR_S+0
+		sta	<ADDR_S+0
 		lda	#0
 		adc	<ADDR_S+1
 		sta	<ADDR_S+1
@@ -1239,7 +1448,7 @@ Monitor:
 		.longa	off
 .NextChar:
 		lda	<CMD_BUF,x		; Fetch a character
-		cmp 	#CR
+		cmp	#CR
 		if ne
 		 inx
 		endif
@@ -1255,6 +1464,8 @@ Monitor:
 
 ;-------------------------------------------------------------------------------
 
+		.longa	off
+		.longi	on
 .BuildCommand:
 		ldx	#0
 		jsr	.AddChar
@@ -1273,10 +1484,12 @@ Monitor:
 		txa
 		sta	CMD_LEN
 		jmp	.OldCommand
-		
+
+		.longa	off
+		.longi	on
 .AddHex2:
 		pha
-		lsr 	a
+		lsr	a
 		lsr	a
 		lsr	a
 		lsr	a
@@ -1287,6 +1500,376 @@ Monitor:
 .AddChar:
 		sta	<CMD_BUF,x
 		inx
+		rts
+
+;-------------------------------------------------------------------------------
+
+		.longa	off
+		.longi	on
+.ShowBytes:
+		lda	[ADDR_S]
+		jsr	.OpcodeSize		; Get byte count
+		tax
+		ldy	#0
+		repeat
+		 jsr	.Space			; Show a byte
+		 lda	[ADDR_S],y
+		 jsr	.Hex2
+		 iny
+		 dex
+		until eq
+
+		repeat
+		 cpy	#4
+		 break eq
+		 iny
+		 jsr	.Space
+		 jsr	.Space
+		 jsr	.Space
+		forever
+		jmp	.Space
+
+		.longa	off
+		.longi	on
+.ShowSymbolic:
+		lda	[ADDR_S]		; Fetch the instruction
+		tax
+		lda	OPCODES,x		; Get opcode
+		tay
+
+		long_a
+		lda	MNEMONICS,y		; Get the mnemonic
+		pha
+		lsr	a
+		lsr	a
+		lsr	a
+		lsr	a
+		lsr	a
+		pha
+		lsr	a
+		lsr	a
+		lsr	a
+		lsr	a
+		lsr	a
+		jsr	.ExpandMnem		; And print it
+		pla
+		jsr	.ExpandMnem
+		pla
+		jsr	.ExpandMnem
+		short_a
+		jsr	.Space
+
+		lda	MODES,x			; Get the addressing mode
+		tax
+		jmp	(.MODE_SHOW,x)
+
+.MODE_SHOW:
+		.word	.Absolute		; a
+		.word	.Accumulator		; A
+		.word	.AbsoluteX		; a,x
+		.word	.AbsoluteY		; a,y
+		.word	.Long			; al
+		.word	.LongX			; al,x
+		.word	.AbsoluteIndirect	; (a)
+		.word	.AbsoluteXIndirect	; (a,x)
+		.word	.Direct			; d
+		.word	.Stack			; d,s
+		.word	.DirectX		; d,x
+		.word	.DirectY		; d,y
+		.word	.DirectIndirect		; (d)
+		.word	.DirectIndirectLong	; [d]
+		.word	.StackIndirectY		; (d,s),y
+		.word	.DirectXIndirect	; (d,x)
+		.word	.DirectIndirectY	; (d),y
+		.word	.DirectIndirectLongY	; [d],y
+		.word	.Implied		;
+		.word	.Relative		; r
+		.word	.RelativeLong		; rl
+		.word	.Move			; xyc
+		.word	.ImmediateM		; # (A & M)
+		.word	.ImmediateByte		; # (BRK/COP/WDM)
+		.word	.ImmediateX		; # (X or Y)
+
+.Accumulator:
+		lda	#'A'
+		jmp	.UartTx
+
+.ImmediateM:
+		lda	#M_FLAG
+		bit	<FLAGS
+		beq	.ImmediateWord
+		bra	.ImmediateByte
+
+.ImmediateX:
+		lda	#X_FLAG
+		bit	<FLAGS
+		beq	.ImmediateWord
+		bra	.ImmediateByte
+
+.Implied:
+		rts
+
+.Move:
+		lda	#'$'
+		jsr	.UartTx
+		ldy	#1
+		lda	[ADDR_S],Y
+		jsr	.Hex2
+		lda	#','
+		jsr	.UartTx
+		lda	#'$'
+		jsr	.UartTx
+		iny
+		lda	[ADDR_S],Y
+		jmp	.Hex2
+
+.ImmediateByte:
+		lda	#'#'
+		jsr	.UartTx
+		bra	.Direct
+
+.ImmediateWord:
+		lda	#'#'
+		jsr	.UartTx
+		bra	.Absolute
+
+.Stack:
+		jsr	.Direct
+		lda	#','
+		jsr	.UartTx
+		lda	#'S'
+		jmp	.UartTx
+
+.Direct:
+		lda	#'$'
+		jsr	.UartTx
+		ldy	#1
+		lda	[ADDR_S],Y
+		jmp	.Hex2
+
+.DirectX:
+		jsr	.Direct
+.X:		lda	#','
+		jsr	.UartTx
+		lda	#'X'
+		jmp	.UartTx
+
+.DirectY:
+		jsr	.Direct
+.Y:		lda	#','
+		jsr	.UartTx
+		lda	#'Y'
+		jmp	.UartTx
+
+.Absolute:
+		lda	#'$'
+		jsr	.UartTx
+		ldy	#2
+		lda	[ADDR_S],Y
+		jsr	.Hex2
+		dey
+		lda	[ADDR_S],Y
+		jmp	.Hex2
+
+.AbsoluteX:
+		jsr	.Absolute
+		bra	.X
+
+.AbsoluteY:
+		jsr	.Absolute
+		bra	.Y
+
+.Long:
+		lda	#'$'
+		jsr	.UartTx
+		ldy	#3
+		lda	[ADDR_S],Y
+		jsr	.Hex2
+		lda	#':'
+		jsr	.UartTx
+		dey
+		lda	[ADDR_S],Y
+		jsr	.Hex2
+		dey
+		lda	[ADDR_S],Y
+		jmp	.Hex2
+
+.LongX:
+		jsr	.Long
+		bra	.X
+
+.AbsoluteIndirect:
+		lda	#'('
+		jsr	.UartTx
+		jsr	.Absolute
+		lda	#')'
+		jmp	.UartTx
+
+.AbsoluteXIndirect:
+		lda	#'('
+		jsr	.UartTx
+		jsr	.AbsoluteX
+		lda	#')'
+		jmp	.UartTx
+
+.DirectIndirect:
+		lda	#'('
+		jsr	.UartTx
+		jsr	.Direct
+		lda	#')'
+		jmp	.UartTx
+
+.DirectXIndirect:
+		lda	#'('
+		jsr	.UartTx
+		jsr	.DirectX
+		lda	#')'
+		jmp	.UartTx
+
+.DirectIndirectY:
+		lda	#'('
+		jsr	.UartTx
+		jsr	.Direct
+		lda	#')'
+		jsr	.UartTx
+		jmp	.Y
+
+.DirectIndirectLong:
+		lda	#'['
+		jsr	.UartTx
+		jsr	.Direct
+		lda	#']'
+		jmp	.UartTx
+
+.DirectIndirectLongY:
+		jsr	.DirectIndirectLong
+		jmp	.Y
+
+.StackIndirectY:
+		lda	#'('
+		jsr	.UartTx
+		jsr	.Stack
+		lda	#')'
+		jsr	.UartTx
+		jmp	.Y
+
+.Relative:
+		ldx	<ADDR_S+1		; Work out next PC
+		lda	<ADDR_S+0
+		clc
+		adc	#2
+		bcc	$+3
+		inx
+
+		pha				; Add relative offset
+		ldy	#1
+		lda	[ADDR_S],y
+		bpl	$+3
+		dex
+		clc
+		adc	1,s
+		sta	1,s
+		bcc	$+3
+		inx
+		bra	.Addr
+
+.RelativeLong:
+		ldx	ADDR_S+1		; Work out next PC
+		lda	ADDR_S+0
+		clc
+		adc	#3
+		bcc	$+3
+		inx
+
+		clc				; Add relative offset
+		ldy	#1
+		adc	[ADDR_S],y
+		pha
+		iny
+		txa
+		adc	[ADDR_S],Y
+		tax
+
+.Addr:
+		lda	#'$'			; Print address
+		jsr	.UartTx
+		txa
+		jsr	.Hex2
+		pla
+		jmp	.Hex2
+
+
+
+		rts
+
+
+		.longa	on
+		.longi	on
+.ExpandMnem:
+		and	#$1f
+		clc
+		adc	#'@'
+		jmp	.UartTx
+
+		.longa	off
+		.longi	on
+.OpcodeSize:
+		lda	[ADDR_S]
+		tax
+		lda	MODES,x
+		tax
+		jmp	(.MODE_SIZE,x)
+
+.MODE_SIZE:
+		.word	.Size3			; a
+		.word	.Size1			; A
+		.word	.Size3			; a,x
+		.word	.Size3			; a,y
+		.word	.Size4			; al
+		.word	.Size4			; al,x
+		.word	.Size3			; (a)
+		.word	.Size3			; (a,x)
+		.word	.Size2			; d
+		.word	.Size2			; d,s
+		.word	.Size2			; d,x
+		.word	.Size2			; d,y
+		.word	.Size2			; (d)
+		.word	.Size2			; [d]
+		.word	.Size2			; (d,s),y
+		.word	.Size2			; (d,x)
+		.word	.Size2			; (d),y
+		.word	.Size2			; [d],y
+		.word	.Size1			;
+		.word	.Size2			; r
+		.word	.Size3			; rl
+		.word	.Size3			; xyc
+		.word	.TestM			; # (A & M)
+		.word	.Size2			; # (BRK/COP/WDM)
+		.word	.TestX			; # (X or Y)
+
+.TestM:
+		lda	#M_FLAG			; Is M bit set?
+		and	<FLAGS
+		beq	.Size3			; No, word
+		bra	.Size2			; else byte
+
+.TestX:
+		lda	#X_FLAG			; Is X bit set?
+		and	<FLAGS
+		beq	.Size3			; No, word
+		bra	.Size2			; else byte
+
+.Size1:
+		lda	#1
+		rts
+.Size2:
+		lda	#2
+		rts
+.Size3
+		lda	#3
+		rts
+.Size4:
+		lda	#4
 		rts
 
 ;-------------------------------------------------------------------------------
@@ -1375,13 +1958,13 @@ Monitor:
 
 .ToHex
 		and	#$0f			; Strip out the low nybble
-		sed	
+		sed
 		clc				; And convert using BCD
 		adc	#$90
 		adc	#$40
 		cld
 		rts
-		
+
 ;-------------------------------------------------------------------------------
 
 ; Transmit the character in A using the UART. Poll the UART to see if its
@@ -1391,6 +1974,39 @@ Monitor:
 .UartTx:
 		jsl	$00f000
 		rts
+
+; Receive a character from UART performing a polled wait for data to arrive.
+
+		.longa	?
+.UartRx:
+		jsl	>$00f003
+		rts
+	
+; If there are any characters in the UART RX buffer then check for an ESC and
+; return with carry set if it is,
+
+		.longa	off
+.Escape:
+		repeat
+		 jsl	>$00f006		; Is the buffer empty?
+		 cmp	#0
+		 break eq
+		 jsl	>$00f003		; .. No, fetch a character
+		 cmp	#ESC			; Test for escape
+		 if eq
+		  sec				; Signal stop.
+		  rts
+		 endif		 
+		forever
+		clc				; Continue output
+		rts
+
+; Output an openning bracket character.
+
+		.longa	off
+.Space:
+		lda	#' '
+		bra	.UartTx
 
 ; Output an openning bracket character.
 
@@ -1405,13 +2021,6 @@ Monitor:
 .CloseBracket:
 		lda	#']'
 		bra	.UartTx
-
-; Receive a character from UART performing a polled wait for data to arrive.
-
-		.longa	?
-.UartRx:
-		jsl	>$00f003
-		rts
 
 ;-------------------------------------------------------------------------------
 
@@ -1437,14 +2046,17 @@ Monitor:
 
 .StrHelp:
 		.byte	CR,LF,"Commands:"
-		.byte   CR,LF,"G [[xx:]xxxx]            - Execute or RESET"
-		.byte	CR,LF,"M [ss:]ssss [[ee:]eeee]  - Display memory"
-		.byte	CR,LF,"Q                        - Stop emulator"
-		.byte   CR,LF,"R                        - Show registers"
-		.byte	CR,LF,"S...                     - Load S28 record"
-		.byte	CR,LF,"W [ss:]ssss bb           - Write memory byte"
+		.byte	CR,LF,"B xx\t\t\t\t- Set default bank"
+		.byte	CR,LF,"D [ss:]ssss [[ee:]eeee]\t\t- Disassemble memory"
+		.byte	CR,LF,"F [ss:]ssss [ee:]eeee xx\t- Fill memory"
+		.byte	CR,LF,"G [[xx:]xxxx]\t\t\t- Execute or RESET"
+		.byte	CR,LF,"M [ss:]ssss [[ee:]eeee]\t\t- Display memory"
+		.byte	CR,LF,"Q\t\t\t\t- Stop emulator"
+		.byte	CR,LF,"R reg xx ..\t\t\t- Change/Show registers"
+		.byte	CR,LF,"S...\t\t\t\t- Load S28 record"
+		.byte	CR,LF,"W [ss:]ssss bb\t\t\t- Write memory byte"
 		.byte	0
-		
+
 ;-------------------------------------------------------------------------------
 
 OPCODES:
@@ -1575,7 +2187,7 @@ MODES:
 		.byte	MD_IMP,MD_IMM,MD_IMP,MD_IMP
 		.byte	MD_ABS,MD_ABS,MD_ABS,MD_ALG
 		.byte	MD_REL,MD_DIY,MD_DIN,MD_SKY	; F0
-		.byte	MD_IMP,MD_DPX,MD_DPX,MD_DLY
+		.byte	MD_ABS,MD_DPX,MD_DPX,MD_DLY
 		.byte	MD_IMP,MD_ABY,MD_IMP,MD_IMP
 		.byte	MD_AIX,MD_ABX,MD_ABX,MD_ALX
 
