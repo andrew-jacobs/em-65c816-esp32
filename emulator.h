@@ -310,8 +310,8 @@ protected:
 		al = (ah << 8) | al;
 		ah = al + 1;
 
-		eal = getWord(al, ah);
-		eah = 0;
+		eal = pbr.a | getWord(pbr.a | al, pbr.a | ah);
+		eah = eal + 1;
 		return (4);
 	}
 
@@ -326,8 +326,8 @@ protected:
 		al = (ah << 8) | al + x.w;
 		ah = al + 1;
 
-		eal = getWord(al, ah);
-		eah = 0;
+		eal = pbr.a | getWord(pbr.a | al, pbr.a | ah);
+		eah = eal + 1;
 		return (5);
 	}
 
