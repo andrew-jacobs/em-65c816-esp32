@@ -10,6 +10,8 @@ The emulator is written using the ESP32 Arduino framework so you will need a cop
 
 After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like [TeraTerm](https://osdn.net/projects/ttssh2/releases). The IDE's built in terinal terminal window is good for watching trace output but only allows sending lines of text terminated by a line feed ('\n');
 
+The monitor has no flow control so I recommend a 1mS inter-character delay and 10mS end of line delay when downloading S28 files with TeraTerm. I've included an S28 for my fibonacci printer in the 'code/demo1' folder.
+
 ## Emulator Details
 The emulator supports both the 65C816's emulation and native modes. It supports RESET, IRQ, BRK, COP and NMI interrupts in both modes (although there is no way to generate an NMI at the moment). All interrupts are vectored through their standard vector table locations (defined in the boot ROM).
 

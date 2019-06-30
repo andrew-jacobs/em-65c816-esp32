@@ -31,7 +31,7 @@
 
 //==============================================================================
 
-bool Trace::enabled = true;
+bool Trace::enabled = false;
 
 const char *Trace::toHex(uint32_t value, uint16_t digits)
 {

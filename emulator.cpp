@@ -58,13 +58,20 @@ const OpcodeSet *Registers::pOpcodeSet;
 
 void Emulator::setMode(void)
 {
-	if (e)
+	if (e) {
 		pOpcodeSet = &CpuModeE11::opcodeSet;
+		sp.h = 0x01;
+	}
 	else {
 		if (p.m)
 			pOpcodeSet = p.x ? &CpuModeN11::opcodeSet : &CpuModeN10::opcodeSet;
 		else
 			pOpcodeSet = p.x ? &CpuModeN01::opcodeSet : &CpuModeN00::opcodeSet;
+	}
+
+	if (e || p.x) {
+		x.w = x.l;
+		y.w = y.l;
 	}
 }
 

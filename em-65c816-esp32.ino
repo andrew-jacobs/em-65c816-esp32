@@ -178,6 +178,8 @@ uint8_t Common::op_wdm(uint32_t eal, uint32_t eah)
             c.l = u1rx.dequeue ();
             break;
         }
+
+    case 0x80:  Trace::enable (true); break;
     }
     return (3);
 }
