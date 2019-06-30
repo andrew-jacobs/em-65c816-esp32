@@ -1,0 +1,451 @@
+
+Portable 65xx Assembler [19.05]
+
+                             ;===============================================================================
+                             ; In the recent 'Grand Digital Computer Race' at The National Museum of Computers
+                             ; the two 6502 based machines, a BBC and Apple II only managed 70 and 38 values
+                             ; in 15 seconds -- I assume this is because it was coded in BASIC (Yuck!).
+                             ;
+                             ; We can do better. We must do better.
+                             ;
+                             ; This program works out values with up to 512 digits. On my laptop running in an
+                             ; emulator it generates 2542 results in in 0.382394 Secs with an overall CPU
+                             ; Frequency = 79.5137 Mhz. Scaled to the BBC's 2Mhz 6502 that would take 15.20
+                             ; Secs (approximately). A real BBC would be a bit slower as it has interrupts to
+                             ; handle and the I/O  would take longer but even so a more respectable ~2000
+                             ; values in 15 Secs should be possible. The Apple II will be around 50% of that
+                             ; as its clocked at 1MHz.
+                             ;
+                             ; All the real code is 6502 but I've used the WDM opcode in the emulator to
+                             ; produce output text (see UartTx) so I compile it as 65816 to enable it.
+                             ;
+                             ; Andrew Jacobs
+                             ; 2018-02-21
+                             ;-------------------------------------------------------------------------------
+
+                                             .65816
+
+                                             .include "../w65c816.inc"
+                             ;==============================================================================
+                             ; __        ____  ____   ____ ___  _  __
+                             ; \ \      / / /_| ___| / ___( _ )/ |/ /_
+                             ;  \ \ /\ / / '_ \___ \| |   / _ \| | '_ \
+                             ;   \ V  V /| (_) |__) | |__| (_) | | (_) |
+                             ;    \_/\_/  \___/____/ \____\___/|_|\___/
+                             ;
+                             ; Western Design Center W65C816 device definitions
+                             ;------------------------------------------------------------------------------
+                             ; Copyright (C)2015-2019 HandCoded Software Ltd.
+                             ; All rights reserved.
+                             ;
+                             ; This work is made available under the terms of the Creative Commons
+                             ; Attribution-NonCommercial-ShareAlike 4.0 International license. Open the
+                             ; following URL to see the details.
+                             ;
+                             ; http://creativecommons.org/licenses/by-nc-sa/4.0/
+                             ;
+                             ;===============================================================================
+                             ; Notes:
+                             ;
+                             ; Various macros and definitions for the W65C816 microprocessor.
+                             ;
+                             ;===============================================================================
+                             ; Revision History:
+                             ;
+                             ; 2015-12-18 AJ Initial version
+                             ;-------------------------------------------------------------------------------
+
+
+Portable 65xx Assembler [19.05]
+
+                             ;==============================================================================
+                             ; Status Register Bits
+                             ;------------------------------------------------------------------------------
+
+         00000080          = N_FLAG          .equ    1<<7
+         00000040          = V_FLAG          .equ    1<<6
+         00000020          = M_FLAG          .equ    1<<5
+         00000010          = X_FLAG          .equ    1<<4
+         00000010          = B_FLAG          .equ    1<<4
+         00000008          = D_FLAG          .equ    1<<3
+         00000004          = I_FLAG          .equ    1<<2
+         00000002          = Z_FLAG          .equ    1<<1
+         00000001          = C_FLAG          .equ    1<<0
+
+                             ;==============================================================================
+                             ; Macros
+                             ;------------------------------------------------------------------------------
+
+                             ; Puts the processor in emulation mode. A, X and Y become 8-bits and the stack
+                             ; is fixed at $0100-$01ff.
+
+                             emulate         .macro
+                                             sec
+                                             xce
+                                             .endm
+
+                             ; Puts the processor in native mode. The size of the memory and index register
+                             ; operations is not controlled by the M & X bits in the status register.
+
+                             native          .macro
+                                             clc
+                                             xce
+                                             .endm
+
+                             ; Resets the M bit making the accumulator and memory accesses 16-bits wide.
+
+                             long_a          .macro
+                                             rep     #M_FLAG
+                                             .longa  on
+                                             .endm
+
+                             ; Resets the X bit making the index registers 16-bits wide
+
+                             long_i          .macro
+                                             rep     #X_FLAG
+                                             .longi  on
+                                             .endm
+
+                             ; Resets the M and X bits making the accumulator, memory accesses and index
+                             ; registers 16-bits wide.
+
+                             long_ai         .macro
+                                             rep     #M_FLAG|X_FLAG
+                                             .longa  on
+
+Portable 65xx Assembler [19.05]
+
+                                             .longi  on
+                                             .endm
+
+                             ; Sets the M bit making the accumulator and memory accesses 8-bits wide.
+
+                             short_a         .macro
+                                             sep     #M_FLAG
+                                             .longa  off
+                                             .endm
+
+                             ; Sets the X bit making the index registers 8-bits wide.
+
+                             short_i         .macro
+                                             sep     #X_FLAG
+                                             .longi  off
+                                             .endm
+
+                             ; Sets the M & X bits making the accumulator, memory accesses and index
+                             ; registers 8-bits wide.
+
+                             short_ai        .macro
+                                             sep     #M_FLAG|X_FLAG
+                                             .longa  off
+                                             .longi  off
+                                             .endm
+
+                             ;===============================================================================
+                             ; Macros
+                             ;-------------------------------------------------------------------------------
+
+                             COMPUTE         .macro  NA,NB,NC,LA,LB,LC
+                                             ldx     #0
+                                             clc
+                                             repeat
+                                              txa                    ; Reached end of shorter number?
+                                              eor    <LA
+                                              if ne
+                                               lda   !NA,x           ; No.
+                                              endif
+                                              adc    !NB,x           ; Add digits (or zero + digit)
+                                              sta    !NC,x
+                                              inx
+                                              txa                    ; Reached end of longer number?
+                                              eor    <LB
+                                             until eq
+                                             if cs                   ; Has result extended the value?
+                                              lda    #1              ; Yes, add a 1 to the start
+                                              sta    !NC,x
+                                              inx
+                                             endif
+                                             stx     <LC             ; Save the new number length
+                                             .endm
+
+                             DISPLAY         .macro  NM,LN
+
+Portable 65xx Assembler [19.05]
+
+                                             repeat
+                                              lda    !NM-1,x         ; Fetch two digits
+                                              pha
+                                              lsr    a               ; Extract MS digits
+                                              lsr    a
+                                              lsr    a
+                                              lsr    a
+                                              if eq                  ; Leading zero?
+                                               cpx   <LN
+                                               beq   Skip\?  ; Yes, suppress it
+                                              endif
+                                              ora    #'0'
+                                              jsr    UartTx
+                             Skip\?:          pla                    ; Extract LS digit
+                                              and    #$0f
+                                              ora    #'0'
+                                              jsr    UartTx          ; And print
+                                              dex
+                                             until eq
+                                             lda     #10             ; Send CR/LF to output
+                                             jsr     UartTx`
+                                             .endm
+
+                             ;===============================================================================
+                             ; Workspace
+                             ;-------------------------------------------------------------------------------
+
+                                             .page0
+
+00:0000' 00                : LEN_A           .space  1
+00:0001' 00                : LEN_B           .space  1
+00:0002' 00                : LEN_C           .space  1
+
+                             ;===============================================================================
+                             ; Number workspaces (for 512 digits)
+                             ;-------------------------------------------------------------------------------
+
+                                             .bss
+
+00:0000' 0000000000000000> : NUM_A           .space  256
+00:0100' 0000000000000000> : NUM_B           .space  256
+00:0200' 0000000000000000> : NUM_C           .space  256
+
+                             ;===============================================================================
+                             ; The emulator expects the S28 to contain a ROM image so this is kicked off via
+                             ; the dummy reset vector.
+                             ;-------------------------------------------------------------------------------
+
+                                             .code
+
+                             Fibonacci:
+00:0000' 4B                :                 phk                     ; Ensure DBR == PBR
+00:0001' AB                :                 plb
+                                             short_ai
+
+Portable 65xx Assembler [19.05]
+
+00:0002' E230              +                 sep     #M_FLAG|X_FLAG
+                           +                 .longa  off
+                           +                 .longi  off
+
+00:0004' A201              :                 ldx     #1              ; Initialise number lengths
+00:0006' 86??              :                 stx     <LEN_A
+00:0008' 86??              :                 stx     <LEN_B
+00:000A' 86??              :                 stx     <LEN_C
+
+00:000C' A900              :                 lda     #0
+00:000E' 8D????            :                 sta     !NUM_A          ; Start with A = 0
+00:0011' 8E????            :                 stx     !NUM_B          ; .. and B = 1
+
+00:0014' F8                :                 sed                     ; Work in decimal mode
+
+                             ComputeLoop:
+                                             ; C = A + B
+
+                                             COMPUTE NUM_A,NUM_B,NUM_C,LEN_A,LEN_B,LEN_C
+00:0015' A200              +                 ldx     #0
+00:0017' 18                +                 clc
+                           +                 repeat
+00:0018' 8A                +                  txa                    ; Reached end of shorter number?
+00:0019' 45??              +                  eor    <LEN_A
+00:001B' F003              +                  if ne
+00:001D' BD????            +                   lda   !NUM_A,x                ; No.
+                           +                  endif
+00:0020' 7D????            +                  adc    !NUM_B,x                ; Add digits (or zero + digit)
+00:0023' 9D????            +                  sta    !NUM_C,x
+00:0026' E8                +                  inx
+00:0027' 8A                +                  txa                    ; Reached end of longer number?
+00:0028' 45??              +                  eor    <LEN_B
+00:002A' D0EC              +                 until eq
+00:002C' 9006              +                 if cs                   ; Has result extended the value?
+00:002E' A901              +                  lda    #1              ; Yes, add a 1 to the start
+00:0030' 9D????            +                  sta    !NUM_C,x
+00:0033' E8                +                  inx
+                           +                 endif
+00:0034' 86??              +                 stx     <LEN_C          ; Save the new number length
+00:0036' E000              :                 cpx     #0
+00:0038' D003              :                 if eq
+00:003A' 4C????            :                  jmp    AllDone         ; Result is over 512 digits
+                                             endif
+                                             DISPLAY NUM_C,LEN_C
+                           +                 repeat
+00:003D' BD????            +                  lda    !NUM_C-1,x              ; Fetch two digits
+00:0040' 48                +                  pha
+00:0041' 4A                +                  lsr    a               ; Extract MS digits
+00:0042' 4A                +                  lsr    a
+00:0043' 4A                +                  lsr    a
+00:0044' 4A                +                  lsr    a
+00:0045' D004              +                  if eq                  ; Leading zero?
+00:0047' E4??              +                   cpx   <LEN_C
+00:0049' F005              +                   beq   Skip3   ; Yes, suppress it
+
+Portable 65xx Assembler [19.05]
+
+                           +                  endif
+00:004B' 0930              +                  ora    #'0'
+00:004D' 20????            +                  jsr    UartTx
+00:0050' 68                + Skip3:           pla                    ; Extract LS digit
+00:0051' 290F              +                  and    #$0f
+00:0053' 0930              +                  ora    #'0'
+00:0055' 20????            +                  jsr    UartTx          ; And print
+00:0058' CA                +                  dex
+00:0059' D0E2              +                 until eq
+00:005B' A90A              +                 lda     #10             ; Send CR/LF to output
+00:005D' 20????            +                 jsr     UartTx`
+
+                                             ; A = B + C
+
+                                             COMPUTE NUM_B,NUM_C,NUM_A,LEN_B,LEN_C,LEN_A
+00:0060' A200              +                 ldx     #0
+00:0062' 18                +                 clc
+                           +                 repeat
+00:0063' 8A                +                  txa                    ; Reached end of shorter number?
+00:0064' 45??              +                  eor    <LEN_B
+00:0066' F003              +                  if ne
+00:0068' BD????            +                   lda   !NUM_B,x                ; No.
+                           +                  endif
+00:006B' 7D????            +                  adc    !NUM_C,x                ; Add digits (or zero + digit)
+00:006E' 9D????            +                  sta    !NUM_A,x
+00:0071' E8                +                  inx
+00:0072' 8A                +                  txa                    ; Reached end of longer number?
+00:0073' 45??              +                  eor    <LEN_C
+00:0075' D0EC              +                 until eq
+00:0077' 9006              +                 if cs                   ; Has result extended the value?
+00:0079' A901              +                  lda    #1              ; Yes, add a 1 to the start
+00:007B' 9D????            +                  sta    !NUM_A,x
+00:007E' E8                +                  inx
+                           +                 endif
+00:007F' 86??              +                 stx     <LEN_A          ; Save the new number length
+00:0081' E000              :                 cpx     #0
+00:0083' D003              :                 if eq
+00:0085' 4C????            :                  jmp    AllDone         ; Result is over 512 digits
+                                             endif
+                                             DISPLAY NUM_A,LEN_A
+                           +                 repeat
+00:0088' BD????            +                  lda    !NUM_A-1,x              ; Fetch two digits
+00:008B' 48                +                  pha
+00:008C' 4A                +                  lsr    a               ; Extract MS digits
+00:008D' 4A                +                  lsr    a
+00:008E' 4A                +                  lsr    a
+00:008F' 4A                +                  lsr    a
+00:0090' D004              +                  if eq                  ; Leading zero?
+00:0092' E4??              +                   cpx   <LEN_A
+00:0094' F005              +                   beq   Skip5   ; Yes, suppress it
+                           +                  endif
+00:0096' 0930              +                  ora    #'0'
+00:0098' 20????            +                  jsr    UartTx
+00:009B' 68                + Skip5:           pla                    ; Extract LS digit
+
+Portable 65xx Assembler [19.05]
+
+00:009C' 290F              +                  and    #$0f
+00:009E' 0930              +                  ora    #'0'
+00:00A0' 20????            +                  jsr    UartTx          ; And print
+00:00A3' CA                +                  dex
+00:00A4' D0E2              +                 until eq
+00:00A6' A90A              +                 lda     #10             ; Send CR/LF to output
+00:00A8' 20????            +                 jsr     UartTx`
+
+                                             ; B = C + A
+
+                                             COMPUTE NUM_C,NUM_A,NUM_B,LEN_C,LEN_A,LEN_B
+00:00AB' A200              +                 ldx     #0
+00:00AD' 18                +                 clc
+                           +                 repeat
+00:00AE' 8A                +                  txa                    ; Reached end of shorter number?
+00:00AF' 45??              +                  eor    <LEN_C
+00:00B1' F003              +                  if ne
+00:00B3' BD????            +                   lda   !NUM_C,x                ; No.
+                           +                  endif
+00:00B6' 7D????            +                  adc    !NUM_A,x                ; Add digits (or zero + digit)
+00:00B9' 9D????            +                  sta    !NUM_B,x
+00:00BC' E8                +                  inx
+00:00BD' 8A                +                  txa                    ; Reached end of longer number?
+00:00BE' 45??              +                  eor    <LEN_A
+00:00C0' D0EC              +                 until eq
+00:00C2' 9006              +                 if cs                   ; Has result extended the value?
+00:00C4' A901              +                  lda    #1              ; Yes, add a 1 to the start
+00:00C6' 9D????            +                  sta    !NUM_B,x
+00:00C9' E8                +                  inx
+                           +                 endif
+00:00CA' 86??              +                 stx     <LEN_B          ; Save the new number length
+00:00CC' E000              :                 cpx     #0
+00:00CE' D003              :                 if eq
+00:00D0' 4C????            :                  jmp    AllDone         ; Result is over 512 digits
+                                             endif
+                                             DISPLAY NUM_B,LEN_B
+                           +                 repeat
+00:00D3' BD????            +                  lda    !NUM_B-1,x              ; Fetch two digits
+00:00D6' 48                +                  pha
+00:00D7' 4A                +                  lsr    a               ; Extract MS digits
+00:00D8' 4A                +                  lsr    a
+00:00D9' 4A                +                  lsr    a
+00:00DA' 4A                +                  lsr    a
+00:00DB' D004              +                  if eq                  ; Leading zero?
+00:00DD' E4??              +                   cpx   <LEN_B
+00:00DF' F005              +                   beq   Skip7   ; Yes, suppress it
+                           +                  endif
+00:00E1' 0930              +                  ora    #'0'
+00:00E3' 20????            +                  jsr    UartTx
+00:00E6' 68                + Skip7:           pla                    ; Extract LS digit
+00:00E7' 290F              +                  and    #$0f
+00:00E9' 0930              +                  ora    #'0'
+00:00EB' 20????            +                  jsr    UartTx          ; And print
+00:00EE' CA                +                  dex
+
+Portable 65xx Assembler [19.05]
+
+00:00EF' D0E2              +                 until eq
+00:00F1' A90A              +                 lda     #10             ; Send CR/LF to output
+00:00F3' 20????            +                 jsr     UartTx`
+
+00:00F6' 4C????            :                 jmp     ComputeLoop
+
+                             UartTx:
+00:00F9' 2200F000          :                 jsl     >$00f000        ; Use emulator I/O
+00:00FD' 60                :                 rts
+
+                             AllDone:
+00:00FE' 00FF              :                 brk     #$ff            ; Re-enter the monitor
+00:0100' 4C????            :                 jmp     AllDone
+
+                                             .end
+
+
+Portable 65xx Assembler [19.05]
+
+Symbol Table
+
+AllDone                          000000FE' | Fibonacci                        00000000'
+B_FLAG                           00000010  | LEN_A                            00000000'
+C_FLAG                           00000001  | NUM_A                            00000000'
+ComputeLoop                      00000015' | __6501__                         00000000
+D_FLAG                           00000008  | __6502__                         00000000
+Fibonacci                        00000000' | __65832__                        00000000
+I_FLAG                           00000004  | __65C02__                        00000000
+LEN_A                            00000000' | __65SC02__                       00000000
+LEN_B                            00000001' | C_FLAG                           00000001
+LEN_C                            00000002' | LEN_B                            00000001'
+M_FLAG                           00000020  | __65816__                        00000001
+NUM_A                            00000000' | LEN_C                            00000002'
+NUM_B                            00000100' | Z_FLAG                           00000002
+NUM_C                            00000200' | I_FLAG                           00000004
+N_FLAG                           00000080  | D_FLAG                           00000008
+Skip3                            00000050' | B_FLAG                           00000010
+Skip5                            0000009B' | X_FLAG                           00000010
+Skip7                            000000E6' | ComputeLoop                      00000015'
+UartTx                           000000F9' | M_FLAG                           00000020
+V_FLAG                           00000040  | V_FLAG                           00000040
+X_FLAG                           00000010  | Skip3                            00000050'
+Z_FLAG                           00000002  | N_FLAG                           00000080
+__6501__                         00000000  | Skip5                            0000009B'
+__6502__                         00000000  | Skip7                            000000E6'
+__65816__                        00000001  | UartTx                           000000F9'
+__65832__                        00000000  | AllDone                          000000FE'
+__65C02__                        00000000  | NUM_B                            00000100'
+__65SC02__                       00000000  | NUM_C                            00000200'

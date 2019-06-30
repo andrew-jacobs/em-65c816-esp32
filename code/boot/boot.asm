@@ -129,9 +129,9 @@ RX_DATA:	.space	UART_BUFSIZ		; Uart receive buffer
 ;-------------------------------------------------------------------------------
 
 COPE:
-		rts
+		rti
 COPN:
-		rtl
+		rti
 
 ;===============================================================================
 ; Power On Reset
@@ -257,7 +257,7 @@ Uart1RxCount:
 		endif
 		plp				; Restore callers state
 		rtl
-		
+
 ;===============================================================================
 ; Interrupt Handlers
 ;-------------------------------------------------------------------------------
@@ -854,7 +854,7 @@ Monitor:
 		 jsr	.Print
 		 bra	.NewCommand
 		endif
-		
+
 ;-------------------------------------------------------------------------------
 ; Set Default Bank
 
@@ -900,13 +900,13 @@ Monitor:
 		  lda	[ADDR_S]
 		  pha
 		  ldy	#1
-		  
+
 		  cmp	#$18			; CLC?
 		  if eq
 		   lda	#C_FLAG
 		   bra	.DoREP
 		  endif
-		  
+
 		  cmp	#$38			; SEC?
 		  if eq
 		   lda	#C_FLAG
@@ -942,7 +942,7 @@ Monitor:
 ;-------------------------------------------------------------------------------
 ; Fill
 
-		cmp 	#'F'
+		cmp	#'F'
 		if eq
 		 jsr	.GetValue
 		 if cc
@@ -966,7 +966,7 @@ Monitor:
 		 endif
 		 jmp	.ShowError
 		endif
-		   
+
 ;-------------------------------------------------------------------------------
 ; Go
 
@@ -980,8 +980,6 @@ Monitor:
 		  lda	>$00fffd
 		  sta	<VALUE+1
 		  stz	<VALUE+2
-		  stz	<REG_DP+0		; Clear DP
-		  stz	<REG_DP+1
 		 endif
 
 		 sei
@@ -1003,6 +1001,8 @@ Monitor:
 		 pha
 		 lda	<REG_DP+0
 		 pha
+		 lda	<REG_DBR
+		 pha
 		 ldx	<REG_X			; Restore X, Y and C
 		 ldy	<REG_Y
 		 lda	<REG_C+1
@@ -1010,6 +1010,7 @@ Monitor:
 		 lda	<REG_C+0
 		 rol	<REG_E			; Restore CPU mode
 		 xce
+		 plb				; Pull DBR
 		 pld				; Pull DP
 		 rti				; And start execution
 		endif
@@ -1090,23 +1091,23 @@ Monitor:
 		 if eq
 		  jmp	.ShowRegisters		; Yes, show new state
 		 endif
-		  
-		 cmp 	#'A'			; Set A?
+
+		 cmp	#'A'			; Set A?
 		 if eq
 		  ldy	#REG_C-MON_PAGE
 		  bra	.SetByte
 		 endif
-		 cmp 	#'B'			; Set DBR?
+		 cmp	#'B'			; Set DBR?
 		 if eq
 		  ldy	#REG_DBR-MON_PAGE
 		  bra	.SetByte
 		 endif
-		 cmp 	#'C'			; Set C?
+		 cmp	#'C'			; Set C?
 		 if eq
 		  ldy	#REG_C-MON_PAGE
 		  bra	.SetWord
 		 endif
-		 cmp 	#'D'			; Set DP?
+		 cmp	#'D'			; Set DP?
 		 if eq
 		  ldy	#REG_DP-MON_PAGE
 		  bra	.SetWord
@@ -1121,11 +1122,11 @@ Monitor:
 		    inc <REG_SP+1
 		   endif
 		   ror	<REG_E
-		   bra  .SetRegister
+		   bra	.SetRegister
 		  endif
 		  jmp	.ShowError
 		 endif
-		 cmp 	#'P'			; Set flags?
+		 cmp	#'P'			; Set flags?
 		 if eq
 		  ldy	#REG_P-MON_PAGE+1
 .SetByte:
@@ -1140,17 +1141,17 @@ Monitor:
 		  endif#
 		  jmp	.ShowError
 		 endif
-		 cmp 	#'S'			; Set SP?
+		 cmp	#'S'			; Set SP?
 		 if eq
 		  ldy	#REG_SP-MON_PAGE
 		  bra	.SetWord
 		 endif
-		 cmp 	#'X'			; Set X?
+		 cmp	#'X'			; Set X?
 		 if eq
 		  ldy	#REG_X-MON_PAGE
 		  bra	.SetWord
 		 endif
-		 cmp 	#'Y'			; Set Y?
+		 cmp	#'Y'			; Set Y?
 		 if eq
 		  ldy	#REG_Y-MON_PAGE
 .SetWord:
@@ -1158,8 +1159,8 @@ Monitor:
 		  if cc
 		   phx
 		   tyx
-		   lda 	<VALUE+0
-		   sta 	<0,x
+		   lda	<VALUE+0
+		   sta	<0,x
 		   lda	<VALUE+1
 		   sta	<1,x
 		   plx
@@ -1167,7 +1168,7 @@ Monitor:
 		  endif
 		  jmp	.ShowError
 		 endif
-		  
+
 		 jmp	.ShowError		; Anything else is wrong
 		endif
 
@@ -1981,7 +1982,7 @@ Monitor:
 .UartRx:
 		jsl	>$00f003
 		rts
-	
+
 ; If there are any characters in the UART RX buffer then check for an ESC and
 ; return with carry set if it is,
 
@@ -1996,7 +1997,7 @@ Monitor:
 		 if eq
 		  sec				; Signal stop.
 		  rts
-		 endif		 
+		 endif
 		forever
 		clc				; Continue output
 		rts
