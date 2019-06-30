@@ -1,5 +1,5 @@
 # EM-65C816-ESP32
-This project contains the source code for a 65C816 emulator designed for ESP32 based modules and some supporting code to execute within it. Some of its feaures are incomplete (e.g. video, PS/2 support) and the emulator needs mode testing but it boots and runs simple programs so I thought I would make it available for other people to play with.
+This project contains the source code for a 65C816 emulator designed for ESP32 based modules and some supporting code to execute within it. Some of its feaures are incomplete (e.g. video, PS/2 support) and the emulator needs more testing but it boots and runs simple programs so I thought I would make it available for other people to play with.
 
 ## Required Hardware & Software
 To play with this project you will need an ESP32 module and a USB cable to connect it to a PC. Suitable modules are available on eBay for as little as £4 (direct from China) or a little more on stores like Amazon.
