@@ -8,7 +8,7 @@ To play with this project you will need an ESP32 module and a USB cable to conne
 
 The emulator is written using the ESP32 Arduino framework so you will need a copy of the Arduino IDE (I'm using version 1.8.9) to build it with the ESP32 addins (i.e. Add the path 'https://dl.espressif.com/dl/package_esp32_index.json' to the board manager list).
 
-After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like [TeraTerm](https://osdn.net/projects/ttssh2/releases). The IDE's built in terinal terminal window is good for watching trace output but only allows sending lines of text terminated by a line feed ('\n');
+After the ESP32 is programmed you might like to use a better terminal emulator to connect to it like [TeraTerm](https://osdn.net/projects/ttssh2/releases). The IDE's built in terminal window is good for watching trace output but only allows sending lines of text terminated by a line feed ('\n');
 
 The monitor has no flow control so I recommend a 1mS inter-character delay and 10mS end of line delay when downloading S28 files with TeraTerm. I've included an S28 for my fibonacci printer in the 'code/demo1' folder.
 
